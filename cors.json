@@ -2,9 +2,7 @@
     {
         "origin": [
             "http://localhost:4200/",
-            "http://localhost:4200/",
-            "https://tickets.enersis10.com/",
-            "https://tickets-management-web-edb8d.firebaseapp.com"
+            "https://inventario-ac-one.firebaseapp.com"
         ],
         "method": [
             "GET",

@@ -1,0 +1,21 @@
+<div class="app-layout">
+
+  <app-sidebar
+    [collapsed]="sidebarCollapsed"
+    (collapsedChange)="sidebarCollapsed = $event">
+  </app-sidebar>
+
+  <div class="main-wrapper">
+
+    <app-navbar
+      [collapsed]="sidebarCollapsed"
+      (collapsedChange)="sidebarCollapsed = $event">
+    </app-navbar>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>

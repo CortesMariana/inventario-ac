@@ -1,0 +1,58 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Detalle de cliente</h1>
+      <p class="page-sub">Información completa del cliente</p>
+    </div>
+    <div class="header-actions">
+      <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-text" (click)="volver()"></button>
+      <button pButton label="Editar" icon="pi pi-pencil" (click)="editar()"></button>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && cliente">
+
+    <div class="detalle-header">
+      <div class="avatar-grande">{{ cliente.nombre.charAt(0) }}</div>
+      <div>
+        <h2 class="cliente-nombre">{{ cliente.nombre }}</h2>
+        <p-tag
+          [value]="cliente.activo ? 'Activo' : 'Inactivo'"
+          [severity]="cliente.activo ? 'success' : 'danger'">
+        </p-tag>
+      </div>
+    </div>
+
+    <div class="info-grid">
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-id-card"></i> RFC</span>
+        <span class="info-value">{{ cliente.rfc }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-phone"></i> Teléfono</span>
+        <span class="info-value">{{ cliente.telefono }}</span>
+      </div>
+
+      <div class="info-item info-full">
+        <span class="info-label"><i class="pi pi-map-marker"></i> Dirección</span>
+        <span class="info-value">{{ cliente.direccion }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-percentage"></i> Descuento</span>
+        <span class="info-value">{{ cliente.descuento }}%</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Cargando cliente...</span>
+  </div>
+
+</div>

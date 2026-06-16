@@ -3,7 +3,7 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "tickets-management": {  
+        "inventario-ac": {  
             "projectType": "application",
             "schematics": {
                 "@schematics/angular:component": {
@@ -17,7 +17,7 @@
                 "build": {
                     "builder": "@angular-devkit/build-angular:browser",
                     "options": {
-                        "outputPath": "dist/tickets-management",  
+                        "outputPath": "dist/inventario-ac",  
                         "index": "src/index.html",
                         "main": "src/main.ts",
                         "polyfills": ["zone.js"],
@@ -33,7 +33,6 @@
                             }
                         ],
                         "styles": [
-                            "node_modules/leaflet/dist/leaflet.css",
                             "node_modules/primeng/resources/themes/lara-light-blue/theme.css",
                             "node_modules/primeng/resources/primeng.min.css",
                             "node_modules/primeicons/primeicons.css",
@@ -79,10 +78,10 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "tickets-management:build:production"  
+                            "buildTarget": "inventario-ac:build:production"  
                         },
                         "development": {
-                            "buildTarget": "tickets-management:build:development"  
+                            "buildTarget": "inventario-ac:build:development"  
                         }
                     },
                     "defaultConfiguration": "development"
@@ -90,7 +89,7 @@
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                        "buildTarget": "tickets-management:build"
+                        "buildTarget": "inventario-ac:build"
                     }
                 },
                 "test": {

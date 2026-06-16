@@ -1,0 +1,135 @@
+.navbar {
+  height: 52px;
+  background: #ffffff;
+  border-bottom: 0.5px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 0.5px solid #e5e7eb;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+
+  i { font-size: 15px; color: #6b7280; }
+  &:hover { background: #f3f4f6; }
+}
+
+.badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.breadcrumb {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+
+  .breadcrumb-parent { color: #6b7280; }
+  i { font-size: 11px; color: #9ca3af; }
+  .breadcrumb-current { color: #111827; font-weight: 500; }
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sucursal-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: var(--accent-light);
+  border: 0.5px solid var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-light-text);
+
+  i { font-size: 12px; }
+}
+
+.theme-panel-title {
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i { color: var(--accent); }
+}
+
+.theme-body {
+  padding: 8px 0;
+}
+
+.theme-section {
+  margin-bottom: 24px;
+}
+
+.theme-label {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.accent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+
+  &:hover { transform: scale(1.08); }
+  &.selected { border-color: #111827; }
+}
+
+.sidebar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.sidebar-swatch {
+  height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s;
+
+  span { font-size: 11px; font-weight: 500; }
+  &:hover { opacity: 0.85; }
+  &.selected { border-color: #111827; }
+}

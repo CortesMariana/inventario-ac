@@ -1,0 +1,79 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ editMode ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+      <p class="page-sub">{{ editMode ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema' }}</p>
+    </div>
+    <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
+  </div>
+
+  <div class="card">
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Nombre completo *</label>
+          <input pInputText formControlName="nombre" placeholder="Ej. Juan Pérez" />
+          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
+          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+        </div>
+
+        <div class="field">
+          <label>Correo electrónico *</label>
+          <input pInputText formControlName="email" placeholder="correo@ejemplo.com" [attr.disabled]="editMode ? true : null" />
+          <small class="error" *ngIf="f['email'].touched && f['email'].hasError('required')">Campo requerido</small>
+          <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
+        </div>
+
+        <div class="field" *ngIf="!editMode">
+          <label>Contraseña *</label>
+          <p-password
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+            [toggleMask]="true"
+            [feedback]="true">
+          </p-password>
+          <small class="error" *ngIf="f['password'].touched && f['password'].hasError('required')">Campo requerido</small>
+          <small class="error" *ngIf="f['password'].touched && f['password'].hasError('minlength')">Mínimo 6 caracteres</small>
+        </div>
+
+        <div class="field">
+          <label>Rol *</label>
+          <p-dropdown
+            formControlName="rol"
+            [options]="roles"
+            placeholder="Selecciona un rol">
+          </p-dropdown>
+          <small class="error" *ngIf="f['rol'].touched && f['rol'].hasError('required')">Campo requerido</small>
+        </div>
+
+        <div class="field">
+          <label>Sucursal</label>
+          <p-dropdown
+            formControlName="sucursalId"
+            [options]="sucursales"
+            placeholder="Selecciona una sucursal"
+            (onChange)="onSucursalChange($event)">
+          </p-dropdown>
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <button
+          pButton
+          type="submit"
+          [label]="editMode ? 'Guardar cambios' : 'Crear usuario'"
+          icon="pi pi-check"
+          [loading]="loading">
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

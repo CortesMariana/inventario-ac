@@ -1,0 +1,129 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Nuevo pedido</h1>
+      <p class="page-sub">Genera un pedido con validación de stock en tiempo real</p>
+    </div>
+    <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+
+    <div class="grid-form">
+
+      <!-- Datos del pedido -->
+      <div class="card">
+        <div class="card-title">Datos del pedido</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Cliente *</label>
+            <p-dropdown
+              formControlName="clienteId"
+              [options]="clientes"
+              placeholder="Selecciona un cliente"
+              [filter]="true"
+              filterPlaceholder="Buscar cliente"
+              (onChange)="onClienteChange($event)">
+            </p-dropdown>
+            <small class="error" *ngIf="f['clienteId'].touched && f['clienteId'].hasError('required')">Campo requerido</small>
+          </div>
+
+          <div class="field">
+            <label>Sucursal *</label>
+            <p-dropdown
+              formControlName="sucursalId"
+              [options]="sucursales"
+              placeholder="Selecciona una sucursal">
+            </p-dropdown>
+            <small class="error" *ngIf="f['sucursalId'].touched && f['sucursalId'].hasError('required')">Campo requerido</small>
+          </div>
+        </div>
+
+        <!-- Info cliente seleccionado -->
+        <div class="cliente-info" *ngIf="clienteSeleccionado">
+          <div class="cliente-info-item">
+            <span class="info-label">RFC</span>
+            <span class="info-value">{{ clienteSeleccionado.rfc }}</span>
+          </div>
+          <div class="cliente-info-item">
+            <span class="info-label">Descuento</span>
+            <span class="info-value descuento-badge">{{ clienteSeleccionado.descuento }}%</span>
+          </div>
+          <div class="cliente-info-item">
+            <span class="info-label">Dirección</span>
+            <span class="info-value">{{ clienteSeleccionado.direccion }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen -->
+      <div class="card resumen-card">
+        <div class="card-title">Resumen</div>
+        <div class="resumen-financiero">
+          <div class="resumen-row">
+            <span>Subtotal</span>
+            <span>${{ calcularSubtotal() | number:'1.0-0' }}</span>
+          </div>
+          <div class="resumen-row descuento" *ngIf="clienteSeleccionado?.descuento > 0">
+            <span>Descuento ({{ clienteSeleccionado?.descuento }}%)</span>
+            <span>-${{ calcularDescuento() | number:'1.0-0' }}</span>
+          </div>
+          <div class="resumen-row total">
+            <span>Total</span>
+            <span class="total-valor">${{ calcularTotal() | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        <button pButton type="submit" label="Crear pedido" icon="pi pi-check" [loading]="loading" class="btn-crear"></button>
+      </div>
+
+    </div>
+
+    <!-- Productos -->
+    <div class="card mt">
+      <div class="productos-header">
+        <span class="card-title">Productos</span>
+        <button pButton type="button" label="Agregar producto" icon="pi pi-plus" class="p-button-outlined p-button-sm" (click)="agregarProducto()"></button>
+      </div>
+
+      <div class="empty-productos" *ngIf="productosArray.length === 0">
+        <i class="pi pi-shopping-cart"></i>
+        <span>Agrega productos al pedido</span>
+      </div>
+
+      <div formArrayName="productos">
+        <div class="producto-row" *ngFor="let ctrl of productosArray.controls; let i = index" [formGroupName]="i">
+          <div class="field producto-field">
+            <p-dropdown
+              formControlName="producto"
+              [options]="productos"
+              placeholder="Selecciona un producto"
+              [filter]="true"
+              filterPlaceholder="Buscar producto">
+            </p-dropdown>
+          </div>
+          <div class="field cantidad-field">
+            <p-inputNumber
+              formControlName="cantidad"
+              [min]="1"
+              [showButtons]="true"
+              buttonLayout="horizontal"
+              decrementButtonClass="p-button-text"
+              incrementButtonClass="p-button-text">
+            </p-inputNumber>
+          </div>
+          <div class="subtotal-producto">
+            <span>${{ (ctrl.get('producto')?.value?.precioVenta ?? 0) * (ctrl.get('cantidad')?.value ?? 0) | number:'1.0-0' }}</span>
+          </div>
+          <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger p-button-sm" (click)="eliminarProducto(i)"></button>
+        </div>
+      </div>
+
+    </div>
+
+  </form>
+
+</div>

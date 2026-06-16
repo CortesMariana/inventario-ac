@@ -1,0 +1,54 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Detalle de inventario</h1>
+      <p class="page-sub">Stock del producto por sucursal</p>
+    </div>
+    <div class="header-actions">
+      <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-text" (click)="volver()"></button>
+      <button pButton label="Editar stock" icon="pi pi-pencil" (click)="editar()"></button>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading && item">
+
+    <div class="detalle-header">
+      <div class="producto-icon">
+        <i class="pi pi-box"></i>
+      </div>
+      <div>
+        <h2 class="producto-nombre">{{ item.nombreProducto }}</h2>
+        <p-tag [value]="getStockLabel()" [severity]="getStockSeverity()"></p-tag>
+      </div>
+    </div>
+
+    <div class="info-grid">
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-map-marker"></i> Sucursal</span>
+        <span class="info-value">{{ item.sucursal }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-hashtag"></i> Stock actual</span>
+        <span class="info-value stock-grande" [class.stock-cero]="item.stock === 0">
+          {{ item.stock }} unidades
+        </span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-exclamation-triangle"></i> Stock mínimo</span>
+        <span class="info-value">{{ item.stockMinimo }} unidades</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Cargando...</span>
+  </div>
+
+</div>

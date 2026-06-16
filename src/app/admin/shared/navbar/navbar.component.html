@@ -1,0 +1,79 @@
+<header class="navbar">
+
+  <button class="icon-btn" (click)="toggleSidebar()" aria-label="Colapsar menú">
+    <i class="pi pi-bars"></i>
+  </button>
+
+  <nav class="breadcrumb" aria-label="Ruta de navegación">
+    <span class="breadcrumb-parent">Reportes</span>
+    <i class="pi pi-angle-right"></i>
+    <span class="breadcrumb-current">Dashboard</span>
+  </nav>
+
+  <div class="navbar-actions">
+
+    <div class="sucursal-pill">
+      <i class="pi pi-map-marker"></i>
+      <span>Sucursal León</span>
+    </div>
+
+    <button class="icon-btn" aria-label="Notificaciones">
+      <i class="pi pi-bell"></i>
+      <span class="badge"></span>
+    </button>
+
+    <button class="icon-btn" (click)="toggleThemePanel()" aria-label="Personalizar tema">
+      <i class="pi pi-palette"></i>
+    </button>
+
+  </div>
+</header>
+
+<!-- Panel de personalización -->
+<p-sidebar
+  [(visible)]="themeVisible"
+  position="right"
+  [style]="{ width: '240px' }"
+  [showCloseIcon]="true">
+
+  <ng-template pTemplate="header">
+    <span class="theme-panel-title">
+      <i class="pi pi-palette"></i> Personalizar tema
+    </span>
+  </ng-template>
+
+  <div class="theme-body">
+
+    <div class="theme-section">
+      <p class="theme-label">Color de acento</p>
+      <div class="accent-grid">
+        <div
+          *ngFor="let a of accents"
+          class="color-swatch"
+          [class.selected]="selectedAccent.name === a.name"
+          [style.background]="a.accent"
+          [title]="a.name"
+          (click)="applyAccent(a)">
+        </div>
+      </div>
+    </div>
+
+    <div class="theme-section">
+      <p class="theme-label">Color del sidebar</p>
+      <div class="sidebar-grid">
+        <div
+          *ngFor="let s of sidebarThemes"
+          class="sidebar-swatch"
+          [class.selected]="selectedSidebar.name === s.name"
+          [style.background]="s.bg"
+          [title]="s.name"
+          (click)="applySidebar(s)">
+          <span [style.color]="s.bg === '#FFFFFF' ? '#374151' : 'rgba(255,255,255,0.8)'">
+            {{ s.name }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</p-sidebar>

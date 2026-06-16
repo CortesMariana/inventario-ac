@@ -1,0 +1,124 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub">Resumen general de operaciones</p>
+  </div>
+
+  <!-- Skeleton loader -->
+  <ng-container *ngIf="loading">
+    <div class="kpi-grid">
+      <div class="kpi-card skeleton" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+  </ng-container>
+
+  <!-- Contenido -->
+  <ng-container *ngIf="!loading">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Clientes activos</span>
+          <span class="kpi-value">{{ kpis.totalClientes }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-box"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Productos en stock</span>
+          <span class="kpi-value">{{ kpis.totalProductos }}</span>
+          <span class="kpi-sub kpi-down" *ngIf="kpis.productosEnAlerta.length > 0">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ kpis.productosEnAlerta.length }} en alerta
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-file-edit"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Pedidos del mes</span>
+          <span class="kpi-value">{{ kpis.totalPedidosMes }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-dollar"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Valor en almacén</span>
+          <span class="kpi-value">{{ formatValor(kpis.valorAlmacen) }}</span>
+          <span class="kpi-sub text-muted">4 sucursales</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid inferior -->
+    <div class="grid-row">
+
+      <!-- Últimos pedidos -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Últimos pedidos</span>
+          <a class="card-action" routerLink="/admin/pedidos">Ver todos</a>
+        </div>
+
+        <div class="table-head">
+          <span>Cliente</span>
+          <span>Productos</span>
+          <span>Total</span>
+          <span>Estado</span>
+        </div>
+
+        <div class="table-row" *ngFor="let pedido of kpis.ultimosPedidos">
+          <span>{{ pedido.clienteNombre }}</span>
+          <span>{{ pedido.totalProductos }} pzas</span>
+          <span>${{ pedido.total | number:'1.0-0' }}</span>
+          <span class="pill" [ngClass]="getEstadoClass(pedido.estado)">
+            {{ getEstadoLabel(pedido.estado) }}
+          </span>
+        </div>
+
+        <div class="empty-state" *ngIf="kpis.ultimosPedidos.length === 0">
+          <i class="pi pi-inbox"></i>
+          <span>Sin pedidos este mes</span>
+        </div>
+      </div>
+
+      <!-- Alertas de stock -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Alertas de stock</span>
+          <a class="card-action" routerLink="/admin/inventario">Ver inventario</a>
+        </div>
+
+        <div class="alert-item" *ngFor="let alerta of kpis.productosEnAlerta">
+          <div class="alert-dot" [ngClass]="getAlertaClass(alerta.stock)"></div>
+          <div class="alert-info">
+            <span class="alert-text">{{ alerta.nombreProducto }}</span>
+            <span class="alert-sub">{{ alerta.sucursal }} — {{ alerta.stock }} unidades</span>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="kpis.productosEnAlerta.length === 0">
+          <i class="pi pi-check-circle"></i>
+          <span>Sin alertas de stock</span>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+</div>

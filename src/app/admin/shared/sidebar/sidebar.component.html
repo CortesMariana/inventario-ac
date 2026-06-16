@@ -1,0 +1,28 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <i class="pi pi-building"></i>
+    </div>
+    <span class="logo-text">Inventario AC</span>
+  </div>
+
+  <nav class="nav-section">
+    <ng-container *ngFor="let section of navSections">
+      <div class="nav-label">{{ section.label }}</div>
+      <a *ngFor="let item of section.items" class="nav-item" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="activeOptions">
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    </ng-container>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="avatar">MC</div>
+    <div class="user-info">
+      <div class="user-name">Mariana Cortés</div>
+      <div class="user-role">Administrador</div>
+    </div>
+  </div>
+
+</aside>

@@ -1,0 +1,84 @@
+<div class="page">
+
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Clientes</h1>
+      <p class="page-sub">Gestión de clientes registrados</p>
+    </div>
+    <button pButton label="Nuevo cliente" icon="pi pi-plus" (click)="nuevo()"></button>
+  </div>
+
+  <div class="card">
+    <p-table
+      [value]="clientes"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [globalFilterFields]="['nombre', 'rfc', 'telefono']"
+      dataKey="id"
+      styleClass="p-datatable-sm"
+      #dt>
+
+      <ng-template pTemplate="caption">
+        <div class="table-caption">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar cliente..."
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+          <th pSortableColumn="rfc">RFC <p-sortIcon field="rfc"></p-sortIcon></th>
+          <th>Teléfono</th>
+          <th pSortableColumn="descuento">Descuento <p-sortIcon field="descuento"></p-sortIcon></th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-cliente>
+        <tr>
+          <td>{{ cliente.nombre }}</td>
+          <td>{{ cliente.rfc }}</td>
+          <td>{{ cliente.telefono }}</td>
+          <td>{{ cliente.descuento }}%</td>
+          <td>
+            <p-tag
+              [value]="cliente.activo ? 'Activo' : 'Inactivo'"
+              [severity]="cliente.activo ? 'success' : 'danger'">
+            </p-tag>
+          </td>
+          <td>
+            <div class="actions">
+              <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" (click)="verDetalle(cliente.id)" pTooltip="Ver detalle"></button>
+              <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(cliente.id)" pTooltip="Editar"></button>
+              <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="confirmarEliminar(cliente)" pTooltip="Eliminar"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="empty-state">
+            <i class="pi pi-users"></i>
+            <span>No hay clientes registrados</span>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+</div>

@@ -1,0 +1,113 @@
+<div class="page">
+
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Usuarios</h1>
+      <p class="page-sub">Gestión de usuarios y roles del sistema</p>
+    </div>
+    <button pButton label="Nuevo usuario" icon="pi pi-plus" (click)="nuevo()"></button>
+  </div>
+
+  <div class="card">
+    <p-table
+      [value]="usuarios"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [globalFilterFields]="['nombre', 'email', 'rol', 'sucursal']"
+      dataKey="id"
+      styleClass="p-datatable-sm"
+      #dt>
+
+      <ng-template pTemplate="caption">
+        <div class="table-caption">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar usuario..."
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="nombre">Usuario <p-sortIcon field="nombre"></p-sortIcon></th>
+          <th pSortableColumn="rol">Rol <p-sortIcon field="rol"></p-sortIcon></th>
+          <th>Sucursal</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-usuario>
+        <tr>
+          <td>
+            <div class="usuario-cell">
+              <div class="avatar-sm">{{ usuario.nombre.charAt(0) }}</div>
+              <div>
+                <span class="usuario-nombre">{{ usuario.nombre }}</span>
+                <span class="usuario-email">{{ usuario.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="roles[usuario.rol]"
+              [severity]="getRolSeverity(usuario.rol)">
+            </p-tag>
+          </td>
+          <td>{{ usuario.sucursal ?? '—' }}</td>
+          <td>
+            <p-tag
+              [value]="usuario.activo ? 'Activo' : 'Inactivo'"
+              [severity]="usuario.activo ? 'success' : 'danger'">
+            </p-tag>
+          </td>
+          <td>
+            <div class="actions">
+              <button
+                pButton icon="pi pi-pencil"
+                class="p-button-text p-button-sm"
+                (click)="editar(usuario.id)"
+                pTooltip="Editar">
+              </button>
+              <button
+                pButton
+                [icon]="usuario.activo ? 'pi pi-ban' : 'pi pi-check-circle'"
+                class="p-button-text p-button-sm"
+                [class.p-button-warning]="usuario.activo"
+                [class.p-button-success]="!usuario.activo"
+                (click)="toggleActivo(usuario)"
+                [pTooltip]="usuario.activo ? 'Desactivar' : 'Activar'">
+              </button>
+              <button
+                pButton icon="pi pi-trash"
+                class="p-button-text p-button-sm p-button-danger"
+                (click)="confirmarEliminar(usuario)"
+                pTooltip="Eliminar">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="empty-state">
+            <i class="pi pi-users"></i>
+            <span>No hay usuarios registrados</span>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+</div>

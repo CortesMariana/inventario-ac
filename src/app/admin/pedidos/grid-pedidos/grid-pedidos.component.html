@@ -1,0 +1,106 @@
+<div class="page">
+
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pedidos</h1>
+      <p class="page-sub">Gestión de pedidos y órdenes</p>
+    </div>
+    <button pButton label="Nuevo pedido" icon="pi pi-plus" (click)="nuevo()"></button>
+  </div>
+
+  <div class="card">
+    <p-table
+      [value]="pedidos"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [globalFilterFields]="['clienteNombre', 'sucursal', 'estado']"
+      dataKey="id"
+      styleClass="p-datatable-sm"
+      #dt>
+
+      <ng-template pTemplate="caption">
+        <div class="table-caption">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar pedido..."
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="clienteNombre">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
+          <th pSortableColumn="sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
+          <th>Productos</th>
+          <th pSortableColumn="total">Total <p-sortIcon field="total"></p-sortIcon></th>
+          <th pSortableColumn="estado">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-pedido>
+        <tr>
+          <td>
+            <div class="cliente-cell">
+              <span class="cliente-nombre">{{ pedido.clienteNombre }}</span>
+              <span class="cliente-rfc">{{ pedido.clienteRfc }}</span>
+            </div>
+          </td>
+          <td>{{ pedido.sucursal }}</td>
+          <td>{{ pedido.totalProductos }} pzas</td>
+          <td>
+            <div class="total-cell">
+              <span class="total-valor">${{ pedido.total | number:'1.0-0' }}</span>
+              <span class="descuento-label" *ngIf="pedido.descuentoCliente > 0">
+                -{{ pedido.descuentoCliente }}% desc.
+              </span>
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="getEstadoLabel(pedido.estado)"
+              [severity]="getEstadoSeverity(pedido.estado)">
+            </p-tag>
+          </td>
+          <td>
+            <div class="actions">
+              <button
+                pButton icon="pi pi-eye"
+                class="p-button-text p-button-sm"
+                (click)="verDetalle(pedido.id)"
+                pTooltip="Ver detalle">
+              </button>
+              <button
+                pButton icon="pi pi-times"
+                class="p-button-text p-button-sm p-button-danger"
+                (click)="confirmarCancelar(pedido)"
+                pTooltip="Cancelar pedido"
+                [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="empty-state">
+            <i class="pi pi-file-edit"></i>
+            <span>No hay pedidos registrados</span>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+</div>

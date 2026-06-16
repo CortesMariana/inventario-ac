@@ -1,0 +1,62 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ editMode ? 'Editar stock' : 'Nuevo producto en inventario' }}</h1>
+      <p class="page-sub">{{ editMode ? 'Modifica el stock del producto' : 'Agrega un producto al inventario de una sucursal' }}</p>
+    </div>
+    <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
+  </div>
+
+  <div class="card">
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Nombre del producto *</label>
+          <input pInputText formControlName="nombreProducto" placeholder="Ej. Ácido sulfúrico 98%" />
+          <small class="error" *ngIf="f['nombreProducto'].touched && f['nombreProducto'].hasError('required')">Campo requerido</small>
+        </div>
+
+        <div class="field">
+          <label>ID del producto *</label>
+          <input pInputText formControlName="productoId" placeholder="ID de Firestore" />
+          <small class="error" *ngIf="f['productoId'].touched && f['productoId'].hasError('required')">Campo requerido</small>
+        </div>
+
+        <div class="field">
+          <label>Sucursal *</label>
+          <p-dropdown
+            formControlName="sucursalId"
+            [options]="sucursales"
+            placeholder="Selecciona una sucursal"
+            (onChange)="onSucursalChange($event)">
+          </p-dropdown>
+          <small class="error" *ngIf="f['sucursalId'].touched && f['sucursalId'].hasError('required')">Campo requerido</small>
+        </div>
+
+        <div class="field">
+          <label>Stock actual *</label>
+          <input pInputText type="number" formControlName="stock" placeholder="0" min="0" />
+          <small class="error" *ngIf="f['stock'].touched && f['stock'].hasError('min')">No puede ser negativo</small>
+        </div>
+
+        <div class="field">
+          <label>Stock mínimo *</label>
+          <input pInputText type="number" formControlName="stockMinimo" placeholder="5" min="0" />
+          <small class="error" *ngIf="f['stockMinimo'].touched && f['stockMinimo'].hasError('min')">No puede ser negativo</small>
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <button pButton type="submit" [label]="editMode ? 'Guardar cambios' : 'Agregar al inventario'" icon="pi pi-check" [loading]="loading"></button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

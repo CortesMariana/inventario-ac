@@ -1,0 +1,56 @@
+<div class="login-wrapper">
+
+  <p-toast></p-toast>
+
+  <div class="login-card">
+
+    <div class="login-header">
+      <div class="login-logo">
+        <i class="pi pi-warehouse"></i>
+      </div>
+      <h1 class="login-title">Inventario AC</h1>
+      <p class="login-sub">Inicia sesión para continuar</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="login()">
+
+      <div class="field">
+        <label>Correo electrónico</label>
+        <span class="p-input-icon-left input-wrapper">
+          <i class="pi pi-envelope"></i>
+          <input
+            pInputText
+            formControlName="email"
+            placeholder="correo@ejemplo.com"
+            type="email" />
+        </span>
+        <small class="error" *ngIf="f['email'].touched && f['email'].hasError('required')">Campo requerido</small>
+        <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
+      </div>
+
+      <div class="field">
+        <label>Contraseña</label>
+        <p-password
+          formControlName="password"
+          placeholder="Tu contraseña"
+          [toggleMask]="true"
+          [feedback]="false">
+        </p-password>
+        <small class="error" *ngIf="f['password'].touched && f['password'].hasError('required')">Campo requerido</small>
+        <small class="error" *ngIf="f['password'].touched && f['password'].hasError('minlength')">Mínimo 6 caracteres</small>
+      </div>
+
+      <button
+        pButton
+        type="submit"
+        label="Iniciar sesión"
+        icon="pi pi-sign-in"
+        [loading]="loading"
+        class="btn-login">
+      </button>
+
+    </form>
+
+  </div>
+
+</div>

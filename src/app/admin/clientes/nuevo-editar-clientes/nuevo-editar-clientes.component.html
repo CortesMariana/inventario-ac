@@ -1,0 +1,61 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ editMode ? 'Editar cliente' : 'Nuevo cliente' }}</h1>
+      <p class="page-sub">{{ editMode ? 'Modifica los datos del cliente' : 'Registra un nuevo cliente' }}</p>
+    </div>
+    <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
+  </div>
+
+  <div class="card">
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Nombre completo *</label>
+          <input pInputText formControlName="nombre" placeholder="Ej. Simón Química S.A." />
+          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
+          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+        </div>
+
+        <div class="field">
+          <label>RFC *</label>
+          <input pInputText formControlName="rfc" placeholder="Ej. XAXX010101000" />
+          <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('required')">Campo requerido</small>
+          <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('pattern')">RFC inválido</small>
+        </div>
+
+        <div class="field field-full">
+          <label>Dirección *</label>
+          <input pInputText formControlName="direccion" placeholder="Calle, número, colonia, ciudad" />
+          <small class="error" *ngIf="f['direccion'].touched && f['direccion'].hasError('required')">Campo requerido</small>
+        </div>
+
+        <div class="field">
+          <label>Teléfono *</label>
+          <input pInputText formControlName="telefono" placeholder="10 dígitos" maxlength="10" />
+          <small class="error" *ngIf="f['telefono'].touched && f['telefono'].hasError('required')">Campo requerido</small>
+          <small class="error" *ngIf="f['telefono'].touched && f['telefono'].hasError('pattern')">Debe tener 10 dígitos</small>
+        </div>
+
+        <div class="field">
+          <label>Descuento (%)</label>
+          <input pInputText type="number" formControlName="descuento" placeholder="0" min="0" max="100" />
+          <small class="error" *ngIf="f['descuento'].touched && f['descuento'].hasError('min')">Mínimo 0%</small>
+          <small class="error" *ngIf="f['descuento'].touched && f['descuento'].hasError('max')">Máximo 100%</small>
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <button pButton type="submit" [label]="editMode ? 'Guardar cambios' : 'Crear cliente'" icon="pi pi-check" [loading]="loading"></button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

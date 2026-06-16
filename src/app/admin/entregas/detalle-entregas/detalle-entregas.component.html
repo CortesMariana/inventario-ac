@@ -1,0 +1,78 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Detalle de entrega</h1>
+      <p class="page-sub">Trazabilidad completa del despacho</p>
+    </div>
+    <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-text" (click)="volver()"></button>
+  </div>
+
+  <ng-container *ngIf="!loading && entrega">
+
+    <div class="grid-detalle">
+
+      <!-- Info general -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Información de entrega</span>
+          <p-tag
+            [value]="getEstadoLabel(entrega.estado)"
+            [severity]="getEstadoSeverity(entrega.estado)">
+          </p-tag>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label"><i class="pi pi-user"></i> Cliente</span>
+            <span class="info-value">{{ entrega.clienteNombre }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="pi pi-map-marker"></i> Sucursal</span>
+            <span class="info-value">{{ entrega.sucursal }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="pi pi-truck"></i> Repartidor</span>
+            <span class="info-value">{{ entrega.repartidorNombre ?? 'Sin asignar' }}</span>
+          </div>
+          <div class="info-item" *ngIf="entrega.observaciones">
+            <span class="info-label"><i class="pi pi-comment"></i> Observaciones</span>
+            <span class="info-value">{{ entrega.observaciones }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card">
+        <div class="card-title">Seguimiento</div>
+        <p-timeline [value]="timeline" layout="vertical">
+          <ng-template pTemplate="marker" let-event>
+            <div
+              class="timeline-marker"
+              [style.background]="event.color">
+              <i [class]="event.icon" style="color:#fff; font-size:12px"></i>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="content" let-event>
+            <div class="timeline-content" [class.completado]="event.completado">
+              <span class="timeline-status">{{ event.status }}</span>
+              <span class="timeline-date" *ngIf="event.date">
+                {{ event.date | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+          </ng-template>
+        </p-timeline>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+  <div class="loading-state" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Cargando entrega...</span>
+  </div>
+
+</div>

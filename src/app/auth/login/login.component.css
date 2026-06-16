@@ -1,0 +1,85 @@
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F4F6FA;
+}
+
+.login-card {
+  background: #fff;
+  border: 0.5px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.login-logo i {
+  font-size: 26px;
+  color: #fff;
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 6px;
+}
+
+.login-sub {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-wrapper {
+  width: 100%;
+}
+
+.input-wrapper input {
+  width: 100%;
+}
+
+.field p-password {
+  width: 100%;
+}
+
+.error {
+  color: #DC2626;
+  font-size: 11px;
+}
+
+.btn-login {
+  width: 100%;
+  margin-top: 8px;
+}
