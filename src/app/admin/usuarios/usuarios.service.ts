@@ -46,7 +46,7 @@ export class UsuariosService {
 
   getById$(id: string): Observable<Usuario> {
     const ref = doc(this.firestore, `${this.col}/${id}`);
-    return docData(ref as any, { idField: 'id' }) as Observable<Usuario>;
+    return docData(ref, { idField: 'id' }) as Observable<Usuario>;
   }
 
   async create(usuario: Usuario, password: string): Promise<void> {

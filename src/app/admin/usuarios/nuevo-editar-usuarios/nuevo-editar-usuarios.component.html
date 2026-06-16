@@ -3,77 +3,161 @@
   <p-toast></p-toast>
 
   <div class="page-header">
-    <div>
-      <h1 class="page-title">{{ editMode ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
-      <p class="page-sub">{{ editMode ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema' }}</p>
+    <div class="header-left">
+      <button class="back-btn" (click)="cancelar()">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <div>
+        <h1 class="page-title">{{ editMode ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+        <p class="page-sub">{{ editMode ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema' }}</p>
+      </div>
     </div>
-    <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
   </div>
 
-  <div class="card">
-    <form [formGroup]="form" (ngSubmit)="guardar()">
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="form-layout">
 
-      <div class="form-grid">
+      <!-- Columna principal -->
+      <div class="col-main">
 
-        <div class="field">
-          <label>Nombre completo *</label>
-          <input pInputText formControlName="nombre" placeholder="Ej. Juan Pérez" />
-          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
-          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+        <!-- Información personal -->
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="form-card-icon">
+              <i class="pi pi-user"></i>
+            </div>
+            <div>
+              <div class="form-card-title">Información personal</div>
+              <div class="form-card-sub">Datos de identificación del usuario</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field field-full">
+              <label>Nombre completo *</label>
+              <input
+                pInputText
+                formControlName="nombre"
+                placeholder="Ej. Juan Pérez García" />
+              <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
+              <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+            </div>
+
+            <div class="field">
+              <label>Correo electrónico *</label>
+              <input
+                pInputText
+                formControlName="email"
+                placeholder="correo@ejemplo.com"
+                type="email"
+                [attr.disabled]="editMode ? true : null" />
+              <small class="error" *ngIf="f['email'].touched && f['email'].hasError('required')">Campo requerido</small>
+              <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
+              <small class="hint" *ngIf="editMode">El correo no puede modificarse</small>
+            </div>
+
+            <div class="field" *ngIf="!editMode">
+              <label>Contraseña *</label>
+              <p-password
+                formControlName="password"
+                placeholder="Mínimo 6 caracteres"
+                [toggleMask]="true"
+                [feedback]="false">
+              </p-password>
+              <small class="error" *ngIf="f['password'].touched && f['password'].hasError('required')">Campo requerido</small>
+              <small class="error" *ngIf="f['password'].touched && f['password'].hasError('minlength')">Mínimo 6 caracteres</small>
+            </div>
+          </div>
         </div>
 
-        <div class="field">
-          <label>Correo electrónico *</label>
-          <input pInputText formControlName="email" placeholder="correo@ejemplo.com" [attr.disabled]="editMode ? true : null" />
-          <small class="error" *ngIf="f['email'].touched && f['email'].hasError('required')">Campo requerido</small>
-          <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
-        </div>
+        <!-- Rol y acceso -->
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="form-card-icon icon-purple">
+              <i class="pi pi-shield"></i>
+            </div>
+            <div>
+              <div class="form-card-title">Rol y acceso</div>
+              <div class="form-card-sub">Define los permisos del usuario</div>
+            </div>
+          </div>
 
-        <div class="field" *ngIf="!editMode">
-          <label>Contraseña *</label>
-          <p-password
-            formControlName="password"
-            placeholder="Mínimo 6 caracteres"
-            [toggleMask]="true"
-            [feedback]="true">
-          </p-password>
-          <small class="error" *ngIf="f['password'].touched && f['password'].hasError('required')">Campo requerido</small>
-          <small class="error" *ngIf="f['password'].touched && f['password'].hasError('minlength')">Mínimo 6 caracteres</small>
-        </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Rol *</label>
+              <p-dropdown
+                formControlName="rol"
+                [options]="roles"
+                placeholder="Selecciona un rol"
+                (onChange)="onRolChange($event)">
+              </p-dropdown>
+              <small class="error" *ngIf="f['rol'].touched && f['rol'].hasError('required')">Campo requerido</small>
+            </div>
 
-        <div class="field">
-          <label>Rol *</label>
-          <p-dropdown
-            formControlName="rol"
-            [options]="roles"
-            placeholder="Selecciona un rol">
-          </p-dropdown>
-          <small class="error" *ngIf="f['rol'].touched && f['rol'].hasError('required')">Campo requerido</small>
-        </div>
+            <div class="field">
+              <label>Sucursal asignada</label>
+              <p-dropdown
+                formControlName="sucursalId"
+                [options]="sucursales"
+                placeholder="Selecciona una sucursal"
+                (onChange)="onSucursalChange($event)">
+              </p-dropdown>
+            </div>
+          </div>
 
-        <div class="field">
-          <label>Sucursal</label>
-          <p-dropdown
-            formControlName="sucursalId"
-            [options]="sucursales"
-            placeholder="Selecciona una sucursal"
-            (onChange)="onSucursalChange($event)">
-          </p-dropdown>
+          <!-- Preview del rol seleccionado -->
+          <div class="rol-preview" *ngIf="rolSeleccionado">
+            <i class="pi pi-info-circle"></i>
+            <span>{{ getRolDescripcion(rolSeleccionado) }}</span>
+          </div>
         </div>
 
       </div>
 
-      <div class="form-footer">
-        <button
-          pButton
-          type="submit"
-          [label]="editMode ? 'Guardar cambios' : 'Crear usuario'"
-          icon="pi pi-check"
-          [loading]="loading">
-        </button>
+      <!-- Columna lateral -->
+      <div class="col-aside">
+
+        <!-- Avatar preview -->
+        <div class="form-card aside-card">
+          <div class="form-card-title" style="margin-bottom:16px">Vista previa</div>
+          <div class="user-preview">
+            <div class="avatar-preview" [ngClass]="getAvatarClass(form.value.rol)">
+              {{ getIniciales(form.value.nombre) || 'AC' }}
+            </div>
+            <div class="preview-nombre">{{ form.value.nombre || 'Nombre del usuario' }}</div>
+            <div class="preview-email">{{ form.value.email || 'correo@ejemplo.com' }}</div>
+            <span class="badge" [ngClass]="getRolBadgeClass(form.value.rol)" *ngIf="form.value.rol">
+              {{ getRolLabel(form.value.rol) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="form-card aside-card">
+          <div class="form-card-title" style="margin-bottom:16px">Acciones</div>
+          <div class="aside-actions">
+            <button
+              pButton
+              type="submit"
+              [label]="editMode ? 'Guardar cambios' : 'Crear usuario'"
+              icon="pi pi-check"
+              [loading]="loading"
+              class="btn-guardar">
+            </button>
+            <button
+              pButton
+              type="button"
+              label="Cancelar"
+              icon="pi pi-times"
+              class="p-button-outlined btn-cancelar"
+              (click)="cancelar()">
+            </button>
+          </div>
+        </div>
+
       </div>
 
-    </form>
-  </div>
+    </div>
+  </form>
 
 </div>

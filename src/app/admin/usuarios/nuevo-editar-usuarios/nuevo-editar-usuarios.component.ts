@@ -16,6 +16,7 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
   editMode = false;
   usuarioId: string | null = null;
   loading = false;
+  rolSeleccionado = '';
   private destroy$ = new Subject<void>();
 
   roles: { label: string; value: RolUsuario }[] = [
@@ -31,6 +32,13 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
     { label: 'Irapuato',  value: 'irapuato' },
     { label: 'Salamanca', value: 'salamanca' }
   ];
+
+  private rolDescripciones: Record<string, string> = {
+    admin:      'Acceso total al sistema. Puede gestionar usuarios, configurar roles y ver todos los reportes.',
+    gerente:    'Acceso a inventario, pedidos y entregas de su sucursal asignada.',
+    cajero:     'Puede crear pedidos y consultar clientes e inventario.',
+    repartidor: 'Solo puede ver y actualizar el estado de las entregas asignadas.'
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -58,7 +66,7 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
     this.form = this.fb.group({
       nombre:     ['', [Validators.required, Validators.minLength(3)]],
       email:      ['', [Validators.required, Validators.email]],
-      password:   ['', this.editMode ? [] : [Validators.required, Validators.minLength(6)]],
+      password:   ['', [Validators.required, Validators.minLength(6)]],
       rol:        ['', Validators.required],
       sucursalId: [''],
       sucursal:   [''],
@@ -67,20 +75,59 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
   }
 
   private loadUsuario(id: string): void {
+    this.form.get('password')?.clearValidators();
+    this.form.get('password')?.updateValueAndValidity();
+
     this.usuariosSrv.getById$(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe(usuario => {
         this.form.patchValue(usuario);
-        this.form.get('password')?.clearValidators();
-        this.form.get('password')?.updateValueAndValidity();
+        this.rolSeleccionado = usuario.rol;
       });
   }
 
   get f() { return this.form.controls; }
 
+  onRolChange(event: any): void {
+    this.rolSeleccionado = event.value;
+  }
+
   onSucursalChange(event: any): void {
     const found = this.sucursales.find(s => s.value === event.value);
     if (found) this.form.patchValue({ sucursal: found.label });
+  }
+
+  getIniciales(nombre: string): string {
+    if (!nombre) return '';
+    return nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  getAvatarClass(rol: string): string {
+    const map: Record<string, string> = {
+      admin:      'av-blue',
+      gerente:    'av-purple',
+      cajero:     'av-green',
+      repartidor: 'av-teal'
+    };
+    return map[rol] ?? 'av-blue';
+  }
+
+  getRolBadgeClass(rol: string): string {
+    const map: Record<string, string> = {
+      admin:      'badge-admin',
+      gerente:    'badge-gerente',
+      cajero:     'badge-cajero',
+      repartidor: 'badge-repartidor'
+    };
+    return map[rol] ?? '';
+  }
+
+  getRolLabel(rol: string): string {
+    return this.roles.find(r => r.value === rol)?.label ?? rol;
+  }
+
+  getRolDescripcion(rol: string): string {
+    return this.rolDescripciones[rol] ?? '';
   }
 
   async guardar(): Promise<void> {
@@ -97,11 +144,17 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
         this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Usuario actualizado' });
       } else {
         await this.usuariosSrv.create(data as Usuario, password);
-        this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Usuario creado' });
+        this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Usuario creado correctamente' });
       }
       this.router.navigate(['/admin/usuarios']);
     } catch (err: any) {
-      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: err.message ?? 'No se pudo guardar' });
+      const mensajes: Record<string, string> = {
+        'auth/email-already-in-use': 'Este correo ya está registrado',
+        'auth/invalid-email':        'Correo inválido',
+        'auth/weak-password':        'La contraseña es muy débil'
+      };
+      const msg = mensajes[err.code] ?? err.message ?? 'No se pudo guardar';
+      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: msg });
     } finally {
       this.loading = false;
     }

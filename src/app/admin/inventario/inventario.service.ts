@@ -77,7 +77,7 @@ export class InventarioService {
   getInventario$(): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
     const q = query(ref, orderBy('nombreProducto', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<InventarioItem[]>;
+    return collectionData(q as any, { idField: 'id' }) as Observable<InventarioItem[]>;
   }
 
   getInventarioBySucursal$(sucursalId: string): Observable<InventarioItem[]> {

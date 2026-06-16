@@ -35,7 +35,7 @@ export class ClientesService {
   getAll$(): Observable<Cliente[]> {
     const ref = collection(this.firestore, this.col);
     const q = query(ref, orderBy('nombre', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Cliente[]>;
+    return collectionData(q as any, { idField: 'id' }) as Observable<Cliente[]>;
   }
 
   getById$(id: string): Observable<Cliente> {

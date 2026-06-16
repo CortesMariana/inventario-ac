@@ -52,7 +52,7 @@ export class PedidosService {
   getAll$(): Observable<Pedido[]> {
     const ref = collection(this.firestore, this.col);
     const q = query(ref, orderBy('fechaCreacion', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Pedido[]>;
+    return collectionData(q as any, { idField: 'id' }) as Observable<Pedido[]>;
   }
 
   getById$(id: string): Observable<Pedido> {

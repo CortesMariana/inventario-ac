@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { Usuario, UsuariosService } from '../usuarios.service';
 
 @Component({
@@ -12,20 +12,27 @@ import { Usuario, UsuariosService } from '../usuarios.service';
 export class GridUsuariosComponent implements OnInit, OnDestroy {
 
   usuarios: Usuario[] = [];
+  usuariosFiltrados: Usuario[] = [];
   loading = true;
+  searchTerm = '';
+  tabActivo = 'todos';
+
+  confirmVisible = false;
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
+
   private destroy$ = new Subject<void>();
 
   roles: Record<string, string> = {
-    admin:       'Administrador',
-    gerente:     'Gerente',
-    cajero:      'Cajero',
-    repartidor:  'Repartidor'
+    admin:      'Administrador',
+    gerente:    'Gerente',
+    cajero:     'Cajero',
+    repartidor: 'Repartidor'
   };
 
   constructor(
     private usuariosSrv: UsuariosService,
     private router: Router,
-    private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
   ) {}
 
@@ -35,6 +42,7 @@ export class GridUsuariosComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.usuarios = data;
+          this.filtrar();
           this.loading = false;
         },
         error: () => {
@@ -47,6 +55,60 @@ export class GridUsuariosComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get totalActivos(): number {
+    return this.usuarios.filter(u => u.activo).length;
+  }
+
+  get rolesUnicos(): number {
+    return new Set(this.usuarios.map(u => u.rol)).size;
+  }
+
+  setTab(tab: string): void {
+    this.tabActivo = tab;
+    this.filtrar();
+  }
+
+  filtrar(): void {
+    let lista = [...this.usuarios];
+    if (this.tabActivo !== 'todos') {
+      lista = lista.filter(u => u.rol === this.tabActivo);
+    }
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      lista = lista.filter(u =>
+        u.nombre.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        u.sucursal?.toLowerCase().includes(term)
+      );
+    }
+    lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    this.usuariosFiltrados = lista;
+  }
+
+  getIniciales(nombre: string): string {
+    return nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  getAvatarClass(rol: string): string {
+    const map: Record<string, string> = {
+      admin:      'av-blue',
+      gerente:    'av-purple',
+      cajero:     'av-green',
+      repartidor: 'av-teal'
+    };
+    return map[rol] ?? 'av-blue';
+  }
+
+  getRolBadgeClass(rol: string): string {
+    const map: Record<string, string> = {
+      admin:      'badge-admin',
+      gerente:    'badge-gerente',
+      cajero:     'badge-cajero',
+      repartidor: 'badge-repartidor'
+    };
+    return map[rol] ?? 'badge-cajero';
   }
 
   nuevo(): void {
@@ -72,27 +134,26 @@ export class GridUsuariosComponent implements OnInit, OnDestroy {
   }
 
   confirmarEliminar(usuario: Usuario): void {
-    this.confirmSrv.confirm({
-      message: `¿Deseas eliminar a ${usuario.nombre}?`,
-      header: 'Confirmar eliminación',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.usuariosSrv.delete(usuario.id!).then(() => {
-          this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Usuario eliminado' });
-        }).catch(() => {
-          this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar' });
-        });
-      }
+    this.confirmMessage = `¿Deseas eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.`;
+    this.confirmAction = () => this.eliminar(usuario.id!);
+    this.confirmVisible = true;
+  }
+
+  private eliminar(id: string): void {
+    this.usuariosSrv.delete(id).then(() => {
+      this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Usuario eliminado' });
+    }).catch(() => {
+      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar' });
     });
   }
 
-  getRolSeverity(rol: string): string {
-    const map: Record<string, string> = {
-      admin:      'danger',
-      gerente:    'warning',
-      cajero:     'info',
-      repartidor: 'success'
-    };
-    return map[rol] ?? 'info';
+  onConfirm(): void {
+    if (this.confirmAction) this.confirmAction();
+    this.confirmVisible = false;
+  }
+
+  onCancel(): void {
+    this.confirmVisible = false;
+    this.confirmAction = null;
   }
 }

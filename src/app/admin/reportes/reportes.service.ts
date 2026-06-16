@@ -27,34 +27,33 @@ export class ReportesService {
 
   getClientes$(): Observable<any[]> {
     const ref = collection(this.firestore, `${environment.collections.clientes}`);
-    return collectionData(ref, { idField: 'id' });
+    return collectionData(ref as any, { idField: 'id' });
   }
 
   getProductos$(): Observable<any[]> {
     const ref = collection(this.firestore, `${environment.collections.productos}`);
-    return collectionData(ref, { idField: 'id' });
+    return collectionData(ref as any, { idField: 'id' });
   }
 
   getProductosEnAlerta$(): Observable<any[]> {
     const ref = collection(this.firestore, `${environment.collections.inventario}`);
     const q = query(ref, where('stock', '<=', 5), orderBy('stock', 'asc'));
-    return collectionData(q, { idField: 'id' });
+    return collectionData(q as any, { idField: 'id' });
   }
 
   getUltimosPedidos$(): Observable<any[]> {
     const ref = collection(this.firestore, `${environment.collections.pedidos}`);
     const q = query(ref, orderBy('fechaCreacion', 'desc'), limit(5));
-    return collectionData(q, { idField: 'id' });
+    return collectionData(q as any, { idField: 'id' });
   }
 
   getPedidosMes$(): Observable<any[]> {
     const inicioMes = new Date();
     inicioMes.setDate(1);
     inicioMes.setHours(0, 0, 0, 0);
-
     const ref = collection(this.firestore, `${environment.collections.pedidos}`);
     const q = query(ref, where('fechaCreacion', '>=', inicioMes));
-    return collectionData(q, { idField: 'id' });
+    return collectionData(q as any, { idField: 'id' });
   }
 
   getDashboardKpis$(): Observable<KpiDashboard> {

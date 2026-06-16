@@ -1,7 +1,17 @@
 <div class="page">
 
   <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
+
+  <app-confirm-dialog
+    [visible]="confirmVisible"
+    title="Confirmar eliminación"
+    [message]="confirmMessage"
+    confirmLabel="Sí, eliminar"
+    cancelLabel="Cancelar"
+    type="danger"
+    (confirm)="onConfirm()"
+    (cancel)="onCancel()">
+  </app-confirm-dialog>
 
   <div class="page-header">
     <div>
@@ -11,103 +21,152 @@
     <button pButton label="Nuevo usuario" icon="pi pi-plus" (click)="nuevo()"></button>
   </div>
 
-  <div class="card">
-    <p-table
-      [value]="usuarios"
-      [loading]="loading"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      [globalFilterFields]="['nombre', 'email', 'rol', 'sucursal']"
-      dataKey="id"
-      styleClass="p-datatable-sm"
-      #dt>
+  <!-- KPIs -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon icon-blue">
+        <i class="pi pi-users"></i>
+      </div>
+      <div>
+        <div class="stat-label">Total usuarios</div>
+        <div class="stat-value">{{ usuarios.length }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-green">
+        <i class="pi pi-user-plus"></i>
+      </div>
+      <div>
+        <div class="stat-label">Activos</div>
+        <div class="stat-value">{{ totalActivos }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-amber">
+        <i class="pi pi-shield"></i>
+      </div>
+      <div>
+        <div class="stat-label">Roles asignados</div>
+        <div class="stat-value">{{ rolesUnicos }}</div>
+      </div>
+    </div>
+  </div>
 
-      <ng-template pTemplate="caption">
-        <div class="table-caption">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <input
-              pInputText
-              type="text"
-              placeholder="Buscar usuario..."
-              (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
-          </span>
-        </div>
-      </ng-template>
+  <!-- Tabla -->
+  <div class="table-card">
 
-      <ng-template pTemplate="header">
+    <!-- Tabs -->
+    <div class="tab-row">
+      <div
+        class="tab"
+        [class.active]="tabActivo === 'todos'"
+        (click)="setTab('todos')">Todos</div>
+      <div
+        class="tab"
+        [class.active]="tabActivo === 'admin'"
+        (click)="setTab('admin')">Administradores</div>
+      <div
+        class="tab"
+        [class.active]="tabActivo === 'gerente'"
+        (click)="setTab('gerente')">Gerentes</div>
+      <div
+        class="tab"
+        [class.active]="tabActivo === 'cajero'"
+        (click)="setTab('cajero')">Cajeros</div>
+      <div
+        class="tab"
+        [class.active]="tabActivo === 'repartidor'"
+        (click)="setTab('repartidor')">Repartidores</div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          placeholder="Buscar usuario..."
+          [(ngModel)]="searchTerm"
+          (input)="filtrar()" />
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando usuarios...</span>
+    </div>
+
+    <!-- Tabla -->
+    <table *ngIf="!loading">
+      <thead>
         <tr>
-          <th pSortableColumn="nombre">Usuario <p-sortIcon field="nombre"></p-sortIcon></th>
-          <th pSortableColumn="rol">Rol <p-sortIcon field="rol"></p-sortIcon></th>
+          <th>Usuario</th>
+          <th>Rol</th>
           <th>Sucursal</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-usuario>
-        <tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuariosFiltrados">
           <td>
-            <div class="usuario-cell">
-              <div class="avatar-sm">{{ usuario.nombre.charAt(0) }}</div>
+            <div class="user-cell">
+              <div class="avatar" [ngClass]="getAvatarClass(usuario.rol)">
+                {{ getIniciales(usuario.nombre) }}
+              </div>
               <div>
-                <span class="usuario-nombre">{{ usuario.nombre }}</span>
-                <span class="usuario-email">{{ usuario.email }}</span>
+                <div class="user-name">{{ usuario.nombre }}</div>
+                <div class="user-email">{{ usuario.email }}</div>
               </div>
             </div>
           </td>
           <td>
-            <p-tag
-              [value]="roles[usuario.rol]"
-              [severity]="getRolSeverity(usuario.rol)">
-            </p-tag>
+            <span class="badge" [ngClass]="getRolBadgeClass(usuario.rol)">
+              {{ roles[usuario.rol] }}
+            </span>
           </td>
           <td>{{ usuario.sucursal ?? '—' }}</td>
           <td>
-            <p-tag
-              [value]="usuario.activo ? 'Activo' : 'Inactivo'"
-              [severity]="usuario.activo ? 'success' : 'danger'">
-            </p-tag>
+            <span class="badge" [ngClass]="usuario.activo ? 'badge-activo' : 'badge-inactivo'">
+              {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+            </span>
           </td>
           <td>
             <div class="actions">
               <button
-                pButton icon="pi pi-pencil"
-                class="p-button-text p-button-sm"
-                (click)="editar(usuario.id)"
-                pTooltip="Editar">
+                class="icon-btn"
+                (click)="editar(usuario.id!)"
+                title="Editar">
+                <i class="pi pi-pencil"></i>
               </button>
               <button
-                pButton
-                [icon]="usuario.activo ? 'pi pi-ban' : 'pi pi-check-circle'"
-                class="p-button-text p-button-sm"
-                [class.p-button-warning]="usuario.activo"
-                [class.p-button-success]="!usuario.activo"
+                class="icon-btn"
                 (click)="toggleActivo(usuario)"
-                [pTooltip]="usuario.activo ? 'Desactivar' : 'Activar'">
+                [title]="usuario.activo ? 'Desactivar' : 'Activar'">
+                <i [class]="usuario.activo ? 'pi pi-ban' : 'pi pi-check-circle'"></i>
               </button>
               <button
-                pButton icon="pi pi-trash"
-                class="p-button-text p-button-sm p-button-danger"
+                class="icon-btn danger"
                 (click)="confirmarEliminar(usuario)"
-                pTooltip="Eliminar">
+                title="Eliminar">
+                <i class="pi pi-trash"></i>
               </button>
             </div>
           </td>
         </tr>
-      </ng-template>
 
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="5" class="empty-state">
-            <i class="pi pi-users"></i>
-            <span>No hay usuarios registrados</span>
+        <tr *ngIf="usuariosFiltrados.length === 0">
+          <td colspan="5">
+            <div class="empty-state">
+              <i class="pi pi-users"></i>
+              <span>No hay usuarios registrados</span>
+            </div>
           </td>
         </tr>
-      </ng-template>
+      </tbody>
+    </table>
 
-    </p-table>
   </div>
 
 </div>

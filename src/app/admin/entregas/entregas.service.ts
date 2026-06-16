@@ -39,7 +39,7 @@ export class EntregasService {
   getAll$(): Observable<Entrega[]> {
     const ref = collection(this.firestore, this.col);
     const q = query(ref, orderBy('fechaAsignacion', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Entrega[]>;
+    return collectionData(q as any, { idField: 'id' }) as Observable<Entrega[]>;
   }
 
   getById$(id: string): Observable<Entrega> {

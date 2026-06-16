@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { UsuariosRoutingModule } from './usuarios-routing.module';
 import { GridUsuariosComponent } from './grid-usuarios/grid-usuarios.component';
@@ -11,11 +11,11 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 import { DropdownModule } from 'primeng/dropdown';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { PasswordModule } from 'primeng/password';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -32,14 +32,14 @@ import { TooltipModule } from 'primeng/tooltip';
     InputTextModule,
     TagModule,
     DropdownModule,
-    ConfirmDialogModule,
     ToastModule,
     TooltipModule,
-    PasswordModule
+    PasswordModule,
+    FormsModule,
+    SharedModule
   ],
   providers: [
-    ConfirmationService,
-    MessageService
+    ConfirmationService
   ]
 })
 export class UsuariosModule { }
