@@ -1,0 +1,709 @@
+<div class="detalle-ticket-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Mis Tickets</span>
+      </button>
+      
+      <div class="header-title">
+        <h1 class="page-title">Detalle del Ticket</h1>
+        <p class="page-subtitle">ID: {{ticket?.folio || 'Cargando...'}}</p>
+      </div>
+      
+      <div class="header-actions" *ngIf="ticket && puedeEditar">
+        <!-- Botón para descontar insumos -->
+        <button class="btn-insumos-principal" 
+                (click)="abrirDialogInsumos()"
+                [disabled]="procesando">
+          <i class="pi pi-box"></i>
+          <span>Descontar Insumos</span>
+        </button>
+
+        <!-- Botón para avanzar estatus -->
+        <button *ngIf="getSiguienteEstatus()" 
+                class="btn-estatus-principal"
+                [class]="getEstatusClass(ticket.estatus)"
+                (click)="cambiarEstatus(getSiguienteEstatus())"
+                [disabled]="procesando">
+          <i [class]="getEstatusIcon(ticket.estatus)"></i>
+          <span>{{getTextoBotonEstatus()}}</span>
+          <i *ngIf="procesando" class="pi pi-spinner pi-spin ml-1"></i>
+        </button>
+
+        <!-- Botón para cancelar -->
+        <button *ngIf="puedeCancelar"
+                class="btn-cancelar-principal"
+                (click)="cancelarTicket()"
+                [disabled]="procesando">
+          <i class="pi pi-times"></i>
+          <span>Cancelar Ticket</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content" *ngIf="!cargando && ticket">
+    <div class="grid-container">
+      <!-- Columna izquierda: Información principal -->
+      <div class="col-principal">
+        <!-- Tarjeta de información básica -->
+        <div class="card info-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-info-circle"></i>
+              Información del Ticket
+            </h2>
+          </div>
+          
+          <div class="card-body">
+            <!-- Título y descripción -->
+            <div class="info-section">
+              <h3 class="ticket-titulo">{{ticket.titulo}}</h3>
+              <p class="ticket-descripcion">{{ticket.descripcion}}</p>
+            </div>
+            
+            <!-- Información básica en grid -->
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Tipo</label>
+                <div class="info-value">
+                  <i [class]="ticket.iconoTipo"></i>
+                  <span>{{ticket.tipo}}</span>
+                </div>
+              </div>
+              
+              <div class="info-item">
+                <label>Origen</label>
+                <div class="info-value">
+                  <span class="origen-badge">{{ticket.origen}}</span>
+                </div>
+              </div>
+              
+              <div class="info-item">
+                <label>Categoría</label>
+                <div class="info-value">
+                  <span class="categoria-badge">{{ticket.categoria}}</span>
+                </div>
+              </div>
+              
+              <div class="info-item">
+                <label>Prioridad</label>
+                <div class="info-value">
+                  <span class="prioridad-badge" [style.background-color]="ticket.colorPrioridad">
+                    {{ticket.prioridad}}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Fechas -->
+            <div class="fechas-section">
+              <div class="fecha-item">
+                <label>Fecha de creación</label>
+                <div class="fecha-value">
+                  <i class="pi pi-calendar"></i>
+                  <span>{{ticket.fechaCreacionFormatted}}</span>
+                </div>
+              </div>
+              
+              <div class="fecha-item">
+                <label>Fecha límite</label>
+                <div class="fecha-value">
+                  <i class="pi pi-clock"></i>
+                  <span>{{ticket.fechaLimiteFormatted}}</span>
+                  <span *ngIf="ticket.diasRestantes !== null" 
+                        class="dias-badge" [ngClass]="getDiasRestantesClass()">
+                    {{getDiasRestantesText()}}
+                  </span>
+                </div>
+              </div>
+              
+              <div *ngIf="ticket.fechaModificacion" class="fecha-item">
+                <label>Última modificación</label>
+                <div class="fecha-value">
+                  <i class="pi pi-history"></i>
+                  <span>{{formatFecha(ticket.fechaModificacion)}}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="info-extra" *ngIf="ticket.sucursal || ticket.activos?.length > 0">
+              <h4>Información Adicional</h4>
+              
+              <div *ngIf="ticket.sucursal" class="extra-item">
+                <label>Sucursal:</label>
+                <span>{{ticket.sucursal.nombre}}</span>
+              </div>
+              
+              <div *ngIf="ticket.activos?.length > 0" class="extra-item">
+                <label>Activos:</label>
+                <div class="activos-list">
+                  <span *ngFor="let activo of ticket.activos" class="activo-badge">
+                    {{activo.nombre}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de historial de estatus -->
+        <div class="card historial-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-history"></i>
+              Historial de Estatus
+            </h2>
+          </div>
+          
+          <div class="card-body">
+            <div *ngIf="historialEstatus.length === 0" class="empty-state">
+              <i class="pi pi-history"></i>
+              <p>No hay historial de estatus</p>
+            </div>
+            
+            <div class="timeline">
+              <div *ngFor="let item of historialEstatus; let i = index" 
+                  class="timeline-item" [class.active]="i === historialEstatus.length - 1">
+                <div class="timeline-marker" [ngClass]="getEstatusClass(item.estatus)">
+                  <i [class]="getEstatusIcon(item.estatus)"></i>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title">
+                    <span class="estatus-label">{{item.estatus}}</span>
+                    <span class="timeline-date">{{item.fecha}}</span>
+                  </div>
+                  <!-- Mostrar quién realizó el cambio si está disponible -->
+                  <div *ngIf="item.realizadoPor" class="timeline-realizado-por">
+                    <i class="pi pi-user"></i>
+                    <span>Por: {{item.realizadoPor.nombre}}</span>
+                    <span *ngIf="item.realizadoPor.tipo === 'tecnico'" class="realizado-por-badge tecnico">
+                      Técnico
+                    </span>
+                    <span *ngIf="item.realizadoPor.tipo === 'admin'" class="realizado-por-badge admin">
+                      Admin
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: Información secundaria y acciones -->
+      <div class="col-secundaria">
+        <!-- Tarjeta de estatus actual -->
+        <div class="card estatus-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-ticket"></i>
+              Estatus Actual
+            </h2>
+          </div>
+          
+          <div class="card-body">
+            <div class="estatus-display">
+              <div class="estatus-badge-large" [ngClass]="getEstatusClass(ticket.estatus)">
+                <i [class]="getEstatusIcon(ticket.estatus)"></i>
+                <span>{{ticket.estatus}}</span>
+              </div>
+              
+              <p class="estatus-descripcion">
+                {{ticket.estatus === 'Nuevo' ? 'El ticket ha sido creado y está esperando ser atendido.' :
+                  ticket.estatus === 'Asignado' ? 'El ticket ha sido asignado a un técnico.' :
+                  ticket.estatus === 'En proceso' ? 'El técnico está trabajando en la solución.' :
+                  ticket.estatus === 'Resuelto' ? 'El problema ha sido resuelto.' :
+                  ticket.estatus === 'Cerrado' ? 'El ticket ha sido cerrado.' :
+                  'El ticket ha sido cancelado.'}}
+              </p>
+            </div>
+            
+            <!-- Selector de estatus (opcional) 
+            <div class="estatus-selector" *ngIf="puedeEditar">
+              <label>Cambiar estatus manualmente:</label>
+              <p-dropdown [options]="opcionesEstatus" 
+                        [(ngModel)]="ticket.estatus"
+                        optionLabel="label" optionValue="value"
+                        styleClass="w-full"
+                        (onChange)="cambiarEstatus(ticket.estatus)">
+              </p-dropdown>
+            </div>-->
+          </div>
+        </div>
+
+        <!-- Tarjeta de personas -->
+        <div class="card personas-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-users"></i>
+              Personas Involucradas
+            </h2>
+          </div>
+          
+          <div class="card-body">
+            <div class="persona-item">
+              <div class="persona-icon">
+                <i class="pi pi-user-plus"></i>
+              </div>
+              <div class="persona-info">
+                <label>Creado por</label>
+                <div class="persona-nombre">{{ticket.creadoPor?.nombre || 'No disponible'}}</div>
+                <div class="persona-id">ID: {{ticket.creadoPor?.id || 'N/A'}}</div>
+              </div>
+            </div>
+            
+            <div class="persona-item" *ngIf="ticket.asignadoA">
+              <div class="persona-icon">
+                <i class="pi pi-user-check"></i>
+              </div>
+              <div class="persona-info">
+                <label>Asignado a</label>
+                <div class="persona-nombre">{{ticket.asignadoA.nombre || 'No disponible'}}</div>
+                <div class="persona-id">ID: {{ticket.asignadoA.id || 'N/A'}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de evidencias -->
+        <div class="card evidencias-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-paperclip"></i>
+              Evidencias
+            </h2>
+          </div>
+          
+          <div class="card-body">
+            <!-- Lista de evidencias existentes -->
+            <div *ngIf="ticket.evidencias?.length > 0" class="evidencias-list">
+              <div *ngFor="let evidencia of ticket.evidencias" class="evidencia-item">
+                <div class="evidencia-info">
+                  <i [class]="getFileIcon(evidencia)"></i>
+                  <div class="evidencia-details">
+                    <span class="evidencia-nombre">{{evidencia.nombre}}</span>
+                    <span class="evidencia-fecha">{{formatFecha(evidencia.fecha)}}</span>
+                  </div>
+                </div>
+                <button class="btn-ver-evidencia" (click)="verEvidencia(evidencia.url)">
+                  <i class="pi pi-external-link"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="!ticket.evidencias || ticket.evidencias.length === 0" class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>No hay evidencias adjuntas</p>
+            </div>
+            
+            <!-- Formulario para subir nuevas evidencias -->
+            <div class="evidencias-upload" *ngIf="puedeEditar">
+              <div class="upload-area" (click)="fileInput.click()">
+                <i class="pi pi-cloud-upload"></i>
+                <p>Haz clic o arrastra archivos para subir evidencias</p>
+                <small>Formatos: imágenes, PDF, Word, Excel</small>
+              </div>
+              <input type="file" #fileInput multiple (change)="onFileSelect($event)" 
+                     accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" class="hidden" />
+              
+              <!-- Archivos seleccionados -->
+              <div *ngIf="archivosEvidencia.length > 0" class="selected-files">
+                <h4>Archivos seleccionados:</h4>
+                <div *ngFor="let file of archivosEvidencia; let i = index" class="file-item">
+                  <div class="file-info">
+                    <i [class]="getFileIcon(file)"></i>
+                    <div class="file-details">
+                      <span class="file-name">{{file.name}}</span>
+                      <span class="file-size">({{(file.size / 1024 / 1024).toFixed(2)}} MB)</span>
+                    </div>
+                  </div>
+                  <button class="btn-remove-file" (click)="removeFile(i)">
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+                <button class="btn-subir-evidencias" 
+                        (click)="subirEvidencias()"
+                        [disabled]="subiendoEvidencias">
+                  <i class="pi pi-upload"></i>
+                  <span>Subir evidencias</span>
+                  <i *ngIf="subiendoEvidencias" class="pi pi-spinner pi-spin"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de insumos gastados -->
+        <div class="card insumos-gastados-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-box"></i>
+              Insumos Gastados
+              <span class="insumos-count" *ngIf="insumosGastados.length > 0">
+                {{insumosGastados.length}}
+              </span>
+            </h2>
+          </div>
+          
+          <div class="card-body">
+            <!-- Estado de carga -->
+            <div *ngIf="cargandoInsumosGastados" class="loading-insumos">
+              <i class="pi pi-spinner pi-spin"></i>
+              <span>Cargando insumos gastados...</span>
+            </div>
+            
+            <!-- Lista de insumos gastados -->
+            <div *ngIf="!cargandoInsumosGastados && insumosGastados.length > 0" class="insumos-gastados-list">
+              <div *ngFor="let item of insumosGastados" class="insumo-gastado-item">
+                <div class="insumo-gastado-header">
+                  <div class="insumo-gastado-nombre">
+                    <i class="pi pi-box"></i>
+                    <span>{{item.insumo.nombre}}</span>
+                    <span class="empaque-badge">{{item.insumo.tipoEmpaque}}</span>
+                  </div>
+                  <div class="insumo-gastado-fecha">
+                    <i class="pi pi-calendar"></i>
+                    {{ formatFecha(item.fecha) }}
+                  </div>
+                </div>
+                
+                <div class="insumo-gastado-detalles">
+                  <div class="detalle-cantidad">
+                    <i class="pi" [class.pi-cubes]="item.tipoDescuento === 'EMPAQUES'" 
+                      [class.pi-cog]="item.tipoDescuento === 'UNIDADES'"></i>
+                    <span class="cantidad-valor">
+                      {{ item.cantidad | number }}
+                      <ng-container *ngIf="item.tipoDescuento === 'UNIDADES' && item.insumo.unidadesPorEmpaque">
+                        {{ item.insumo.tipoContenido === 'METROS' ? 'metros' : 'piezas' }}
+                      </ng-container>
+                      <ng-container *ngIf="item.tipoDescuento !== 'UNIDADES' || !item.insumo.unidadesPorEmpaque">
+                        {{ item.insumo.tipoEmpaque }}{{ item.cantidad !== 1 ? 's' : '' }}
+                      </ng-container>
+                    </span>
+                  </div>
+                  
+                  <div class="detalle-stock" *ngIf="item.tipoDescuento === 'UNIDADES' && item.insumo.unidadesPorEmpaque">
+                    <span class="stock-equivalente">
+                      Equivale a {{ (item.cantidad / item.insumo.unidadesPorEmpaque) | number:'1.0-2' }} 
+                      {{ item.insumo.tipoEmpaque }}{{ (item.cantidad / item.insumo.unidadesPorEmpaque) !== 1 ? 's' : '' }}
+                    </span>
+                  </div>
+                  
+                  <div class="detalle-stock" *ngIf="item.tipoDescuento !== 'UNIDADES' && item.insumo.unidadesPorEmpaque">
+                    <span class="stock-equivalente">
+                      Equivale a {{ item.cantidad * item.insumo.unidadesPorEmpaque }} 
+                      {{ item.insumo.tipoContenido === 'METROS' ? 'metros' : 'piezas' }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="insumo-gastado-motivo" *ngIf="item.motivo">
+                  <i class="pi pi-info-circle"></i>
+                  <span><strong>Motivo:</strong> {{item.motivo}}</span>
+                </div>
+                
+                <div class="insumo-gastado-observaciones" *ngIf="item.observaciones && item.observaciones !== item.motivo">
+                  <i class="pi pi-comment"></i>
+                  <span>{{item.observaciones}}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Estado vacío -->
+            <div *ngIf="!cargandoInsumosGastados && insumosGastados.length === 0" class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>No se han gastado insumos en este ticket</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de comentarios -->
+        <div class="card comentarios-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-comments"></i>
+              Comentarios
+            </h2>
+            <button class="btn-nuevo-comentario" (click)="toggleFormComentario()">
+              <i class="pi pi-plus"></i>
+              <span>Nuevo</span>
+            </button>
+          </div>
+          
+          <div class="card-body">
+            <!-- Formulario para nuevo comentario -->
+            <div *ngIf="mostrarFormComentario" class="comentario-form">
+              <form [formGroup]="formComentario">
+                <textarea pInputTextarea 
+                         formControlName="comentario" 
+                         rows="3" 
+                         placeholder="Escribe tu comentario..."
+                         class="w-full"></textarea>
+                
+                <div class="comentario-actions">
+                  <button class="btn-cancelar-comentario" type="button" (click)="toggleFormComentario()">
+                    Cancelar
+                  </button>
+                  <button class="btn-guardar-comentario" 
+                          type="button" 
+                          (click)="agregarComentario()"
+                          [disabled]="formComentario.invalid || procesando">
+                    <i class="pi pi-send"></i>
+                    <span>Enviar</span>
+                    <i *ngIf="procesando" class="pi pi-spinner pi-spin"></i>
+                  </button>
+                </div>
+                
+                <div *ngIf="formComentario.get('comentario')?.invalid && formComentario.get('comentario')?.touched" 
+                     class="error-message">
+                  El comentario debe tener al menos 5 caracteres
+                </div>
+              </form>
+            </div>
+            
+            <!-- Lista de comentarios -->
+            <div *ngIf="ticket.comentarios?.length > 0" class="comentarios-list">
+              <div *ngFor="let comentario of ticket.comentarios" class="comentario-item">
+                <div class="comentario-header">
+                  <div class="comentario-autor">
+                    <i class="pi pi-user"></i>
+                    <span>{{comentario.usuarioNombre || 'Usuario'}}</span>
+                    <span class="comentario-tipo" 
+                          [class.tipo-tecnico]="comentario.tipo === 'tecnico'"
+                          [class.tipo-admin]="comentario.tipo === 'admin'">
+                      {{comentario.tipo === 'tecnico' ? 'Técnico' : 'Administrador'}}
+                    </span>
+                  </div>
+                  <div class="comentario-fecha">
+                    {{formatFecha(comentario.fecha)}}
+                  </div>
+                </div>
+                <div class="comentario-texto">
+                  {{comentario.texto}}
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="!ticket.comentarios || ticket.comentarios.length === 0" class="empty-state">
+              <i class="pi pi-comment"></i>
+              <p>No hay comentarios</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="loading-content">
+      <p-progressSpinner ariaLabel="loading" />
+      <p>Cargando detalles del ticket...</p>
+    </div>
+  </div>
+
+  <!-- Estado sin ticket -->
+  <div *ngIf="!cargando && !ticket" class="error-state">
+    <div class="error-content">
+      <i class="pi pi-exclamation-triangle"></i>
+      <h3>Ticket no encontrado</h3>
+      <p>El ticket que buscas no existe o no tienes permiso para verlo.</p>
+      <button class="btn-volver-principal" (click)="volver()">
+        Volver a Mis Tickets
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast para mensajes -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirm dialogs -->
+<p-confirmDialog 
+  [style]="{width: '450px'}" 
+  header="Confirmación"
+  icon="pi pi-exclamation-triangle"
+  acceptButtonStyleClass="p-button-text"
+  rejectButtonStyleClass="p-button-text">
+</p-confirmDialog>
+
+<!-- Diálogo para seleccionar insumos -->
+<p-dialog 
+  header="Descontar Insumos - Ticket #{{ticket?.folio}}"
+  [(visible)]="mostrarDialogInsumos"
+  [modal]="true"
+  [style]="{width: '800px', maxWidth: '90vw'}"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!procesando"
+  [dismissableMask]="true">
+
+  <div class="dialog-insumos">
+    <!-- Filtros de búsqueda -->
+    <div class="filtros-insumos">
+      <div class="filtro-item">
+        <label>Buscar por nombre</label>
+        <input type="text" pInputText 
+               placeholder="Nombre del insumo..." 
+               [(ngModel)]="filtroInsumoNombre" 
+               (ngModelChange)="aplicarFiltroInsumos()"
+               class="w-full">
+      </div>
+      <div class="filtro-item">
+        <label>Marca</label>
+        <input type="text" pInputText 
+               placeholder="Filtrar por marca..." 
+               [(ngModel)]="filtroInsumoMarca" 
+               (ngModelChange)="aplicarFiltroInsumos()"
+               class="w-full">
+      </div>
+    </div>
+
+    <!-- Lista de insumos disponibles -->
+    <div class="insumos-lista-container">
+      <div class="insumos-header">
+        <div class="col-nombre">Insumo</div>
+        <div class="col-marca">Marca</div>
+        <div class="col-stock">Stock</div>
+        <div class="col-nota">Nota</div>
+        <div class="col-accion"></div>
+      </div>
+      
+      <div *ngIf="cargandoInsumos" class="loading-insumos">
+        <i class="pi pi-spinner pi-spin"></i>
+        <span>Cargando insumos...</span>
+      </div>
+      
+      <div *ngIf="!cargandoInsumos && insumosFiltrados.length === 0" class="empty-insumos">
+        <i class="pi pi-inbox"></i>
+        <span>No hay insumos disponibles</span>
+      </div>
+      
+      <div *ngFor="let insumo of insumosFiltrados" class="insumo-item">
+        <div class="col-nombre">
+          <i class="pi pi-box"></i>
+          <span>{{insumo.nombre}}</span>
+          <span class="empaque-badge">{{insumo.tipoEmpaque}}</span>
+        </div>
+        <div class="col-marca">{{insumo.marca}}</div>
+        <div class="col-stock">
+          <span class="stock-badge" [class.stock-critico]="insumo.cantidad <= (insumo.stockMinimo || 5)">
+            {{insumo.cantidad}} unidades
+          </span>
+        </div>
+        <div class="col-nota">
+          <span>{{insumo.notas || '---' }}</span>
+        </div>
+        <div class="col-accion">
+          <button class="btn-agregar" 
+                  (click)="agregarInsumoSeleccionado(insumo)"
+                  [disabled]="insumo.cantidad === 0">
+            <i class="pi pi-plus"></i>
+            Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insumos seleccionados -->
+    <div *ngIf="insumosSeleccionados.length > 0" class="insumos-seleccionados">
+      <h4>Insumos a descontar:</h4>
+      
+      <!-- Header de la tabla -->
+      <div class="seleccionados-header">
+        <div class="col-nombre">Insumo</div>
+        <div class="col-marca">Marca</div>
+        <div class="col-tipo">Tipo de descuento</div>
+        <div class="col-cantidad">Cantidad</div>
+        <div class="col-accion"></div>
+      </div>
+      
+      <!-- Filas de insumos seleccionados -->
+      <div *ngFor="let item of insumosSeleccionados; let i = index" class="seleccionado-item">
+        <!-- Columna: Insumo -->
+        <div class="col-nombre">
+          <i class="pi pi-box"></i>
+          <span>{{item.insumo.nombre}}</span>
+          <span class="empaque-badge" *ngIf="item.insumo.unidadesPorEmpaque">
+            {{item.insumo.unidadesPorEmpaque}} {{item.insumo.tipoContenido === 'METROS' ? 'm' : 'pz'}}/{{item.insumo.tipoEmpaque}}
+          </span>
+        </div>
+        
+        <!-- Columna: Marca -->
+        <div class="col-marca">{{item.insumo.marca}}</div>
+        
+        <!-- Columna: Tipo de descuento (selector) -->
+        <div class="col-tipo">
+          <ng-container *ngIf="item.insumo.unidadesPorEmpaque">
+            <div class="tipo-descuento-selector">
+              <button type="button" class="btn-tipo" 
+                      [class.active]="item.tipoDescuento === 'UNIDADES'"
+                      (click)="cambiarTipoDescuento(i, 'UNIDADES')">
+                {{item.insumo.tipoContenido === 'METROS' ? 'Metros' : 'Piezas'}}
+              </button>
+              <button type="button" class="btn-tipo" 
+                      [class.active]="item.tipoDescuento === 'EMPAQUES'"
+                      (click)="cambiarTipoDescuento(i, 'EMPAQUES')">
+                {{item.insumo.tipoEmpaque}}{{item.insumo.tipoEmpaque !== 'Unitario' ? 's' : ''}}
+              </button>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="!item.insumo.unidadesPorEmpaque">
+            <span class="tipo-simple">{{item.insumo.tipoEmpaque}}{{item.insumo.tipoEmpaque !== 'Unitario' ? 's' : ''}}</span>
+          </ng-container>
+        </div>
+        
+        <!-- Columna: Cantidad -->
+        <div class="col-cantidad">
+          <p-inputNumber 
+            [(ngModel)]="item.cantidad" 
+            [min]="item.tipoDescuento === 'UNIDADES' && item.insumo.tipoContenido === 'METROS' ? 0.01 : 1"
+            [max]="item.tipoDescuento === 'UNIDADES' && item.insumo.unidadesPorEmpaque ? 
+                  (item.insumo.cantidadUnidades || item.insumo.cantidad * item.insumo.unidadesPorEmpaque) : 
+                  item.insumo.cantidad"
+            [minFractionDigits]="item.tipoDescuento === 'UNIDADES' && item.insumo.tipoContenido === 'METROS' ? 2 : 0"
+            [maxFractionDigits]="item.tipoDescuento === 'UNIDADES' && item.insumo.tipoContenido === 'METROS' ? 2 : 0"
+            [useGrouping]="false"
+            (onChange)="actualizarCantidadSeleccionada(i, item.cantidad)"
+            styleClass="w-full cantidad-input">
+          </p-inputNumber>
+          <small class="stock-hint" *ngIf="item.tipoDescuento === 'UNIDADES' && item.insumo.unidadesPorEmpaque">
+            Máx: {{ item.insumo.cantidadUnidades || item.insumo.cantidad * item.insumo.unidadesPorEmpaque }}
+            {{item.insumo.tipoContenido === 'METROS' ? 'metros' : 'piezas'}}
+          </small>
+          <small class="stock-hint" *ngIf="item.tipoDescuento !== 'UNIDADES'">
+            Máx: {{item.insumo.cantidad}} {{item.insumo.tipoEmpaque}}{{item.insumo.cantidad !== 1 ? 's' : ''}}
+          </small>
+        </div>
+        
+        <!-- Columna: Acción (eliminar) -->
+        <div class="col-accion">
+          <button type="button" class="btn-quitar" (click)="quitarInsumoSeleccionado(i)">
+            <i class="pi pi-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button pButton type="button" label="Cancelar" icon="pi pi-times" 
+              class="p-button-text" (click)="mostrarDialogInsumos = false"
+              [disabled]="procesando"></button>
+      <button pButton type="button" 
+              label="Descontar Insumos" 
+              icon="pi pi-check"
+              class="p-button-success"
+              (click)="confirmarDescuentoInsumos()"
+              [disabled]="procesando || insumosSeleccionados.length === 0">
+        <i *ngIf="procesando" class="pi pi-spinner pi-spin ml-2"></i>
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

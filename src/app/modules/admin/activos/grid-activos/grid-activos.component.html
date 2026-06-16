@@ -1,0 +1,476 @@
+<div class="grid-admin-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Gestión de Activos</h1>
+        <p class="page-subtitle">Administra todos los activos tecnológicos de la empresa</p>
+      </div>
+
+      <div class="vista-buttons">
+          <button class="vista-btn" 
+                  [class.active]="vistaActual === 'cards'"
+                  (click)="cambiarVista('cards')">
+            <i class="pi pi-th-large"></i>
+            <span>Cards</span>
+          </button>
+          <button class="vista-btn" 
+                  [class.active]="vistaActual === 'lista'"
+                  (click)="cambiarVista('lista')">
+            <i class="pi pi-list"></i>
+            <span>Lista</span>
+          </button>
+        </div>
+
+        
+      
+      <!-- Selector de vista y acciones -->
+      <div class="vista-selector">
+        
+
+        <button class="btn-categorias" (click)="irACategorias()" 
+          pTooltip="Gestionar categorías" tooltipPosition="bottom">
+          <i class="pi pi-tags"></i>
+          <span>Categorías</span>
+        </button>
+        
+        <button class="btn-subalmacenes" (click)="irASubalmacenes()" 
+                pTooltip="Gestionar subalmacenes" tooltipPosition="bottom">
+          <i class="pi pi-box"></i>
+          <span>Subalmacenes</span>
+        </button>
+        
+        <button class="btn-reportes" (click)="irAReportes()" 
+                pTooltip="Reportes" tooltipPosition="bottom">
+          <i class="pi pi-chart-bar"></i>
+          <span>Reportes</span>
+        </button>
+        
+        <button class="btn-importar" (click)="importarActivos()" 
+                pTooltip="Importar desde Excel" tooltipPosition="bottom">
+          <i class="pi pi-file-excel"></i>
+          <span>Importar</span>
+        </button>
+        
+        <button class="btn-crear" (click)="crearActivo()">
+          <i class="pi pi-plus"></i>
+          <span>Nuevo Activo</span>
+        </button>
+
+        <button class="btn-rapido" (click)="altaRapida()" 
+          pTooltip="Alta rápida (campos mínimos)" tooltipPosition="bottom">
+          <i class="pi pi-bolt"></i>
+          <span>Rápido</span>
+        </button>
+        
+        <button class="btn-refresh" (click)="refrescar()" [disabled]="cargando">
+            <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+          </button>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-box"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTotalActivos()}}</div>
+          <div class="stat-label">Total Activos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-disponible">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-check-circle"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{getActivosPorEstado('DISPONIBLE')}}</div>
+          <div class="stat-label">Disponibles</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-asignado">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-user-check"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{getActivosPorEstado('ASIGNADO')}}</div>
+          <div class="stat-label">Asignados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-reparacion">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-wrench"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{getActivosPorEstado('EN_REPARACION')}}</div>
+          <div class="stat-label">En Reparación</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-fuera-servicio">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-stop-circle"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{getActivosPorEstado('FUERA_DE_SERVICIO')}}</div>
+          <div class="stat-label">Fuera Servicio</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-baja">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-trash"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{getActivosPorEstado('BAJA_TECNICA')}}</div>
+          <div class="stat-label">Baja Técnica</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="filtros-content">
+      <!-- Búsqueda general -->
+      <div class="search-box">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input type="text" pInputText 
+                placeholder="Buscar por nombre, serie, modelo, activo fijo, usuario..." 
+                [(ngModel)]="filtroBusqueda" 
+                (ngModelChange)="aplicarFiltros()" />
+        </span>
+      </div>
+
+      <!-- Filtros en fila con búsqueda en cada dropdown -->
+      <div class="filtros-row">
+        <div class="filtro-item">
+          <label>Estado</label>
+          <p-dropdown [options]="opcionesEstado" 
+                      [(ngModel)]="filtroEstado" 
+                      optionLabel="label" 
+                      optionValue="value" 
+                      [filter]="true"
+                      filterBy="label"
+                      placeholder="Seleccionar estado"
+                      (onChange)="aplicarFiltros()">
+          </p-dropdown>
+        </div>
+        
+        <div class="filtro-item">
+          <label>Ubicación</label>
+          <p-dropdown [options]="opcionesUbicacion" 
+                      [(ngModel)]="filtroUbicacion" 
+                      optionLabel="label" 
+                      optionValue="value" 
+                      [filter]="true"
+                      filterBy="label"
+                      placeholder="Seleccionar ubicación"
+                      [showClear]="true"
+                      (ngModelChange)="onUbicacionChange($event)">
+          </p-dropdown>
+        </div>
+
+        <div class="filtro-item">
+          <label>Categoría</label>
+          <p-dropdown [options]="opcionesCategoria" 
+                      [(ngModel)]="filtroCategoria" 
+                      optionLabel="label" 
+                      optionValue="value" 
+                      [filter]="true"
+                      filterBy="label"
+                      placeholder="Seleccionar categoría"
+                      [showClear]="true"
+                      (onChange)="aplicarFiltros()">
+          </p-dropdown>
+        </div>
+
+        <div class="filtro-item">
+          <label>Marca</label>
+          <p-dropdown [options]="opcionesMarca" 
+                      [(ngModel)]="filtroMarca" 
+                      optionLabel="label" 
+                      optionValue="value" 
+                      [filter]="true"
+                      filterBy="label"
+                      placeholder="Seleccionar marca"
+                      [showClear]="true"
+                      (onChange)="aplicarFiltros()">
+          </p-dropdown>
+        </div>
+
+        <div class="filtro-actions">
+          <button class="btn-limpiar" (click)="limpiarFiltros()">
+            <i class="pi pi-filter-slash"></i>
+            <span>Limpiar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <!-- Vista de Cards -->
+    <div *ngIf="vistaActual === 'cards'" class="activos-view">
+      <div class="pagination-controls-top">
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="pagination-info">
+          Mostrando {{getDisplayRange()}} de {{activosFiltrados.length}} activos
+        </div>
+      </div>
+
+      <div class="activos-grid-container">
+        <div *ngIf="paginatedActivos.length === 0 && !cargando" class="no-activos">
+          <i class="pi pi-box no-activos-icon"></i>
+          <h3>No se encontraron activos</h3>
+          <p>No hay activos que coincidan con los filtros seleccionados.</p>
+          <button pButton label="Limpiar filtros" icon="pi pi-filter-slash"
+                  class="p-button-outlined" (click)="limpiarFiltros()"></button>
+        </div>
+
+        <div class="activos-grid">
+          <div *ngFor="let activo of paginatedActivos" 
+               class="activo-card" 
+               (click)="verDetalle(activo)">
+            
+            <!-- Header de la card -->
+            <div class="activo-header">
+              <div class="activo-tipo">
+                <i [class]="activo.tipoActivo === 'Tablet' ? 'pi pi-tablet' : 
+                        activo.tipoActivo === 'Laptop' ? 'pi pi-laptop' : 
+                        activo.tipoActivo === 'Desktop' ? 'pi pi-desktop' : 
+                        activo.tipoActivo === 'Impresora' ? 'pi pi-print' : 
+                        'pi pi-box'"></i>
+                <span>{{activo.tipoActivo || 'Activo'}}</span>
+              </div>
+              <div class="activo-estado-badge" [ngClass]="getEstadoClass(activo.estadoTecnico)">
+                <i [class]="getEstadoIcon(activo.estadoTecnico)"></i>
+                <span>{{getEstadoLabel(activo.estadoTecnico)}}</span>
+              </div>
+            </div>
+
+            <!-- Cuerpo de la card -->
+            <div class="activo-body">
+              <div class="activo-folio" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">
+                <i class="pi pi-hashtag"></i>
+                <span>Folio: {{ activo.folio || 'Sin folio' }}</span>
+              </div>
+              <h3 class="activo-nombre">{{activo.nombre}}</h3>
+              
+              <div class="activo-especificaciones">
+                <div class="espec-item" *ngIf="activo.marca">
+                  <i class="pi pi-tag"></i>
+                  <span>{{activo.marca}} {{activo.modelo}}</span>
+                </div>
+                <div class="espec-item" *ngIf="activo.numeroSerie">
+                  <i class="pi pi-qrcode"></i>
+                  <span>S/N: {{activo.numeroSerie}}</span>
+                </div>
+                <div class="espec-item" *ngIf="activo.activoFijo">
+                  <i class="pi pi-hashtag"></i>
+                  <span>AF: {{activo.activoFijo}}</span>
+                </div>
+              </div>
+
+              <div class="activo-ubicacion" *ngIf="activo.ubicacionNombre">
+                <i class="pi pi-building"></i>
+                <span>{{activo.ubicacionNombre}}</span>
+              </div>
+
+              <div class="activo-asignacion" *ngIf="activo.usuarioAsignadoNombre">
+                <i class="pi pi-user"></i>
+                <span>{{activo.usuarioAsignadoNombre}}</span>
+              </div>
+            </div>
+
+            <!-- Footer de la card -->
+            <div class="activo-footer">
+              <div class="activo-fecha">
+                <i class="pi pi-calendar"></i>
+                <span>{{activo.fechaCreacionFormatted}}</span>
+              </div>
+              
+              <div class="activo-acciones">
+                <button class="btn-accion btn-editar" (click)="editarActivo(activo, $event)" 
+                        pTooltip="Editar activo" tooltipPosition="top">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button class="btn-accion btn-carta" (click)="generarCarta(activo, $event)"
+                        pTooltip="Generar carta responsiva" tooltipPosition="top">
+                  <i class="pi pi-file-pdf"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of pageNumbers" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="changePage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          Siguiente
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista de Lista -->
+    <div *ngIf="vistaActual === 'lista'" class="activos-view">
+      <div class="pagination-controls-top">
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="pagination-info">
+          Mostrando {{getDisplayRange()}} de {{activosFiltrados.length}} activos
+        </div>
+      </div>
+
+      <div class="activos-lista-container">
+        <div *ngIf="paginatedActivos.length === 0 && !cargando" class="no-activos">
+          <i class="pi pi-box no-activos-icon"></i>
+          <h3>No se encontraron activos</h3>
+          <p>No hay activos que coincidan con los filtros seleccionados.</p>
+          <button pButton label="Limpiar filtros" icon="pi pi-filter-slash"
+                  class="p-button-outlined" (click)="limpiarFiltros()"></button>
+        </div>
+
+        <p-table *ngIf="paginatedActivos.length > 0" 
+                [value]="paginatedActivos" 
+                styleClass="p-datatable-sm activos-table"
+                [rows]="itemsPerPage"
+                [totalRecords]="activosFiltrados.length"
+                [lazy]="false"
+                [paginator]="false">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Folio</th> 
+              <th>Activo</th>
+              <th>Tipo</th>
+              <th>Marca/Modelo</th>
+              <th>Estado</th>
+              <th>Ubicación</th>
+              <th>Costo</th>
+              <th>Asignado a</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-activo>
+            <tr class="clickable-row" (click)="verDetalle(activo)">
+              <td><strong>{{ activo.folio || '---' }}</strong></td>
+              <td>
+                <div class="activo-info-cell">
+                  <strong>{{activo.nombre}}</strong>
+                  <small *ngIf="activo.numeroSerie">S/N: {{activo.numeroSerie}}</small>
+                  <small *ngIf="activo.activoFijo">AF: {{activo.activoFijo}}</small>
+                </div>
+              </td>
+              <td>
+                <span class="tipo-badge">{{activo.tipoActivo || '-'}}</span>
+              </td>
+              <td>
+                <div class="marca-modelo">
+                  <span>{{activo.marca || '-'}} {{activo.modelo || ''}}</span>
+                </div>
+              </td>
+              <td>
+                <span class="estado-badge" [ngClass]="getEstadoClass(activo.estadoTecnico)">
+                  <i [class]="getEstadoIcon(activo.estadoTecnico)"></i>
+                  {{getEstadoLabel(activo.estadoTecnico)}}
+                </span>
+              </td>
+              <td>
+                <span *ngIf="activo.ubicacionNombre">{{activo.ubicacionNombre}}</span>
+                <span *ngIf="!activo.ubicacionNombre" class="text-gray-400">-</span>
+              </td>
+              <td>
+                <span *ngIf="activo.precioEntrega">${{activo.precioEntrega}}</span>
+                <span *ngIf="!activo.precioEntrega" class="text-gray-400">-</span>
+              </td>
+              <td>
+                <span *ngIf="activo.usuarioAsignadoNombre">{{activo.usuarioAsignadoNombre}}</span>
+                <span *ngIf="!activo.usuarioAsignadoNombre" class="text-gray-400">-</span>
+              </td>
+              <td class="acciones-cell">
+                <button class="btn-accion-icon btn-editar" (click)="editarActivo(activo, $event)"
+                        pTooltip="Editar" tooltipPosition="top">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button class="btn-accion-icon btn-carta" (click)="generarCarta(activo, $event)"
+                        pTooltip="Carta responsiva" tooltipPosition="top">
+                  <i class="pi pi-file-pdf"></i>
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Paginación para vista lista (manual, pero la tabla ya tiene su propia paginación) -->
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of pageNumbers" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="changePage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          Siguiente
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner de carga -->
+  @if (cargando && activos.length === 0) {
+    <p-blockUI [blocked]="cargando">
+      <div class="loading-container">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">Cargando activos...</p>
+      </div>
+    </p-blockUI>
+  }
+</div>

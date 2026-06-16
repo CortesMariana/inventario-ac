@@ -1,0 +1,384 @@
+<div class="grid-admin-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Colaboradores con Vehículos</h1>
+        <p class="page-subtitle">Visualiza los vehículos asignados a cada colaborador</p>
+      </div>
+
+      <div class="header-actions">
+        <div class="vista-selector">
+          <div class="vista-buttons">
+            <button class="vista-btn" 
+                    [class.active]="vistaActual === 'cards'"
+                    (click)="cambiarVista('cards')">
+              <i class="pi pi-th-large"></i>
+              <span>Cards</span>
+            </button>
+            <button class="vista-btn" 
+                    [class.active]="vistaActual === 'lista'"
+                    (click)="cambiarVista('lista')">
+              <i class="pi pi-list"></i>
+              <span>Lista</span>
+            </button>
+          </div>
+        
+          <button class="btn-refresh" (click)="refrescar()" [disabled]="cargando">
+            <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-users"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{totalColaboradores}}</div>
+          <div class="stat-label">Colaboradores</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-asignado">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-truck"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{totalVehiculosAsignados}}</div>
+          <div class="stat-label">Vehículos Asignados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-disponible">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-chart-line"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{promedioVehiculos}}</div>
+          <div class="stat-label">Promedio x Colaborador</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-reparacion">
+      <div class="stat-content">
+        <div class="stat-icon"><i class="pi pi-star"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">{{colaboradores.length > 0 ? (colaboradores | maxVehiculos)?.totalVehiculos : 0}}</div>
+          <div class="stat-label">Máximo vehículos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="filtros-content">
+      <!-- Búsqueda -->
+      <div class="search-box">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input type="text" pInputText 
+                 placeholder="Buscar por nombre, puesto, empresa, vehículo..." 
+                 [(ngModel)]="filtroBusqueda" 
+                 (ngModelChange)="aplicarFiltros()" />
+        </span>
+      </div>
+
+      <!-- Filtros en fila -->
+      <div class="filtros-row">
+        <div class="filtro-item">
+          <label>Empresa</label>
+          <p-dropdown [options]="opcionesEmpresa" [(ngModel)]="filtroEmpresa" 
+                    optionLabel="label" optionValue="value" 
+                    (onChange)="aplicarFiltros()"></p-dropdown>
+        </div>
+
+        <div class="filtro-item">
+          <label>Ubicación</label>
+          <p-dropdown [options]="opcionesUbicacion" [(ngModel)]="filtroUbicacion" 
+                    optionLabel="label" optionValue="value" 
+                    (onChange)="aplicarFiltros()"></p-dropdown>
+        </div>
+
+        <div class="filtro-item">
+          <label>Mínimo de vehículos</label>
+          <p-dropdown [options]="[
+            {label: 'Cualquier cantidad', value: 0},
+            {label: '1 o más', value: 1},
+            {label: '2 o más', value: 2},
+            {label: '3 o más', value: 3},
+            {label: '5 o más', value: 5}
+          ]" [(ngModel)]="filtroMinVehiculos" 
+                    optionLabel="label" optionValue="value" 
+                    (onChange)="aplicarFiltros()"></p-dropdown>
+        </div>
+
+        <div class="filtro-actions">
+          <button class="btn-limpiar" (click)="limpiarFiltros()">
+            <i class="pi pi-filter-slash"></i>
+            <span>Limpiar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <!-- Vista de Cards -->
+    <div *ngIf="vistaActual === 'cards'" class="colaboradores-view">
+      <div class="pagination-controls-top">
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="pagination-info">
+          Mostrando {{getDisplayRange()}} de {{colaboradoresFiltrados.length}} colaboradores
+        </div>
+      </div>
+
+      <div class="colaboradores-grid-container">
+        <div *ngIf="paginatedColaboradores.length === 0 && !cargando" class="no-colaboradores">
+          <i class="pi pi-users no-colaboradores-icon"></i>
+          <h3>No se encontraron colaboradores</h3>
+          <p>No hay colaboradores que coincidan con los filtros seleccionados.</p>
+          <button pButton label="Limpiar filtros" icon="pi pi-filter-slash"
+                  class="p-button-outlined" (click)="limpiarFiltros()"></button>
+        </div>
+
+        <div class="colaboradores-grid">
+          <div *ngFor="let colaborador of paginatedColaboradores" 
+               class="colaborador-card" 
+               (click)="verDetalle(colaborador)">
+            
+            <!-- Header de la card -->
+            <div class="colaborador-header">
+              <div class="colaborador-avatar" [style.background-color]="getColorPorEmpresa(colaborador.empresa)">
+                <span *ngIf="!colaborador.fotografiaMiniatura">{{getInitials(colaborador.nombreCompleto)}}</span>
+                <img *ngIf="colaborador.fotografiaMiniatura" [src]="colaborador.fotografiaMiniatura" 
+                     [alt]="colaborador.nombreCompleto" class="colaborador-avatar-img">
+              </div>
+              <div class="colaborador-info-header">
+                <h3 class="colaborador-nombre">{{colaborador.nombreCompleto}}</h3>
+                <span class="colaborador-puesto">{{colaborador.puesto}}</span>
+              </div>
+              <div class="colaborador-badge">
+                <span class="vehiculos-count">{{colaborador.totalVehiculos}}</span>
+                <span class="vehiculos-label">vehículos</span>
+              </div>
+            </div>
+
+            <!-- Cuerpo de la card -->
+            <div class="colaborador-body">
+              <div class="colaborador-details">
+                <div class="detail-item">
+                  <i class="pi pi-building"></i>
+                  <span>{{colaborador.empresa}}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="pi pi-map-marker"></i>
+                  <span>{{colaborador.lugarTrabajo}}</span>
+                </div>
+                <div class="detail-item" *ngIf="colaborador.ultimaAsignacion">
+                  <i class="pi pi-calendar"></i>
+                  <span>Última asignación: {{formatFecha(colaborador.ultimaAsignacion)}}</span>
+                </div>
+              </div>
+
+              <!-- Vista previa de vehículos -->
+              <div class="vehiculos-preview" *ngIf="colaborador.vehiculosAsignados.length > 0">
+                <div class="preview-header">
+                  <i class="pi pi-truck"></i>
+                  <span>Vehículos asignados ({{colaborador.totalVehiculos}})</span>
+                </div>
+                <div class="preview-items">
+                  <div *ngFor="let vehiculo of colaborador.vehiculosAsignados | slice:0:3" class="preview-item">
+                    <i class="pi pi-car"></i>
+                    <div class="preview-info">
+                      <span class="preview-marca">{{vehiculo.marca}} {{vehiculo.modelo}}</span>
+                      <span class="preview-placa">{{vehiculo.placa}}</span>
+                    </div>
+                    <span class="estado-mini" [ngClass]="getEstadoClass(vehiculo.estadoVehiculo)">
+                      {{getEstadoLabel(vehiculo.estadoVehiculo)}}
+                    </span>
+                  </div>
+                  <div *ngIf="colaborador.vehiculosAsignados.length > 3" class="preview-more">
+                    +{{colaborador.vehiculosAsignados.length - 3}} más
+                  </div>
+                </div>
+              </div>
+
+              <!-- Información de seguro vencido -->
+              <div class="alertas-preview" *ngIf="tieneSeguroVencido(colaborador)">
+                <div class="alerta-item">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  <span>Seguro vencido en algún vehículo</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer de la card -->
+            <div class="colaborador-footer">
+              <button class="btn-ver" (click)="verDetalle(colaborador, $event)">
+                <i class="pi pi-eye"></i>
+                <span>Ver vehículos</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of pageNumbers" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="changePage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          Siguiente
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista de Lista -->
+    <div *ngIf="vistaActual === 'lista'" class="colaboradores-view">
+      <div class="pagination-controls-top">
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="pagination-info">
+          Mostrando {{getDisplayRange()}} de {{colaboradoresFiltrados.length}} colaboradores
+        </div>
+      </div>
+
+      <div class="colaboradores-lista-container">
+        <div *ngIf="paginatedColaboradores.length === 0 && !cargando" class="no-colaboradores">
+          <i class="pi pi-users no-colaboradores-icon"></i>
+          <h3>No se encontraron colaboradores</h3>
+          <p>No hay colaboradores que coincidan con los filtros seleccionados.</p>
+          <button pButton label="Limpiar filtros" icon="pi pi-filter-slash"
+                  class="p-button-outlined" (click)="limpiarFiltros()"></button>
+        </div>
+
+        <p-table *ngIf="paginatedColaboradores.length > 0" 
+                [value]="paginatedColaboradores" 
+                styleClass="p-datatable-sm colaboradores-table"
+                [rows]="itemsPerPage"
+                [totalRecords]="colaboradoresFiltrados.length"
+                [lazy]="false"
+                [paginator]="false">
+          <ng-template pTemplate="header">
+             <tr>
+              <th>Colaborador</th>
+              <th>Puesto</th>
+              <th>Empresa</th>
+              <th>Ubicación</th>
+              <th>Vehículos</th>
+              <th>Última asignación</th>
+              <th>Estado seguros</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-colaborador>
+            <tr class="clickable-row" (click)="verDetalle(colaborador)">
+              <td>
+                <div class="colaborador-info-cell">
+                  <div class="avatar-mini" [style.background-color]="getColorPorEmpresa(colaborador.empresa)">
+                    <span *ngIf="!colaborador.fotografiaMiniatura">{{getInitials(colaborador.nombreCompleto)}}</span>
+                    <img *ngIf="colaborador.fotografiaMiniatura" [src]="colaborador.fotografiaMiniatura" 
+                         [alt]="colaborador.nombreCompleto" class="avatar-mini-img">
+                  </div>
+                  <div>
+                    <strong>{{colaborador.nombreCompleto}}</strong>
+                  </div>
+                </div>
+              </td>
+              <td>{{colaborador.puesto}}</td>
+              <td>{{colaborador.empresa}}</td>
+              <td>{{colaborador.lugarTrabajo}}</td>
+              <td>
+                <span class="vehiculos-badge">{{colaborador.totalVehiculos}}</span>
+              </td>
+              <td>{{formatFecha(colaborador.ultimaAsignacion)}}</td>
+              <td>
+                <span *ngIf="tieneSeguroVencido(colaborador)" class="seguro-vencido-badge">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  Seguro vencido
+                </span>
+                <span *ngIf="!tieneSeguroVencido(colaborador)" class="seguro-ok-badge">
+                  <i class="pi pi-check-circle"></i>
+                  Al día
+                </span>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center p-4">
+                No se encontraron colaboradores con vehículos asignados
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of pageNumbers" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="changePage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          Siguiente
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner de carga -->
+  @if (cargando && colaboradores.length === 0) {
+    <p-blockUI [blocked]="cargando">
+      <div class="loading-container">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">Cargando colaboradores...</p>
+      </div>
+    </p-blockUI>
+  }
+</div>

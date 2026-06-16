@@ -1,0 +1,159 @@
+<!-- src/app/modules/rh/tecnico-rh/estadisticas-tecnico/estadisticas-tecnico.component.html -->
+<div class="estadisticas-tecnico-container">
+  
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">
+          <i class="pi pi-chart-bar"></i>
+          Mis Estadísticas
+        </h1>
+        <p class="page-subtitle">{{userName}}</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-refrescar" (click)="refrescar()" [disabled]="cargando">
+          <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="loading-state">
+    <p-progressSpinner [style]="{'width': '50px', 'height': '50px'}"></p-progressSpinner>
+    <p>Calculando estadísticas...</p>
+  </div>
+
+  <!-- Contenido -->
+  <div *ngIf="!cargando" class="estadisticas-content">
+    
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card total">
+        <div class="kpi-icon"><i class="pi pi-file"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{stats.total || 0}}</span>
+          <span class="kpi-label">Total Asignadas</span>
+        </div>
+      </div>
+      
+      <div class="kpi-card pendientes">
+        <div class="kpi-icon"><i class="pi pi-hourglass"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{stats.pendientes || 0}}</span>
+          <span class="kpi-label">Pendientes</span>
+          <span class="kpi-porcentaje">{{getPorcentaje(stats.pendientes || 0, stats.total || 0)}}%</span>
+        </div>
+      </div>
+      
+      <div class="kpi-card completadas">
+        <div class="kpi-icon"><i class="pi pi-check-circle"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{stats.completadas || 0}}</span>
+          <span class="kpi-label">Completadas</span>
+          <span class="kpi-porcentaje">{{getPorcentaje(stats.completadas || 0, stats.total || 0)}}%</span>
+        </div>
+      </div>
+      
+      <div class="kpi-card urgentes">
+        <div class="kpi-icon"><i class="pi pi-exclamation-triangle"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{stats.urgentes || 0}}</span>
+          <span class="kpi-label">Urgentes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="graficos-grid">
+      
+      <!-- Gráfico de estatus -->
+      <div class="grafico-card">
+        <h3>Distribución por Estatus</h3>
+        <div class="grafico-container">
+          <canvas #estatusChart *ngIf="stats.total > 0"></canvas>
+          <div *ngIf="stats.total === 0" class="sin-datos">
+            <i class="pi pi-chart-bar"></i>
+            <p>No hay datos suficientes</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gráfico de tiempos - Con verificación de existencia -->
+      <div class="grafico-card">
+        <h3>Tiempos de Resolución</h3>
+        <div class="grafico-container">
+          <canvas #tiemposChart *ngIf="stats.tiempos && stats.tiempos.promedio > 0"></canvas>
+          <div *ngIf="!stats.tiempos || stats.tiempos.promedio === 0" class="sin-datos">
+            <i class="pi pi-clock"></i>
+            <p>Sin solicitudes completadas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distribución por tipo - Con verificación de stats.porTipo -->
+    <div class="distribucion-card" *ngIf="tiposSolicitud && tiposSolicitud.length > 0">
+      <h3>Solicitudes por Tipo</h3>
+      
+      <div class="tipos-grid">
+        <div *ngFor="let tipo of tiposSolicitud" class="tipo-item">
+          <div class="tipo-header">
+            <i [class]="tipo.icon" [style.color]="tipo.color"></i>
+            <span>{{tipo.label}}</span>
+          </div>
+          <div class="tipo-valor">
+            {{stats.porTipo && stats.porTipo[tipo.value] ? stats.porTipo[tipo.value] : 0}}
+          </div>
+          <div class="tipo-porcentaje" *ngIf="stats.total > 0">
+            {{getPorcentaje(
+              stats.porTipo && stats.porTipo[tipo.value] ? stats.porTipo[tipo.value] : 0, 
+              stats.total
+            )}}%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fallback si no hay tipos -->
+    <div class="distribucion-card" *ngIf="!tiposSolicitud || tiposSolicitud.length === 0">
+      <h3>Solicitudes por Tipo</h3>
+      <div class="sin-datos">
+        <i class="pi pi-database"></i>
+        <p>No hay tipos de solicitud configurados</p>
+      </div>
+    </div>
+
+    <!-- Solicitudes recientes -->
+    <div class="recientes-card" *ngIf="solicitudesRecientes && solicitudesRecientes.length > 0">
+      <h3>Solicitudes Recientes</h3>
+      
+      <div class="recientes-list">
+        <div *ngFor="let sol of solicitudesRecientes" class="reciente-item">
+          <div class="reciente-info">
+            <div class="reciente-folio">{{sol.folio || 'Sin folio'}}</div>
+            <div class="reciente-titulo">{{sol.titulo || 'Sin título'}}</div>
+            <div class="reciente-tipo">
+              <i [class]="getIconoTipo(sol.tipoSolicitud)" [style.color]="getColorTipo(sol.tipoSolicitud)"></i>
+              {{getLabelTipo(sol.tipoSolicitud)}}
+            </div>
+          </div>
+          <span class="reciente-estatus" [style.background-color]="sol.estatusColor || '#6c757d'">
+            {{sol.estatus || 'N/A'}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fallback si no hay solicitudes recientes -->
+    <div class="recientes-card" *ngIf="!solicitudesRecientes || solicitudesRecientes.length === 0">
+      <h3>Solicitudes Recientes</h3>
+      <div class="sin-datos">
+        <i class="pi pi-inbox"></i>
+        <p>No hay solicitudes recientes</p>
+      </div>
+    </div>
+  </div>
+</div>

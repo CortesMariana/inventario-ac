@@ -1,0 +1,298 @@
+<div class="importar-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Activos</span>
+      </button>
+      
+      <div class="header-title">
+        <h1 class="page-title">Importar Activos</h1>
+        <p class="page-subtitle">Carga masiva de activos desde Excel</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard Steps -->
+  <div class="wizard-steps">
+    <div class="step" [class.active]="pasoActual >= 1" [class.completed]="pasoActual > 1">
+      <div class="step-number">1</div>
+      <div class="step-label">Seleccionar Archivo</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" [class.active]="pasoActual >= 2" [class.completed]="pasoActual > 2">
+      <div class="step-number">2</div>
+      <div class="step-label">Validar Datos</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" [class.active]="pasoActual >= 3">
+      <div class="step-number">3</div>
+      <div class="step-label">Importar</div>
+    </div>
+  </div>
+
+  <!-- Paso 1: Seleccionar archivo -->
+  @if (pasoActual === 1) {
+    <div class="card paso-card">
+      <div class="card-header">
+        <h2>
+          <i class="pi pi-file-excel"></i>
+          Seleccionar Archivo Excel
+        </h2>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-box">
+          <i class="pi pi-info-circle"></i>
+          <div>
+            <h3>Instrucciones:</h3>
+            <ul>
+              <li>El archivo debe tener la primera fila con los encabezados</li>
+              <li>Columnas requeridas: nombre, tipoActivo, marca, modelo, estadoTecnico</li>
+              <li>Descarga la plantilla de ejemplo para ver el formato correcto</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="upload-area" (click)="fileInput.click()">
+          <input type="file" #fileInput id="fileInput" accept=".xlsx,.xls,.csv" 
+                 (change)="onFileSelect($event)" style="display: none">
+          
+          <i class="pi pi-cloud-upload upload-icon"></i>
+          <h4>Arrastra y suelta tu archivo aquí</h4>
+          <p>o haz clic para seleccionar un archivo</p>
+          
+          @if (archivoSeleccionado) {
+            <div class="file-selected">
+              <i class="pi pi-file-excel"></i>
+              <span>{{ archivoSeleccionado.name }}</span>
+              <small>({{ (archivoSeleccionado.size / 1024).toFixed(2) }} KB)</small>
+            </div>
+          }
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-primario" 
+                  (click)="procesarArchivo()"
+                  [disabled]="!archivoSeleccionado || procesando">
+            @if (procesando) {
+              <i class="pi pi-spinner pi-spin"></i>
+              <span>Procesando...</span>
+            } @else {
+              <i class="pi pi-upload"></i>
+              <span>Subir y Validar</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Paso 2: Validar datos -->
+  @if (pasoActual === 2) {
+    <div class="card paso-card">
+      <div class="card-header">
+        <h2>
+          <i class="pi pi-check-circle"></i>
+          Validación de Datos
+        </h2>
+      </div>
+      
+      <div class="card-body">
+        <!-- Resumen -->
+        <div class="resumen-validacion">
+          <div class="resumen-item total">
+            <span class="resumen-label">Total registros</span>
+            <span class="resumen-valor">{{ totalRegistros }}</span>
+          </div>
+          <div class="resumen-item validos">
+            <span class="resumen-label">Válidos</span>
+            <span class="resumen-valor">{{ registrosValidos }}</span>
+          </div>
+          <div class="resumen-item errores" [class.tiene-errores]="registrosConError > 0">
+            <span class="resumen-label">Con errores</span>
+            <span class="resumen-valor">{{ registrosConError }}</span>
+          </div>
+        </div>
+
+        <!-- Vista previa de datos válidos -->
+        @if (activosAImportar.length > 0) {
+          <div class="preview-section">
+            <h3>Vista Previa (primeros 5 registros)</h3>
+            <div class="table-responsive">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Estado</th>
+                    <th>Ubicación</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (activo of activosAImportar | slice:0:5; track activo.nombre) {
+                    <tr>
+                      <td>{{ activo.nombre }}</td>
+                      <td>{{ activo.tipoActivo }}</td>
+                      <td>{{ activo.marca }}</td>
+                      <td>{{ activo.modelo }}</td>
+                      <td>
+                        <span class="estado-badge" [ngClass]="'estado-' + activo.estadoTecnico.toLowerCase()">
+                          {{ activo.estadoTecnico }}
+                        </span>
+                      </td>
+                      <td>{{ activo.ubicacionNombre || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- Errores -->
+        @if (errores.length > 0) {
+          <div class="errores-section">
+            <h3>
+              <i class="pi pi-exclamation-triangle text-red-500"></i>
+              Errores encontrados
+            </h3>
+            <div class="errores-table-container">
+              <table class="errores-table">
+                <thead>
+                  <tr>
+                    <th>Fila</th>
+                    <th>Error</th>
+                    <th>Datos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (error of errores; track error.fila) {
+                    <tr>
+                      <td>{{ error.fila }}</td>
+                      <td class="error-message">{{ error.error }}</td>
+                      <td>
+                        <pre>{{ error.data | json }}</pre>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- Acciones -->
+        <div class="action-buttons">
+          <button class="btn-secundario" (click)="resetearImportacion()">
+            <i class="pi pi-arrow-left"></i>
+            Volver
+          </button>
+          
+          @if (errores.length > 0) {
+            <button class="btn-secundario" (click)="descargarErrores()">
+              <i class="pi pi-download"></i>
+              Descargar Errores
+            </button>
+          }
+          
+          <button class="btn-primario" 
+                  (click)="importarActivos()"
+                  [disabled]="activosAImportar.length === 0 || procesando">
+            @if (procesando) {
+              <i class="pi pi-spinner pi-spin"></i>
+              <span>Importando...</span>
+            } @else {
+              <i class="pi pi-save"></i>
+              <span>Importar {{ activosAImportar.length }} Activos</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Paso 3: Resultados -->
+  @if (pasoActual === 3) {
+    <div class="card paso-card">
+      <div class="card-header">
+        <h2>
+          <i class="pi pi-check-circle"></i>
+          Resultado de la Importación
+        </h2>
+      </div>
+      
+      <div class="card-body">
+        <div class="resultado-icono" [class.exitoso]="errores.length === 0">
+          @if (errores.length === 0) {
+            <i class="pi pi-check-circle"></i>
+          } @else {
+            <i class="pi pi-exclamation-triangle"></i>
+          }
+        </div>
+        
+        <h3 class="resultado-titulo">
+          @if (errores.length === 0) {
+            ¡Importación completada con éxito!
+          } @else {
+            Importación completada con errores
+          }
+        </h3>
+        
+        <div class="resultado-stats">
+          <div class="stat-item">
+            <span class="stat-label">Importados:</span>
+            <span class="stat-value">{{ activosAImportar.length - errores.length }}</span>
+          </div>
+          @if (errores.length > 0) {
+            <div class="stat-item error">
+              <span class="stat-label">Fallidos:</span>
+              <span class="stat-value">{{ errores.length }}</span>
+            </div>
+          }
+        </div>
+
+        @if (errores.length > 0) {
+          <div class="errores-section">
+            <h4>Detalle de errores:</h4>
+            <div class="errores-lista">
+              @for (error of errores; track error.fila) {
+                <div class="error-item">
+                  <strong>Fila {{ error.fila }}:</strong> {{ error.error }}
+                </div>
+              }
+            </div>
+            <button class="btn-secundario mt-3" (click)="descargarErrores()">
+              <i class="pi pi-download"></i>
+              Descargar Reporte de Errores
+            </button>
+          </div>
+        }
+
+        <div class="action-buttons">
+          <button class="btn-secundario" (click)="resetearImportacion()">
+            <i class="pi pi-upload"></i>
+            Importar otro archivo
+          </button>
+          <button class="btn-primario" (click)="volver()">
+            <i class="pi pi-arrow-right"></i>
+            Ir a Activos
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Spinner de carga global -->
+@if (cargando) {
+  <p-blockUI [blocked]="cargando">
+    <div class="loading-container">
+      <p-progressSpinner ariaLabel="loading" />
+      <p class="loading-text">Cargando...</p>
+    </div>
+  </p-blockUI>
+}

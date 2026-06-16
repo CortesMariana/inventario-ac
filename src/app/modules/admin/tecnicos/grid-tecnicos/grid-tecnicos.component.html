@@ -1,0 +1,273 @@
+<div class="grid-tecnicos-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Gestión de Técnicos</h1>
+        <p class="page-subtitle">Administra los técnicos registrados en el sistema</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-agregar" (click)="alternarFormulario()">
+          <i class="pi" [class.pi-plus]="!mostrandoFormulario" [class.pi-times]="mostrandoFormulario"></i>
+          <span>{{ mostrandoFormulario ? 'Cancelar' : 'Agregar Técnico' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTotalTecnicos()}}</div>
+          <div class="stat-label">Total Técnicos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-oficina">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-building"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTecnicosPorTipo('oficina')}}</div>
+          <div class="stat-label">Técnicos de Oficina</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-campo">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-car"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTecnicosPorTipo('campo')}}</div>
+          <div class="stat-label">Técnicos de Campo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Formulario para agregar técnico -->
+  @if (mostrandoFormulario) {
+    <div class="form-container">
+        <div class="form-card">
+        <h3 class="form-title">
+            <i class="pi pi-user-plus"></i>
+            Agregar Nuevo Técnico
+        </h3>
+        
+        <div class="form-content">
+            <!-- Seleccionar empleado -->
+            <div class="form-group">
+            <label for="empleado">Seleccionar Empleado *</label>
+            <p-dropdown 
+                [options]="opcionesEmpleados" 
+                [(ngModel)]="nuevoTecnico.empleadoId"
+                (onChange)="onEmpleadoSeleccionado($event.value)"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Selecciona un empleado"
+                [showClear]="true"
+                [filter]="true"
+                filterBy="label,puesto,empresa"
+                [disabled]="procesando"
+                styleClass="w-full">
+                <ng-template pTemplate="selectedItem">
+                @if (nuevoTecnico.empleadoId) {
+                    <div class="selected-item">
+                    <span>{{nuevoTecnico.empleadoNombre}}</span>
+                    </div>
+                }
+                </ng-template>
+                <ng-template let-option pTemplate="item">
+                <div class="empleado-option">
+                    <div class="empleado-name">{{option.label}}</div>
+                    <div class="empleado-info">
+                    <span class="empleado-puesto">{{option.puesto}}</span>
+                    <span class="empleado-empresa">{{option.empresa}}</span>
+                    </div>
+                </div>
+                </ng-template>
+            </p-dropdown>
+            </div>
+
+            <!-- Seleccionar tipo -->
+            <div class="form-group">
+            <label for="tipo">Tipo de Técnico *</label>
+            <div class="tipo-options">
+                <div class="tipo-option" 
+                    [class.selected]="nuevoTecnico.tipo === 'oficina'"
+                    (click)="nuevoTecnico.tipo = 'oficina'">
+                <div class="tipo-icon">
+                    <i class="pi pi-building"></i>
+                </div>
+                <div class="tipo-info">
+                    <h4>Oficina</h4>
+                    <p>Trabaja desde las instalaciones</p>
+                </div>
+                </div>
+
+                <div class="tipo-option" 
+                    [class.selected]="nuevoTecnico.tipo === 'campo'"
+                    (click)="nuevoTecnico.tipo = 'campo'">
+                <div class="tipo-icon">
+                    <i class="pi pi-car"></i>
+                </div>
+                <div class="tipo-info">
+                    <h4>Campo</h4>
+                    <p>Trabaja en sitio del cliente</p>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Botones del formulario -->
+            <div class="form-actions">
+            <button class="btn-cancelar" (click)="resetFormulario()" [disabled]="procesando">
+                <i class="pi pi-times"></i>
+                Cancelar
+            </button>
+            <button class="btn-guardar" (click)="agregarTecnico()" 
+                    [disabled]="!nuevoTecnico.empleadoId || !nuevoTecnico.tipo || procesando">
+                @if (procesando) {
+                <i class="pi pi-spinner pi-spin"></i>
+                Procesando...
+                } @else {
+                <i class="pi pi-check"></i>
+                Agregar Técnico
+                }
+            </button>
+            </div>
+        </div>
+        </div>
+    </div>
+    }
+
+<!-- ... resto del template se mantiene igual ... -->
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="filtros-content">
+      <!-- Búsqueda -->
+      <div class="search-box">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input type="text" pInputText 
+                 placeholder="Buscar técnicos por nombre o ID..." 
+                 [(ngModel)]="filtroBusqueda" />
+        </span>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-row">
+        <div class="filtro-item">
+          <label>Tipo</label>
+          <p-dropdown [options]="opcionesTipo" [(ngModel)]="filtroTipo"
+                    optionLabel="label" optionValue="value"
+                    placeholder="Todos los tipos"></p-dropdown>
+        </div>
+
+        <div class="filtro-actions">
+          <button class="btn-aplicar" (click)="aplicarFiltros()">
+            <i class="pi pi-filter"></i>
+            Aplicar Filtros
+          </button>
+          <button class="btn-limpiar" (click)="limpiarFiltros()">
+            <i class="pi pi-filter-slash"></i>
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de técnicos -->
+  <div class="tecnicos-grid">
+    <!-- Mensaje si no hay técnicos -->
+    @if (getTecnicosFiltrados().length === 0 && !cargando) {
+      <div class="no-tecnicos">
+        <i class="pi pi-users no-tecnicos-icon"></i>
+        <h3>No hay técnicos registrados</h3>
+        <p>Comienza agregando nuevos técnicos al sistema</p>
+        <button class="btn-agregar-principal" (click)="alternarFormulario()">
+          <i class="pi pi-user-plus"></i>
+          Agregar Técnico
+        </button>
+      </div>
+    }
+
+    <!-- Cards de técnicos -->
+    @for (tecnico of getTecnicosFiltrados(); track tecnico.firestoreId) {
+      <div class="tecnico-card">
+        <!-- Header de la card -->
+        <div class="tecnico-header">
+          <div class="tecnico-id">
+            <span class="id-label">ID Técnico:</span>
+            <span class="id-value">{{tecnico.tecnicoId || tecnico.empleadoId}}</span>
+          </div>
+          <div class="tecnico-tipo" [style.background-color]="getColorTipo(tecnico.tipo)">
+            {{tecnico.tipo === 'oficina' ? 'Oficina' : 'Campo'}}
+          </div>
+        </div>
+
+        <!-- Cuerpo de la card -->
+        <div class="tecnico-body">
+          <div class="tecnico-avatar">
+            <i [class]="getIconoTipo(tecnico.tipo)" class="avatar-icon"></i>
+          </div>
+          
+          <h3 class="tecnico-nombre">{{tecnico.nombre}}</h3>
+          
+          <div class="tecnico-info">
+            <!-- Mostrar ID Técnico si existe -->
+            <div class="info-item" *ngIf="tecnico.tecnicoId">
+              <i class="pi pi-hashtag info-icon"></i>
+              <span class="info-text">{{tecnico.tecnicoId}}</span>
+            </div>
+            <div class="info-item">
+              <i class="pi pi-id-card info-icon"></i>
+              <span class="info-text">ID Empleado: {{tecnico.empleadoId}}</span>
+            </div>
+            <div class="info-item">
+              <i class="pi pi-calendar info-icon"></i>
+              <span class="info-text">Registrado: {{getFechaFormateada(tecnico.fechaCreacion)}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer de la card (mantener igual) -->
+        <div class="tecnico-footer">
+          <div class="estado-badge" [class.activo]="tecnico.activo">
+            <i class="pi" [class.pi-check-circle]="tecnico.activo" [class.pi-times-circle]="!tecnico.activo"></i>
+            {{tecnico.activo ? 'Activo' : 'Inactivo'}}
+          </div>
+          
+          <button class="btn-eliminar" (click)="eliminarTecnico(tecnico); $event.stopPropagation()">
+            <i class="pi pi-trash"></i>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Spinner de carga -->
+  @if (cargando) {
+    <p-blockUI [blocked]="cargando">
+      <div class="loading-container">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">Cargando técnicos...</p>
+      </div>
+    </p-blockUI>
+  }
+</div>
+
+<!-- Toast para mensajes -->
+<p-toast position="top-right"></p-toast>

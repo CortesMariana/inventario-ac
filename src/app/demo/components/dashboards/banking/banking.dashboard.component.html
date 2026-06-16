@@ -1,0 +1,377 @@
+<div class="layout-banking-dashboard">
+    <div class="grid">
+        <p-messages [(value)]="msgs1" class="w-full mx-3" styleClass=" w-full border-round-3xl surface-card font-medium text-color-secondary" [enableService]="false"></p-messages>
+        <div class="col-12">
+            <div class="flex flex-column sm:flex-row align-items-center gap-4">
+                <div class="flex flex-column sm:flex-row align-items-center gap-3">
+                    <img src="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" class="w-3rem h-3rem flex-shrink-0" />
+                    <div class="flex flex-column align-items-center sm:align-items-start">
+                        <h4 class="text-800 font-medium m-0 mb-1">Welcome Amy</h4>
+                        <p class="text-600 m-0">Your last login was on 01/02/2023 at 10:24 am</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 sm:ml-auto justify-content-center">
+                    <div class="exchnage-rates flex">
+                        <div class="flex align-items-center p-2 cursor-pointer hover:surface-0 border-round transition-duration-200" (click)="op.toggle($event)">
+                            <i class="pi pi-angle-up text-green-500 mr-1"></i>
+                            <i class="pi pi-dollar"></i> <span>1.32</span>
+                        </div>
+                        <p-overlayPanel #op [style]="{ width: '300px' }">
+                            <ng-template pTemplate>
+                                <h5 class="font-medium m-0 mb-1">USD to EUR</h5>
+                                <p class="m-0 p-0 mb-3">
+                                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. <a class="ml-1">more detail <i class="pi pi-arrow-up" style="transform: rotate(45deg)"></i></a>
+                                </p>
+
+                                <p-chart type="bar" height="180" [data]="usdChartData" [options]="chartOptions"></p-chart>
+                            </ng-template>
+                        </p-overlayPanel>
+                        <div class="flex align-items-center p-2 cursor-pointer hover:surface-0 border-round transition-duration-200" (click)="op2.toggle($event)">
+                            <i class="pi pi-angle-down mr-1" style="color: #ff6e49"></i>
+                            <i class="pi pi-fw pi-bitcoin"></i> <span>60,000</span>
+                        </div>
+                        <p-overlayPanel #op2 [style]="{ width: '300px' }">
+                            <ng-template pTemplate>
+                                <h5 class="font-medium m-0 mb-1">BTC to USD</h5>
+                                <p class="m-0 p-0 mb-3">
+                                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. <a class="ml-1">more detail <i class="pi pi-arrow-up" style="transform: rotate(45deg)"></i></a>
+                                </p>
+
+                                <p-chart type="bar" height="180" [data]="btcChartData" [options]="chartOptions"></p-chart>
+                            </ng-template>
+                        </p-overlayPanel>
+                        <div class="flex align-items-center p-2 cursor-pointer hover:surface-0 border-round transition-duration-200" (click)="op3.toggle($event)">
+                            <i class="pi pi-angle-up text-green-500 mr-1"></i>
+                            <i class="pi pi-pound"></i> <span>1.60</span>
+                        </div>
+                        <p-overlayPanel #op3 [style]="{ width: '300px' }">
+                            <ng-template pTemplate>
+                                <h5 class="font-medium m-0 mb-1">GBP to USD</h5>
+                                <p class="m-0 p-0 mb-3">
+                                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. <a class="ml-1">more detail <i class="pi pi-arrow-up" style="transform: rotate(45deg)"></i></a>
+                                </p>
+
+                                <p-chart type="bar" height="180" [data]="poundChartData" [options]="chartOptions"></p-chart>
+                            </ng-template>
+                        </p-overlayPanel>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" pButton pTooltip="Exchange" tooltipPosition="bottom" icon="pi pi-arrows-h" class="p-button-rounded p-button-outlined flex-shrink-0"></button>
+                        <button type="button" pButton pTooltip="Withdraw" tooltipPosition="bottom" icon="pi pi-download" class="p-button-rounded p-button-outlined flex-shrink-0"></button>
+                        <button type="button" pButton pTooltip="Send" tooltipPosition="bottom" icon="pi pi-send" class="p-button-rounded flex-shrink-0"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 xl:col-8">
+            <div class="grid" style="margin: -1rem">
+                <div class="col-12 sm:col">
+                    <div class="card surface-card text-700 flex justify-content-between pt-4 h-full">
+                        <div class="overview-info">
+                            <h6 class="m-0 mb-1">Total Balance</h6>
+                            <h1 class="m-0">$3879.76</h1>
+                        </div>
+                        <i class="pi pi-dollar text-3xl"></i>
+                    </div>
+                </div>
+                <div class="col-12 sm:col">
+                    <div class="card bg-orange-300 text-white flex justify-content-between pt-4 h-full">
+                        <div class="overview-info">
+                            <h6 class="m-0 mb-1 text-white">Total Spending</h6>
+                            <h1 class="m-0 text-white">$843.64</h1>
+                        </div>
+                        <i class="pi pi-dollar text-3xl"></i>
+                    </div>
+                </div>
+                <div class="col-12 sm:col">
+                    <div class="card bg-blue-300 text-white flex justify-content-between pt-4 h-full">
+                        <div class="overview-info">
+                            <h6 class="m-0 mb-1 text-white">Subscriptions</h6>
+                            <h1 class="m-0 text-white">$126.82</h1>
+                        </div>
+                        <i class="pi pi-dollar text-3xl"></i>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header gap-3">
+                            <div class="card-title">
+                                <h6>Money Flow</h6>
+                                <p class="subtitle">
+                                    Your <b>{{ selectedDate.name }}</b> Income & Expenses data.
+                                </p>
+                            </div>
+                            <p-dropdown [options]="dateRanges" [(ngModel)]="selectedDate" placeholder="Monthly" optionLabel="name" [showClear]="false" styleClass="w-9rem" (onChange)="onDateChangeBarChart()"></p-dropdown>
+                        </div>
+                        <p-chart type="bar" height="540" [data]="chartData" [options]="chartOptions"></p-chart>
+                    </div>
+                </div>
+            </div>
+            <p-menu #menu [popup]="true" [model]="items"></p-menu>
+        </div>
+        <div class="col-12 xl:col-4">
+            <p-dialog header="Add New Card" [(visible)]="displayBasic" [modal]="true" [style]="{ width: '50vw' }">
+                <ng-template pTemplate="header">
+                    <div class="block w-8">
+                        <h2 class="p-0 m-0 mb-3">Add your new card</h2>
+                        <p class="p-0 m-0">Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempore dolores quasi consequuntur eveniet iure perspiciatis.</p>
+                    </div>
+                </ng-template>
+                <div class="flex justify-content-between align-items-center gap-7">
+                    <div class="card-form w-full">
+                        <label for="name" class="block">Name on your card</label>
+                        <input class="w-full mb-3" type="text" id="name" pInputText [(ngModel)]="cardName" />
+                        <label for="cardno" class="block">Your card number</label>
+                        <p-inputMask styleClass="w-full mb-3" id="cardno" [(ngModel)]="cardno" mask="9999-9999-9999-9999" [autoClear]="false"></p-inputMask>
+                        <div class="flex gap-3">
+                            <div class="mb-3 w-6">
+                                <label for="carddate" class="block">Your card's valid date</label>
+                                <p-inputMask styleClass="w-full" id="carddate" [(ngModel)]="cardDate" [autoClear]="false" mask="99/99"></p-inputMask>
+                            </div>
+                            <div class="mb-3 w-6">
+                                <label for="cvv" class="block">CVV on your card</label>
+                                <p-inputMask styleClass="w-full" id="cvv" [(ngModel)]="cvv" [autoClear]="false" mask="999"></p-inputMask>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-3 xl:px-5 py-5 w-full border-round-2xl shadow-3" style="background: linear-gradient(to left bottom, var(--primary-100), var(--primary-400)); min-height: 19rem">
+                        <div class="mb-5">
+                            <img src="assets/layout/images/logo-freya-single.svg" class="w-2rem" alt="" />
+                        </div>
+                        <div class="mb-3">
+                            <h3 class="text-0" style="letter-spacing: -0.5px; min-height: 2.09rem">{{ cardno }}</h3>
+                            <div class="text-0 flex align-items-center justify-content-end">
+                                <span class="m-0 text-sm p-0 mr-2">Valid <br />thru</span>
+                                <h4 class="m-0 text-0" style="min-width: 4.1rem">{{ cardDate }}</h4>
+                            </div>
+                            <h4 class="text-0" style="min-height: 1.7rem">
+                                {{ cardName }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+                <ng-template pTemplate="footer">
+                    <p-button icon="pi pi-check" (click)="addCreditCard()" label="Save Card" styleClass="p-button-text"></p-button>
+                </ng-template>
+            </p-dialog>
+            <div class="grid">
+                <div class="col-12 md:col-6 xl:col-12">
+                    <div class="card px-0" *ngIf="cards">
+                        <div class="card-header gap-3" style="padding: 0 28px 16px">
+                            <div class="card-title">
+                                <h6>My Cards ({{ cards.length }})</h6>
+                                <p class="subtitle">You can always add more</p>
+                            </div>
+                            <button pButton pRipple type="button" icon="pi pi-plus" class="p-button-secondary p-button-text p-button-rounded" (click)="showBasicDialog()"></button>
+                        </div>
+                        <p-carousel [value]="cards" [numVisible]="1" [numScroll]="1" [circular]="true">
+                            <ng-template let-card pTemplate="item">
+                                <div class="px-2 pb-2">
+                                    <div class="px-3 xl:px-5 py-5 w-full border-round-2xl shadow-3" style="background: linear-gradient(to left bottom, var(--primary-100), var(--primary-400))">
+                                        <div class="mb-5">
+                                            <img [src]="card.logo" class="w-2rem" alt="" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <h3 class="text-0" style="letter-spacing: -0.5px">**** **** **** {{ card.cardNo.split('-')[3] }}</h3>
+                                            <div class="text-0 flex align-items-center justify-content-end">
+                                                <span class="m-0 text-sm p-0 mr-2">Valid <br />thru</span>
+                                                <h4 class="m-0 text-0">{{ card.validDate }}</h4>
+                                            </div>
+                                            <h4 class="text-0">
+                                                {{ card.name }}
+                                            </h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-carousel>
+                    </div>
+                </div>
+                <div class="col-12 md:col-6 xl:col-12">
+                    <div class="card" *ngIf="cards">
+                        <div class="card-header gap-3">
+                            <div class="card-title">
+                                <h6>Quick Actions</h6>
+                                <p class="subtitle">Send money or pay your bills.</p>
+                            </div>
+                            <p-dropdown [options]="cards" [(ngModel)]="selectedCard" [placeholder]="selectedCard.cardNo" optionLabel="cardNo" [showClear]="false" styleClass="w-8rem" panelStyleClass="w-8rem">
+                                <ng-template let-card pTemplate="item">
+                                    <span class="block">****{{ card.cardNo.split('-')[3] }}</span>
+                                </ng-template>
+                            </p-dropdown>
+                        </div>
+                        <p-confirmDialog [style]="{ width: '360px' }" [baseZIndex]="10000" rejectButtonStyleClass="p-button-text"></p-confirmDialog>
+                        <p-tabView>
+                            <p-tabPanel header="Send Money" class="w-full p-0">
+                                <div style="margin: 0 -1.5rem">
+                                    <p-autoComplete styleClass="w-full p-0 " [(ngModel)]="selectedAccount" placeholder="Enter Name" [suggestions]="filteredAccounts" (completeMethod)="filterAccounts($event)" field="name" [dropdown]="true">
+                                        <ng-template let-account pTemplate="item">
+                                            <div class="name-item flex align-items-center justify-content-between">
+                                                <div class="flex align-items-center">
+                                                    <img *ngIf="account.photo.length > 0; else noImage" class="w-2rem h-2rem border-circle" [src]="account.photo" />
+                                                    <ng-template #noImage>
+                                                        <span class="w-2rem h-2rem border-circle flex justify-content-center align-items-center uppercase font-medium surface-100">
+                                                            {{ account.name[0] }}
+                                                        </span>
+                                                    </ng-template>
+                                                    <div class="ml-2">{{ account.name }}</div>
+                                                </div>
+                                                <div>{{ account.accountNo }}</div>
+                                            </div>
+                                        </ng-template>
+                                    </p-autoComplete>
+                                    <div class="flex align-items-center my-3 gap-3">
+                                        <input class="w-8" type="text" pInputText [(ngModel)]="selectedAccount ? selectedAccount.accountNo : accountNumber" placeholder="Enter Account No" />
+                                        <p-inputNumber styleClass="w-4" [(ngModel)]="amount" inputId="currency-us" mode="currency" placeholder="$00.00" currency="USD" locale="en-US"></p-inputNumber>
+                                    </div>
+                                    <button pButton pRipple icon="pi pi-send" type="button" label="Send" class="p-button-outlined w-full" (click)="confirm1(selectedAccount.name ? selectedAccount.name : selectedAccount, amount)"></button>
+                                </div>
+                            </p-tabPanel>
+                            <p-tabPanel header="Pay Subscriptions or Bills">
+                                <div style="margin: 0 -1.5rem">
+                                    <p-autoComplete
+                                        styleClass="w-full"
+                                        [(ngModel)]="selectedSubscription"
+                                        placeholder="Enter Subscription or Bill Company"
+                                        [suggestions]="filteredSubscriptions"
+                                        (completeMethod)="filterSubscription($event)"
+                                        field="name"
+                                        [dropdown]="true"
+                                    >
+                                        <ng-template let-account pTemplate="item">
+                                            <div class="name-item flex align-items-center justify-content-between">
+                                                <div class="flex align-items-center">
+                                                    <img *ngIf="account.image.length > 0; else noImage" class="w-2rem h-2rem border-circle" [src]="account.image" />
+                                                    <ng-template #noImage>
+                                                        <span class="w-2rem h-2rem border-circle flex justify-content-center align-items-center uppercase font-medium surface-100">
+                                                            {{ account.name[0] }}
+                                                        </span>
+                                                    </ng-template>
+                                                    <div class="ml-2">{{ account.name }}</div>
+                                                </div>
+                                                <div class="flex align-items-center gap-1">
+                                                    <small [style]="account.due == 'late' ? 'color:#fe572c;' : account.due == 'close' ? 'color:#ffc800;' : ''">{{ account.due == 'late' ? 'late' : account.due == 'close' ? 'close' : '' }}</small>
+                                                    <div class="border-round-2xl p-1 w-3rem text-center" [style]="account.due == 'late' ? 'background-color:#ff6e493a;' : account.due == 'close' ? 'background-color:#ffd8493a;' : ''">
+                                                        ${{ account.amount }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </ng-template>
+                                    </p-autoComplete>
+                                    <div class="flex align-items-center my-3 gap-3">
+                                        <input class="w-8" type="text" pInputText [(ngModel)]="selectedSubscription ? selectedSubscription.accountNo : accountNumber" placeholder="Enter User No" />
+                                        <p-inputNumber
+                                            styleClass="w-4"
+                                            [(ngModel)]="selectedSubscription ? selectedSubscription.amount : amount"
+                                            inputId="currency-us"
+                                            placeholder="$00.00"
+                                            mode="currency"
+                                            currency="USD"
+                                            locale="en-US"
+                                        ></p-inputNumber>
+                                    </div>
+                                    <button
+                                        pButton
+                                        pRipple
+                                        icon="pi pi-wallet"
+                                        type="button"
+                                        label="Pay"
+                                        class="p-button-outlined w-full"
+                                        (click)="confirm2(selectedSubscription.name ? selectedSubscription.name : selectedSubscription, selectedSubscription ? selectedSubscription.amount : amount)"
+                                    ></button>
+                                </div>
+                            </p-tabPanel>
+                        </p-tabView>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 xl:col-6">
+            <div class="card h-full">
+                <div class="card-header gap-3 flex-wrap md:flex-nowrap">
+                    <div class="card-title">
+                        <h6>Transactions</h6>
+                        <p class="subtitle">
+                            Your <b>{{ selectedDate.name }}</b> Income & Expenses data.
+                        </p>
+                    </div>
+                    <div class="inline-flex align-items-center w-full md:w-auto">
+                        <span class="p-input-icon-left flex-auto">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search" class="w-full" style="border-radius: 2rem" />
+                        </span>
+                        <button pButton pRipple icon="pi pi-upload" class="p-button-rounded mx-3 flex-shrink-0" (click)="dt.exportCSV()"></button>
+                    </div>
+                </div>
+                <p-table #dt [value]="transactions" [paginator]="true" [rows]="3" styleClass="" responsiveLayout="scroll" [globalFilterFields]="['name', 'category', 'inventoryStatus']">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th></th>
+                            <th pSortableColumn="name" style="min-width: 12rem" class="white-space-nowrap">
+                                Name
+                                <p-sortIcon field="name"></p-sortIcon>
+                            </th>
+                            <th pSortableColumn="action" style="min-width: 10rem" class="white-space-nowrap">
+                                Action
+                                <p-sortIcon field="action"></p-sortIcon>
+                            </th>
+                            <th style="min-width: 10rem" class="white-space-nowrap">Account&User No</th>
+                            <th pSortableColumn="amount" style="min-width: 10rem" class="white-space-nowrap">
+                                Amount
+                                <p-sortIcon field="amount"></p-sortIcon>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-transaction>
+                        <tr>
+                            <td>
+                                <img *ngIf="transaction.image.length > 0; else noImage" class="w-2rem h-2rem border-circle mt-2" [src]="transaction.image" />
+                                <ng-template #noImage>
+                                    <span class="w-2rem h-2rem border-circle flex justify-content-center align-items-center uppercase font-medium surface-100 mt-2">
+                                        {{ transaction.name[0] }}
+                                    </span>
+                                </ng-template>
+                            </td>
+
+                            <td>{{ transaction.name }}</td>
+                            <td>{{ transaction.action }}</td>
+                            <td>{{ transaction.accountNo }}</td>
+                            <td>
+                                <span class="border-round-xl p-1 w-4rem text-center block font-medium" [style]="transaction.amount > 0 ? 'background-color:#8fff493a;' : 'background-color:#ff6e493a;'">${{ transaction.amount }}</span>
+                            </td>
+                            <td>
+                                <button type="button" pButton icon="pi pi-ellipsis-v" class="p-button-rounded p-button-text" (click)="menu.toggle($event)"></button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+        <div class="col-12 sm:col-6 xl:col-3">
+            <div class="card h-full">
+                <div class="card-header gap-3">
+                    <div class="card-title">
+                        <h6>All Expenses</h6>
+                        <p class="subtitle">
+                            Your <b>{{ selectedDate.name }}</b> Expenses data.
+                        </p>
+                    </div>
+                    <p-dropdown [options]="dateRanges2" [(ngModel)]="selectedDate2" placeholder="Last 7 Days" optionLabel="name" [showClear]="false" styleClass="w-8rem" (onChange)="onDateChangePieChart()"></p-dropdown>
+                </div>
+                <p-chart type="doughnut" [data]="pieData" [options]="pieOptions" height="300px"></p-chart>
+            </div>
+        </div>
+        <div class="col-12 sm:col-6 xl:col-3">
+            <div class="card h-full flex align-items-center justify-content-start p-5" style="background: linear-gradient(to left bottom, var(--primary-lighter-color), var(--primary-400))">
+                <div class="flex flex-column">
+                    <h2 class="m-0 mb-4 w-9 font-bold">Upgrade to premium banking!</h2>
+                    <h4 class="m-0 mb-6 w-10">Lightning-fast transactions, no fees, and exclusive discounts from top brands!</h4>
+                    <button pButton pRipple icon="pi pi-wallet" type="button" label="Upgrade Now" class="p-button-primary w-full p-button-lg"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<p-toast></p-toast>

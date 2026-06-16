@@ -1,0 +1,500 @@
+<div class="grid">
+  <div class="col-10 col-offset-1">
+    <div class="card px-6 py-6" [ngClass]="{'mobile-scrollable-card': isMobileView}">
+      
+      <!-- Título y breadcrumb -->
+      <div class="flex align-items-center mb-5">
+        <button class="btn-volver mr-3" (click)="cancelar()">
+          <i class="pi pi-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="page-title m-0">{{titulo}}</h1>
+          <p class="page-subtitle m-0">Complete todos los campos requeridos (*)</p>
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="formTicket" class="ticket-form">
+        
+        <!-- Sección 1: Información Básica -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="pi pi-info-circle"></i>
+            Información Básica
+          </h3>
+          
+          <div class="grid">
+            <!-- Título -->
+            <div class="field col-12 mb-4">
+              <label for="titulo" class="form-label">
+                Título del Ticket <span class="required">*</span>
+              </label>
+              <input id="titulo" class="w-full" type="text" pInputText formControlName="titulo" 
+                     placeholder="Ej: Problema con impresora en oficina central" 
+                     [class.p-invalid]="formTicket.get('titulo')?.invalid && formTicket.get('titulo')?.touched" />
+              <small class="form-hint">Sea específico y descriptivo</small>
+              @if (formTicket.get('titulo')?.invalid && formTicket.get('titulo')?.touched) {
+                <small class="p-error">El título es requerido</small>
+              }
+            </div>
+
+            <!-- Descripción -->
+            <div class="field col-12 mb-4">
+              <label for="descripcion" class="form-label">
+                Descripción Detallada <span class="required">*</span>
+              </label>
+              <div class="description-container">
+                <textarea id="descripcion" rows="5" class="w-full" pTextarea formControlName="descripcion"
+                          placeholder="Describe el problema con detalle. Incluye:&#10;• Síntomas&#10;• Pasos para reproducir&#10;• Impacto&#10;• Soluciones intentadas"
+                          [class.p-invalid]="formTicket.get('descripcion')?.invalid && formTicket.get('descripcion')?.touched"></textarea>
+                <div class="description-tips">
+                  <h5><i class="pi pi-lightbulb"></i> Consejos:</h5>
+                  <ul>
+                    <li>Menciona el equipo o sistema afectado</li>
+                    <li>Incluye mensajes de error específicos</li>
+                    <li>Describe el impacto en el trabajo</li>
+                  </ul>
+                </div>
+              </div>
+              @if (formTicket.get('descripcion')?.invalid && formTicket.get('descripcion')?.touched) {
+                <small class="p-error">La descripción es requerida</small>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 2: Información de Contacto -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="pi pi-user"></i>
+            Información de Contacto
+          </h3>
+          
+          <div class="grid">
+            <!-- Correo -->
+            <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="correo" class="form-label">
+                Correo Electrónico <span class="required">*</span>
+              </label>
+              <span class="p-input-icon-left w-full">
+                <i class="pi pi-envelope"></i>
+                <input id="correo" class="w-full" type="email" pInputText formControlName="correo" 
+                      placeholder="usuario@empresa.com"
+                      [class.p-invalid]="formTicket.get('correo')?.invalid && formTicket.get('correo')?.touched" />
+              </span>
+              @if (formTicket.get('correo')?.invalid && formTicket.get('correo')?.touched) {
+                <small class="p-error">
+                  {{ formTicket.get('correo')?.errors?.['required'] ? 'El correo es requerido' : 'Correo inválido' }}
+                </small>
+              }
+            </div>
+
+            <!-- Teléfono -->
+            <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="telefono" class="form-label">
+                Teléfono <span class="required">*</span>
+              </label>
+              <span class="p-input-icon-left w-full">
+                <i class="pi pi-phone"></i>
+                <input id="telefono" class="w-full" type="tel" pInputText formControlName="telefono" 
+                      placeholder="10 dígitos"
+                      maxlength="10"
+                      [class.p-invalid]="formTicket.get('telefono')?.invalid && formTicket.get('telefono')?.touched" />
+              </span>
+              <small class="form-hint">Ej: 5512345678</small>
+              @if (formTicket.get('telefono')?.invalid && formTicket.get('telefono')?.touched) {
+                <small class="p-error">
+                  {{ formTicket.get('telefono')?.errors?.['required'] ? 'El teléfono es requerido' : 'Teléfono inválido (10 dígitos)' }}
+                </small>
+              }
+            </div>
+
+            <!-- Sucursal -->
+            <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="sucursalId" class="form-label">
+                Sucursal <span class="required">*</span>
+              </label>
+              <div class="sucursal-dropdown-container">
+                <p-dropdown 
+                  id="sucursalId" 
+                  [options]="sucursales" 
+                  formControlName="sucursalId" 
+                  optionLabel="label" 
+                  optionValue="value" 
+                  styleClass="w-full"
+                  placeholder="Seleccione una sucursal"
+                  [filter]="true"
+                  filterBy="label"
+                  [showClear]="true"
+                  (onChange)="onSucursalSelect($event)"
+                  [class.p-invalid]="formTicket.get('sucursalId')?.invalid && formTicket.get('sucursalId')?.touched">
+                  <ng-template pTemplate="value" let-value>
+                    @if (value) {
+                      <div class="flex align-items-center gap-2">
+                        <i class="pi pi-building"></i>
+                        <span>{{ getSucursalLabel(value) }}</span>
+                      </div>
+                    } @else {
+                      <span class="text-gray-400">Seleccione una sucursal</span>
+                    }
+                  </ng-template>
+                  <ng-template pTemplate="item" let-sucursal>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-building"></i>
+                      <div>
+                        <div class="font-medium">{{ sucursal.label }}</div>
+                        @if (sucursal.data?.direccion) {
+                          <div class="text-xs text-gray-500">{{ sucursal.data.direccion }}</div>
+                        }
+                      </div>
+                    </div>
+                  </ng-template>
+                  <ng-template pTemplate="empty">
+                    <div class="p-3 text-center">
+                      @if (sucursalesCargando) {
+                        <div class="flex justify-content-center align-items-center gap-2">
+                          <i class="pi pi-spinner pi-spin"></i>
+                          <span>Cargando sucursales...</span>
+                        </div>
+                      } @else {
+                        <span>No se encontraron sucursales</span>
+                      }
+                    </div>
+                  </ng-template>
+                  <ng-template pTemplate="footer">
+                    <div class="p-2 text-xs text-gray-500 border-top-1">
+                      Total: {{ sucursales.length }} sucursales
+                    </div>
+                  </ng-template>
+                </p-dropdown>
+                @if (sucursalesCargando) {
+                  <small class="form-hint">
+                    <i class="pi pi-spinner pi-spin mr-1"></i>
+                    Cargando sucursales...
+                  </small>
+                } @else {
+                  <small class="form-hint">Seleccione la sucursal donde se requiere atención</small>
+                }
+                @if (formTicket.get('sucursalId')?.invalid && formTicket.get('sucursalId')?.touched) {
+                  <small class="p-error">La sucursal es requerida</small>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 3: Clasificación -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="pi pi-tags"></i>
+            Clasificación del Ticket
+          </h3>
+          
+          <div class="grid">
+            <!-- Tipo Problema (nuevo campo) -->
+            <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="tipoProblema" class="form-label">
+                Tipo de Problema <span class="required">*</span>
+              </label>
+              <p-dropdown id="tipoProblema" [options]="tipoProblema" formControlName="tipoProblema" 
+                          optionLabel="label" optionValue="value" styleClass="w-full" />
+              <small class="form-hint">Sistema = Oficina, Equipo = Campo</small>
+            </div>
+
+            <!-- Prioridad -->
+            <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="prioridad" class="form-label">
+                Prioridad <span class="required">*</span>
+              </label>
+              <p-dropdown id="prioridad" [options]="prioridades" formControlName="prioridad" 
+                          optionLabel="label" optionValue="value" styleClass="w-full" />
+            </div>
+
+            <!-- Estatus -
+            <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="estatus" class="form-label">
+                Estatus <span class="required">*</span>
+              </label>
+              <p-dropdown id="estatus" [options]="estatus" formControlName="estatus" 
+                          optionLabel="label" optionValue="value" styleClass="w-full" />
+            </div> -->
+          </div>
+
+          <!-- Nota sobre categoría automática -->
+          @if (categoriaAutomatica === 'oficina') {
+            <div class="info-note mt-3">
+              <i class="pi pi-info-circle"></i>
+              <span>
+                Este ticket será asignado a técnicos de <strong>Oficina</strong> (Sistema)
+              </span>
+            </div>
+          } @else {
+            <div class="info-note mt-3">
+              <i class="pi pi-info-circle"></i>
+              <span>
+                Este ticket será asignado a técnicos de <strong>Campo</strong> (Equipo)
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Sección 4: Asignación y Fechas -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="pi pi-calendar-plus"></i>
+            Fechas
+          </h3>
+          
+          <div class="grid">
+            <!-- Fecha Límite -->
+            <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+              <label for="fechaLimite" class="form-label">Fecha Límite</label>
+              <span class="p-float-label w-full">
+                <p-calendar id="fechaLimite" formControlName="fechaLimite" dateFormat="dd/mm/yy" 
+                          [showIcon]="true" styleClass="w-full" [minDate]="minDate"></p-calendar>
+              </span>
+              <small class="form-hint">Fecha estimada para resolver el ticket</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 5: Información Adicional Condicional -->
+        @if (mostrarCampoActivos) {
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-map-marker"></i>
+              Información Adicional
+            </h3>
+            
+            <div class="grid">
+              <!-- Activos (solo para asignación activo) -->
+              @if (mostrarCampoActivos) {
+                <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                  <label for="activos" class="form-label">Activos/Dispositivos</label>
+                  <div class="flex align-items-center gap-2">
+                    <p-multiSelect id="activos" [options]="[]" formControlName="activos" 
+                                  optionLabel="nombre" styleClass="w-full" [disabled]="true"
+                                  placeholder="Servicio no disponible" />
+                    <i class="pi pi-info-circle text-gray-500" 
+                       pTooltip="El servicio de activos estará disponible próximamente" 
+                       tooltipPosition="top"></i>
+                  </div>
+                  <small class="form-hint">Selección de activos pendiente de implementación</small>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Sección 6: Evidencias -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="pi pi-paperclip"></i>
+            Evidencias Adjuntas
+          </h3>
+          
+          <div class="grid">
+            <div class="field col-12">
+              <div class="file-upload-area" (click)="fileInput.click()" [class.has-files]="archivosEvidencia.length > 0">
+                <div class="upload-content" *ngIf="archivosEvidencia.length === 0">
+                  <i class="pi pi-cloud-upload upload-icon"></i>
+                  <h4>Arrastra y suelta archivos aquí</h4>
+                  <p>o haz clic para seleccionar archivos</p>
+                  <small class="upload-types">Formatos: imágenes, PDF, Word, Excel</small>
+                  <small class="upload-max">Máximo 10 archivos, 10MB cada uno</small>
+                </div>
+                
+                <div class="selected-files" *ngIf="archivosEvidencia.length > 0">
+                  <div class="files-header">
+                    <h4>{{archivosEvidencia.length}} archivo(s) seleccionado(s)</h4>
+                    <button type="button" class="btn-add-more" (click)="fileInput.click()">
+                      <i class="pi pi-plus"></i> Agregar más
+                    </button>
+                  </div>
+                  
+                  <div class="files-list">
+                    <div *ngFor="let file of archivosEvidencia; let i = index" class="file-item">
+                      <div class="file-icon">
+                        <i [class]="getFileIcon(file)"></i>
+                      </div>
+                      <div class="file-info">
+                        <div class="file-name">{{file.name}}</div>
+                        <div class="file-size">{{(file.size / 1024).toFixed(2)}} KB</div>
+                      </div>
+                      <button type="button" class="btn-remove-file" (click)="removeFile(i)">
+                        <i class="pi pi-times"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <input type="file" #fileInput multiple (change)="onFileSelect($event)" 
+                     accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" class="hidden" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 7: Información del Creador -->
+        <div class="form-section info-creator">
+          <h3 class="section-title">
+            <i class="pi pi-user-edit"></i>
+            Información del Solicitante
+          </h3>
+          
+          <div class="grid">
+            <div class="field col-12">
+              <div class="creator-card">
+                <div class="creator-header">
+                  <div class="creator-avatar">
+                    <i class="pi pi-user"></i>
+                  </div>
+                  <div class="creator-info">
+                    <div class="creator-name">{{ formTicket.get('creadoPor')?.value?.nombre || 'Usuario actual' }}</div>
+                    <div class="creator-id">ID: {{ formTicket.get('creadoPor')?.value?.id || 'N/A' }}</div>
+                  </div>
+                </div>
+                <div class="creator-note">
+                  <i class="pi pi-info-circle"></i>
+                  <span>Este ticket será registrado bajo su nombre como solicitante</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 8: Información de Asignación (solo si está asignado) -->
+        @if (formTicket.get('asignadoA.id')?.value) {
+          <div class="form-section info-assignation">
+            <h3 class="section-title">
+              <i class="pi pi-user-check"></i>
+              Asignación Automática
+            </h3>
+            
+            <div class="grid">
+              <div class="field col-12">
+                <div class="assignation-card">
+                  <div class="assignation-header">
+                    <div class="assignation-icon">
+                      <i class="pi pi-briefcase"></i>
+                    </div>
+                    <div class="assignation-info">
+                      <div class="assignation-title">Técnico Asignado</div>
+                      <div class="assignation-name">{{ formTicket.get('asignadoA.nombre')?.value }}</div>
+                      <div class="assignation-details">
+                        <span class="assignation-type">
+                          <i class="pi pi-tag"></i>
+                          {{ formTicket.get('asignadoA.categoria')?.value === 'campo' ? 'Campo' : 'Oficina' }}
+                        </span>
+                        @if (formTicket.get('asignadoA.tecnicoId')?.value) {
+                          <span class="assignation-technician-id">
+                            <i class="pi pi-hashtag"></i>
+                            ID Técnico: {{ formTicket.get('asignadoA.tecnicoId')?.value }}
+                          </span>
+                        }
+                        <span class="assignation-id">
+                          <i class="pi pi-id-card"></i>
+                          ID: {{ formTicket.get('asignadoA.id')?.value }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="assignation-note">
+                    <i class="pi pi-info-circle"></i>
+                    <span>
+                      Este ticket ha sido asignado automáticamente según su tipo ({{ formTicket.get('tipoProblema')?.value }}) 
+                      al técnico con el número consecutivo más bajo
+                      @if (formTicket.get('asignadoA.numeroConsecutivo')?.value) {
+                        (Nº {{ formTicket.get('asignadoA.numeroConsecutivo')?.value }})
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Sección 9: Información del folio (solo en edición) -->
+        @if (!isNew && formTicket.get('folio')?.value) {
+          <div class="form-section info-folio">
+            <h3 class="section-title">
+              <i class="pi pi-ticket"></i>
+              Información del Ticket
+            </h3>
+            
+            <div class="grid">
+              <div class="field col-12">
+                <div class="folio-card">
+                  <div class="folio-header">
+                    <div class="folio-icon">
+                      <i class="pi pi-hashtag"></i>
+                    </div>
+                    <div class="folio-info">
+                      <div class="folio-title">Folio del Ticket</div>
+                      <div class="folio-number">{{ formTicket.get('folio')?.value }}</div>
+                      <div class="folio-details">
+                        <span class="folio-created">
+                          <i class="pi pi-calendar"></i>
+                          Creado: {{ formTicket.get('fechaCreacion')?.value | date:'dd/MM/yyyy HH:mm' }}
+                        </span>
+                        @if (formTicket.get('fechaModificacion')?.value) {
+                          <span class="folio-updated">
+                            <i class="pi pi-clock"></i>
+                            Modificado: {{ formTicket.get('fechaModificacion')?.value | date:'dd/MM/yyyy HH:mm' }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </form>
+
+      <!-- Botones de acción -->
+      <div class="form-actions">
+        <div class="actions-container">
+          <button type="button" class="btn-cancelar" (click)="cancelar()" [disabled]="cargando">
+            <i class="pi pi-times"></i>
+            Cancelar
+          </button>
+          
+          <button type="button" class="btn-guardar" (click)="guardarTicket()" [disabled]="cargando">
+            <i class="pi pi-save"></i>
+            {{ isNew ? 'Crear Ticket' : 'Guardar Cambios' }}
+            @if (cargando) {
+              <i class="pi pi-spinner pi-spin ml-2"></i>
+            }
+          </button>
+        </div>
+        
+        <div class="form-summary">
+          <div class="summary-item">
+            <i class="pi pi-check-circle text-green-500"></i>
+            <span>Todos los campos requeridos están completos</span>
+          </div>
+          <div class="summary-item">
+            <i class="pi pi-clock text-orange-500"></i>
+            <span>Ticket será creado con estatus: <strong>Nuevo</strong></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Spinner de carga -->
+@if (cargando) {
+  <p-blockUI [blocked]="cargando">
+    <div class="flex justify-content-center align-items-center w-full h-full">
+      <div class="loading-card">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">{{ isNew ? 'Creando ticket...' : 'Guardando cambios...' }}</p>
+      </div>
+    </div>
+  </p-blockUI>
+}

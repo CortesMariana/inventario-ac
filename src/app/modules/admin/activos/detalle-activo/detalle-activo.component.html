@@ -1,0 +1,772 @@
+<div class="detalle-activo-container">
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Activos</span>
+      </button>
+      
+      <div class="header-title">
+        <h1 class="page-title">Detalle del Activo</h1>
+        <p class="page-subtitle">{{ activo?.nombre || 'Cargando...' }}</p>
+      </div>
+      
+      @if (activo) {
+        <div class="header-actions">
+          <button class="btn-editar-principal" (click)="editar()" [disabled]="procesando">
+            <i class="pi pi-pencil"></i>
+            <span>Editar</span>
+          </button>
+          
+          <button class="btn-carta-principal" (click)="generarCarta()" [disabled]="procesando">
+            <i class="pi pi-file-pdf"></i>
+            <span>Carta Responsiva</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (!cargando && activo) {
+    <div class="main-content">
+      <div class="grid-container">
+        <div class="col-principal">
+          <div class="card info-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-info-circle"></i>
+                Información del Activo
+              </h2>
+              <div class="estado-badge-large" [ngClass]="getEstadoClass(activo.estadoTecnico)">
+                <i [class]="getEstadoIcon(activo.estadoTecnico)"></i>
+                <span>{{ getEstadoLabel(activo.estadoTecnico) }}</span>
+              </div>
+            </div>
+            
+            <div class="card-body">
+              <div class="info-section">
+                <h3>{{ activo.nombre }}</h3>
+                <div class="folio-badge" style="background: #f0f9ff; color: #0369a1; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 8px;">
+                  <i class="pi pi-hashtag" style="margin-right: 5px;"></i>
+                  <strong>Folio:</strong> {{ activo.folio || 'No asignado' }}
+                </div>
+                @if (activo.descripcion) {
+                  <p class="descripcion">{{ activo.descripcion }}</p>
+                }
+              </div>
+              
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Tipo</label>
+                  <div class="info-value">
+                    @if (activo.tipoActivo === 'Tablet') {
+                      <i class="pi pi-tablet"></i>
+                    } @else if (activo.tipoActivo === 'Laptop') {
+                      <i class="pi pi-laptop"></i>
+                    } @else if (activo.tipoActivo === 'Desktop') {
+                      <i class="pi pi-desktop"></i>
+                    } @else if (activo.tipoActivo === 'Impresora') {
+                      <i class="pi pi-print"></i>
+                    } @else {
+                      <i class="pi pi-box"></i>
+                    }
+                    <span>{{ activo.tipoActivo || 'No especificado' }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Marca</label>
+                  <div class="info-value">
+                    <i class="pi pi-tag"></i>
+                    <span>{{ activo.marca || 'No especificada' }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Modelo</label>
+                  <div class="info-value">
+                    <span>{{ activo.modelo || 'No especificado' }}</span>
+                  </div>
+                </div>
+                
+                @if (activo.numeroSerie) {
+                  <div class="info-item">
+                    <label>Número de Serie</label>
+                    <div class="info-value">
+                      <i class="pi pi-qrcode"></i>
+                      <span class="monospace">{{ activo.numeroSerie }}</span>
+                    </div>
+                  </div>
+                }
+                
+                @if (activo.activoFijo) {
+                  <div class="info-item">
+                    <label>Activo Fijo</label>
+                    <div class="info-value">
+                      <i class="pi pi-hashtag"></i>
+                      <span class="monospace">{{ activo.activoFijo }}</span>
+                    </div>
+                  </div>
+                }
+                
+                @if (activo.erpId) {
+                  <div class="info-item">
+                    <label>ID ERP</label>
+                    <div class="info-value">
+                      <i class="pi pi-database"></i>
+                      <span class="monospace">{{ activo.erpId }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+ 
+            @if (tieneCaracteristicas()) {
+              <div class="caracteristicas-section">
+                <h4>Características Técnicas</h4>
+                <div class="caracteristicas-grid">
+                  @if (hasCaracteristica('procesador')) {
+                    <div class="caracteristica-item">
+                      <label>Procesador:  </label>
+                      <span>{{ getCaracteristica('procesador') }}</span>
+                    </div>
+                  }
+                        
+                  @if (hasCaracteristica('memoriaRam')) {
+                    <div class="caracteristica-item">
+                      <label>Memoria RAM:  </label>
+                      <span>{{ getCaracteristica('memoriaRam') }} GB</span>
+                    </div>
+                  }
+                        
+                  @if (hasCaracteristica('ip')) {
+                    <div class="caracteristica-item">
+                      <label>IP:  </label>
+                      <span>{{ getCaracteristica('ip') }}</span>
+                    </div>
+                  }
+                        
+                  @if (hasCaracteristica('imei')) {
+                    <div class="caracteristica-item">
+                      <label>IMEI:  </label>
+                      <span>{{ getCaracteristica('imei') }}</span>
+                    </div>
+                  }
+                        
+                  <div class="caracteristica-item">
+                    <label>Cargador:  </label>
+                    <span>{{ getCargadorText() }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+                
+                <div class="ubicacion-asignacion-section">
+                    <div class="grid">
+                    <div class="col-4">
+                        <div class="ubicacion-card" [ngClass]="{'sin-ubicacion': !activo.ubicacionNombre}">
+                        <div class="fecha-item"><label>Lugar de ubicación</label></div>
+                        <div class="ubicacion-info">
+                            <i class="pi pi-building"></i><label> Ubicación:  </label>
+                            <span>{{ activo.ubicacionNombre || 'Sin ubicación' }}</span>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="asignacion-card" [ngClass]="{'sin-costo': !activo.precioEntrega}">
+                            <div class="asignacion-info">
+                                <i class="pi pi-tag"></i><label> Precio: </label>
+                                <span class="precio-value">{{ activo.precioEntrega | currencyFormat:'$' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-4">
+                        <div class="asignacion-card" [ngClass]="{'sin-asignacion': !activo.usuarioAsignadoNombre}">
+                        <div class="asignacion-info">
+                            <i class="pi pi-user"></i><label> Asignado a: </label>
+                            <span>{{ activo.usuarioAsignadoNombre || 'Sin asignar' }}</span>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div class="fechas-section">
+                    <div class="fecha-item">
+                    <label>Fecha de creación</label>
+                    <div class="fecha-value">
+                        <i class="pi pi-calendar"></i>
+                        <span>{{ activo.fechaCreacionFormatted }}</span>
+                    </div>
+                    </div>
+
+                    
+                    @if (activo.fechaAsignacion) {
+                    <div class="fecha-item">
+                        <label>Fecha de asignación</label>
+                        <div class="fecha-value">
+                        <i class="pi pi-calendar-plus"></i>
+                        <span>{{ activo.fechaAsignacionFormatted }}</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+              </div>
+          </div>
+
+          <div class="card acciones-rapidas-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-bolt"></i>
+                Acciones Rápidas
+              </h2>
+            </div>
+            
+            <div class="card-body">
+              <div class="acciones-grid">
+                <button class="btn-accion-rapida" (click)="toggleCambioEstado()">
+                  <i class="pi pi-sync"></i>
+                  <span>Cambiar Estado</span>
+                </button>
+                
+                <button class="btn-accion-rapida" (click)="toggleCambioUbicacion()">
+                  <i class="pi pi-map-marker"></i>
+                  <span>Cambiar Ubicación</span>
+                </button>
+                
+                <button class="btn-accion-rapida" 
+                        (click)="toggleAsignacion()"
+                        [disabled]="!puedeAsignar()"
+                        [class.btn-disabled]="!puedeAsignar()"
+                        pTooltip="{{ !puedeAsignar() ? 'Solo disponible para activos disponibles' : '' }}"
+                        tooltipPosition="top">
+                  <i class="pi pi-user-plus"></i>
+                  <span>Asignar a Usuario</span>
+                </button>
+
+                <button class="btn-accion-rapida" 
+                        (click)="iniciarBaja()"
+                        [disabled]="activo.estadoTecnico === 'BAJA_TECNICA'"
+                        pTooltip="{{ activo.estadoTecnico === 'BAJA_TECNICA' ? 'Ya está dado de baja' : 'Dar de baja el activo' }}">
+                  <i class="pi pi-trash"></i>
+                  <span>Dar de Baja</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          @if (mostrarCambioEstado) {
+            <div class="card form-card">
+              <div class="card-header">
+                <h2>
+                  <i class="pi pi-sync"></i>
+                  Cambiar Estado Técnico
+                </h2>
+                <button class="btn-cerrar" (click)="toggleCambioEstado()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <form [formGroup]="formCambioEstado">
+                  <div class="field">
+                    <label>Nuevo Estado <span class="required">*</span></label>
+                    <p-dropdown [options]="estadosTecnicos" 
+                               formControlName="nuevoEstado"
+                               optionLabel="label" optionValue="value"
+                               placeholder="Seleccione estado"
+                               styleClass="w-full">
+                    </p-dropdown>
+                    @if (formCambioEstado.get('nuevoEstado')?.invalid && formCambioEstado.get('nuevoEstado')?.touched) {
+                      <small class="p-error">El estado es requerido</small>
+                    }
+                  </div>
+                  
+                  @if (formCambioEstado.get('nuevoEstado')?.value === 'EN_REPARACION') {
+                    <div class="field">
+                      <label>ID del Ticket de Reparación</label>
+                      <input type="text" pInputText formControlName="ticketRelacionado" 
+                             placeholder="ID del ticket asociado" class="w-full">
+                    </div>
+                  }
+                  
+                  <div class="field">
+                    <label>Observaciones</label>
+                    <textarea rows="3" pTextarea formControlName="observaciones" 
+                              placeholder="Motivo del cambio de estado..." class="w-full"></textarea>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button class="btn-cancelar-form" type="button" (click)="toggleCambioEstado()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-form" type="button" 
+                            (click)="confirmarCambioEstado()"
+                            [disabled]="formCambioEstado.invalid || procesando">
+                      <i class="pi pi-check"></i>
+                      <span>Confirmar Cambio</span>
+                      @if (procesando) {
+                        <i class="pi pi-spinner pi-spin"></i>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+
+          @if (mostrarCambioUbicacion) {
+            <div class="card form-card">
+              <div class="card-header">
+                <h2>
+                  <i class="pi pi-map-marker"></i>
+                  Cambiar Ubicación
+                </h2>
+                <button class="btn-cerrar" (click)="toggleCambioUbicacion()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <form [formGroup]="formCambioUbicacion">
+                  <div class="field">
+                    <label>Nueva Ubicación <span class="required">*</span></label>
+                    <p-dropdown [options]="ubicaciones" 
+                               formControlName="ubicacionId"
+                               optionLabel="label" optionValue="value"
+                               placeholder="Seleccione ubicación"
+                               (onChange)="onUbicacionSelect($event, formCambioUbicacion)"
+                               styleClass="w-full"
+                               [filter]="true">
+                    </p-dropdown>
+                    @if (formCambioUbicacion.get('ubicacionId')?.invalid && formCambioUbicacion.get('ubicacionId')?.touched) {
+                      <small class="p-error">La ubicación es requerida</small>
+                    }
+                  </div>
+                  
+                  <div class="field">
+                    <label>Observaciones</label>
+                    <textarea rows="3" pTextarea formControlName="observaciones" 
+                              placeholder="Motivo del cambio de ubicación..." class="w-full"></textarea>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button class="btn-cancelar-form" type="button" (click)="toggleCambioUbicacion()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-form" type="button" 
+                            (click)="confirmarCambioUbicacion()"
+                            [disabled]="formCambioUbicacion.invalid || procesando">
+                      <i class="pi pi-check"></i>
+                      <span>Confirmar Cambio</span>
+                      @if (procesando) {
+                        <i class="pi pi-spinner pi-spin"></i>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+
+          @if (mostrarAsignacion) {
+            <div class="card form-card">
+              <div class="card-header">
+                <h2>
+                  <i class="pi pi-user-plus"></i>
+                  Asignar a Usuario
+                </h2>
+                <button class="btn-cerrar" (click)="toggleAsignacion()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <form [formGroup]="formAsignacion">
+                  <div class="field">
+                    <label>Usuario <span class="required">*</span></label>
+                    <p-dropdown [options]="empleados" 
+                                formControlName="empleadoId"
+                                optionLabel="label" 
+                                optionValue="value"
+                                placeholder="Seleccione usuario"
+                                (onChange)="onEmpleadoSelect($event)"
+                                styleClass="w-full"
+                                [filter]="true"
+                                filterBy="label"
+                                [showClear]="true">
+                      <ng-template pTemplate="selectedItem" let-selectedItem>
+                        @if (selectedItem) {
+                          <div class="flex align-items-center gap-2">
+                            <i class="pi pi-user"></i>
+                            <span>{{selectedItem.label}}</span>
+                          </div>
+                        }
+                      </ng-template>
+                      <ng-template pTemplate="item" let-empleado>
+                        <div class="flex align-items-center gap-2 p-2">
+                          <i class="pi pi-user"></i>
+                          <div>
+                            <div>{{empleado.label}}</div>
+                            @if (empleado.data?.puesto?.nombre) {
+                              <small class="text-gray-500">{{empleado.data.puesto.nombre}}</small>
+                            }
+                          </div>
+                        </div>
+                      </ng-template>
+                      <ng-template pTemplate="empty">
+                        <div class="p-3 text-center text-gray-500">
+                          No hay empleados disponibles
+                        </div>
+                      </ng-template>
+                    </p-dropdown>
+                    @if (formAsignacion.get('empleadoId')?.invalid && formAsignacion.get('empleadoId')?.touched) {
+                      <small class="p-error">El usuario es requerido</small>
+                    }
+                  </div>
+                  
+                  <div class="field">
+                    <label>Ubicación del Usuario <span class="required">*</span></label>
+                    <p-dropdown [options]="ubicaciones" 
+                               formControlName="ubicacionId"
+                               optionLabel="label" optionValue="value"
+                               placeholder="Seleccione ubicación"
+                               (onChange)="onUbicacionSelect($event, formAsignacion)"
+                               styleClass="w-full"
+                               [filter]="true">
+                    </p-dropdown>
+                    @if (formAsignacion.get('ubicacionId')?.invalid && formAsignacion.get('ubicacionId')?.touched) {
+                      <small class="p-error">La ubicación es requerida</small>
+                    }
+                  </div>
+                  
+                  <div class="field">
+                    <label>Observaciones</label>
+                    <textarea rows="3" pTextarea formControlName="observaciones" 
+                              placeholder="Observaciones adicionales..." class="w-full"></textarea>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button class="btn-cancelar-form" type="button" (click)="toggleAsignacion()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-form" type="button" 
+                            (click)="confirmarAsignacion()"
+                            [disabled]="formAsignacion.invalid || procesando">
+                      <i class="pi pi-check"></i>
+                      <span>Confirmar Asignación</span>
+                      @if (procesando) {
+                        <i class="pi pi-spinner pi-spin"></i>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+
+          <div class="card evidencias-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-images"></i>
+                Evidencias del Activo
+              </h2>
+              <button class="btn-subir-evidencia" (click)="abrirModalSubirEvidencia()" [disabled]="procesando">
+                <i class="pi pi-upload"></i>
+                <span>Subir Evidencia</span>
+              </button>
+            </div>
+            
+            <div class="card-body">
+              @if (!activo.evidencias || activo.evidencias.length === 0) {
+                <div class="empty-evidencias">
+                  <i class="pi pi-image"></i>
+                  <p>No hay evidencias cargadas</p>
+                  <small>Haz clic en "Subir Evidencia" para agregar fotos o documentos</small>
+                </div>
+              } @else {
+                <div class="evidencias-grid">
+                  @for (evidencia of activo.evidencias; track evidencia.id) {
+                    <div class="evidencia-item">
+                      <div class="evidencia-preview" (click)="verEvidencia(evidencia)">
+                        @if (esImagen(evidencia.tipo)) {
+                          <img [src]="evidencia.url" [alt]="evidencia.nombre">
+                        } @else {
+                          <div class="file-preview">
+                            <i class="pi pi-file-pdf"></i>
+                          </div>
+                        }
+                      </div>
+                      
+                      <div class="evidencia-info">
+                        <div class="evidencia-nombre" [title]="evidencia.nombre">
+                          {{ evidencia.nombre | truncate:25 }}
+                        </div>
+                        
+                        @if (evidencia.descripcion) {
+                          <div class="evidencia-descripcion" [title]="evidencia.descripcion">
+                            {{ evidencia.descripcion | truncate:30 }}
+                          </div>
+                        }
+                        
+                        <div class="evidencia-metadata">
+                          <span class="fecha">
+                            <i class="pi pi-calendar"></i>
+                            {{ formatFechaEvidencia(evidencia.fechaSubida) | date:'dd/MM/yyyy' }}
+                          </span>
+                          <span class="usuario" [title]="'Subido por: ' + (evidencia.usuarioSubidaNombre || 'Desconocido')">
+                            <i class="pi pi-user"></i>
+                            {{ evidencia.usuarioSubidaNombre | truncate:10 }}
+                          </span>
+                        </div>
+                        
+                        <div class="evidencia-actions">
+                          <button class="btn-icon" (click)="descargarEvidencia(evidencia)" 
+                                  pTooltip="Descargar" tooltipPosition="top">
+                            <i class="pi pi-download"></i>
+                          </button>
+                          <button class="btn-icon" (click)="verEvidencia(evidencia)"
+                                  pTooltip="Ver" tooltipPosition="top">
+                            <i class="pi pi-eye"></i>
+                          </button>
+                          <button class="btn-icon btn-eliminar" (click)="confirmarEliminarEvidencia(evidencia)"
+                                  pTooltip="Eliminar" tooltipPosition="top">
+                            <i class="pi pi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="col-secundaria">
+          <div class="card historial-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-history"></i>
+                Historial del Activo
+              </h2>
+            </div>
+            
+            <div class="card-body">
+              @if (historial.length === 0) {
+                <div class="empty-state">
+                  <i class="pi pi-history"></i>
+                  <p>No hay historial de movimientos</p>
+                </div>
+              }
+              
+              <div class="timeline">
+                @for (evento of historial; track evento.id) {
+                  <div class="timeline-item">
+                    <div class="timeline-marker" [ngClass]="getTipoEventoClass(evento.tipoEvento)">
+                      <i [class]="getTipoEventoIcon(evento.tipoEvento)"></i>
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span class="evento-tipo">{{ evento.tipoEvento }}</span>
+                        <span class="evento-fecha">{{ evento.fechaMovimientoFormatted }}</span>
+                      </div>
+                      <div class="evento-detalle">
+                        <p class="evento-observaciones">{{ evento.observaciones }}</p>
+                        <div class="evento-estado">
+                          <span class="estado-badge-mini" [ngClass]="getEstadoClass(evento.estadoTecnico)">
+                            {{ getEstadoLabel(evento.estadoTecnico) }}
+                          </span>
+                        </div>
+                        @if (evento.usuarioAsignadoNombre || evento.ubicacionNombre) {
+                          <div class="evento-info-adicional">
+                            @if (evento.usuarioAsignadoNombre) {
+                              <div class="info-linea">
+                                <i class="pi pi-user"></i>
+                                <span>{{ evento.usuarioAsignadoNombre }}</span>
+                              </div>
+                            }
+                            @if (evento.ubicacionNombre) {
+                              <div class="info-linea">
+                                <i class="pi pi-building"></i>
+                                <span>{{ evento.ubicacionNombre }}</span>
+                              </div>
+                            }
+                          </div>
+                        }
+                        @if (evento.usuarioMovimientoNombre) {
+                          <div class="evento-usuario">
+                            <i class="pi pi-user-edit"></i>
+                            <small>por: {{ evento.usuarioMovimientoNombre }}</small>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="loading-state">
+      <div class="loading-content">
+        <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
+        <p>Cargando detalles del activo...</p>
+      </div>
+    </div>
+  }
+
+  @if (!cargando && !activo) {
+    <div class="error-state">
+      <div class="error-content">
+        <i class="pi pi-exclamation-triangle"></i>
+        <h3>Activo no encontrado</h3>
+        <p>El activo que buscas no existe o no tienes permiso para verlo.</p>
+        <button class="btn-volver-principal" (click)="volver()">
+          Volver a Activos
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<p-toast position="top-right"></p-toast>
+<p-confirmDialog [style]="{width: '450px'}" header="Confirmación"
+                 icon="pi pi-exclamation-triangle"
+                 acceptButtonStyleClass="p-button-text"
+                 rejectButtonStyleClass="p-button-text">
+</p-confirmDialog>
+
+<p-dialog 
+  header="Subir Evidencia" 
+  [(visible)]="mostrarModalSubirEvidencia" 
+  [modal]="true"
+  [style]="{width: '500px'}"
+  [draggable]="false"
+  [resizable]="false">
+  
+  <div class="subir-evidencia-form">
+    <div class="field">
+      <label>Archivo <span class="required">*</span></label>
+      <div class="file-upload-area" 
+           (click)="fileInput.click()"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)"
+           [class.drag-over]="dragActive">
+        
+        <input #fileInput type="file" 
+               (change)="onFileSelected($event)" 
+               accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+               style="display: none">
+        
+        @if (!archivoSeleccionado) {
+          <div class="upload-placeholder">
+            <i class="pi pi-cloud-upload"></i>
+            <p>Arrastra un archivo aquí o haz clic para seleccionar</p>
+            <small>Formatos: Imágenes, PDF, Word, Excel (Max 20MB)</small>
+          </div>
+        } @else {
+          <div class="file-selected">
+            <i class="pi" [ngClass]="getFileIcon(archivoSeleccionado.type)"></i>
+            <div class="file-info">
+              <span class="file-name">{{ archivoSeleccionado.name }}</span>
+              <span class="file-size">{{ archivoSeleccionado.size | filesize }}</span>
+            </div>
+            <button class="btn-remove-file" (click)="removerArchivo($event)">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+        }
+      </div>
+      @if (errorArchivo) {
+        <small class="p-error">{{ errorArchivo }}</small>
+      }
+    </div>
+
+    <div class="field">
+      <label>Descripción</label>
+      <textarea rows="3" pTextarea [(ngModel)]="descripcionArchivo" 
+                placeholder="Descripción opcional de la evidencia..."
+                class="w-full"></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button class="btn-cancelar-form" (click)="cerrarModalSubirEvidencia()">
+      Cancelar
+    </button>
+    <button class="btn-guardar-form" 
+            (click)="subirEvidencia()"
+            [disabled]="!archivoSeleccionado || subiendoEvidencia">
+      @if (subiendoEvidencia) {
+        <i class="pi pi-spinner pi-spin"></i>
+      } @else {
+        <i class="pi pi-upload"></i>
+      }
+      <span>{{ subiendoEvidencia ? 'Subiendo...' : 'Subir Evidencia' }}</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog 
+  [(visible)]="mostrarModalVerEvidencia" 
+  [modal]="true"
+  [style]="{width: '90vw', height: '90vh'}"
+  [maximizable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closeOnEscape]="true"
+  [dismissableMask]="true">
+  
+  <ng-template pTemplate="header">
+    <div class="modal-header">
+      <h3>{{ evidenciaSeleccionada?.nombre }}</h3>
+    </div>
+  </ng-template>
+
+  <div class="evidencia-visualizador">
+    @if (evidenciaSeleccionada) {
+      @if (esImagen(evidenciaSeleccionada.tipo)) {
+        <img [src]="evidenciaSeleccionada.url" [alt]="evidenciaSeleccionada.nombre" class="evidencia-imagen">
+      } @else if (evidenciaSeleccionada.tipo === 'application/pdf') {
+        <iframe [src]="getSafeUrl(evidenciaSeleccionada.url)" class="evidencia-pdf" frameborder="0"></iframe>
+      } @else {
+        <div class="no-preview">
+          <i class="pi pi-file"></i>
+          <p>Vista previa no disponible para este tipo de archivo</p>
+          <button class="btn-descargar" (click)="descargarEvidencia(evidenciaSeleccionada)">
+            <i class="pi pi-download"></i>
+            Descargar archivo
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="modal-footer">
+      <div class="modal-info">
+        @if (evidenciaSeleccionada?.descripcion) {
+          <span class="descripcion">{{ evidenciaSeleccionada?.descripcion }}</span>
+        }
+        <span class="subido-por">
+          <i class="pi pi-user"></i>
+          {{ evidenciaSeleccionada?.usuarioSubidaNombre || 'Desconocido' }}
+          <i class="pi pi-calendar ml-2"></i>
+          {{ evidenciaSeleccionada?.fechaSubida | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+      </div>
+      <button class="btn-descargar" (click)="descargarEvidencia(evidenciaSeleccionada!)">
+        <i class="pi pi-download"></i>
+        Descargar
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

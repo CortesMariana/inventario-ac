@@ -1,0 +1,687 @@
+<div class="grid-admin-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Mis Tickets</h1>
+        <p class="page-subtitle">Gestiona y revisa todos tus tickets asignados</p>
+      </div>
+      
+      <!-- Selector de vista -->
+      <div class="vista-selector">
+        <div class="vista-buttons">
+          <button class="vista-btn" 
+                  [class.active]="vistaActual === 'cards'"
+                  (click)="cambiarVista('cards')">
+            <i class="pi pi-th-large"></i>
+            <span>Cards</span>
+          </button>
+          <button class="vista-btn" 
+                  [class.active]="vistaActual === 'lista'"
+                  (click)="cambiarVista('lista')">
+            <i class="pi pi-list"></i>
+            <span>Lista</span>
+          </button>
+        </div>
+        
+        <button class="btn-refresh" (click)="refrescar()" [disabled]="cargando">
+          <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+          <span>Refrescar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros de ordenamiento -->
+  <div class="filtros-ordenamiento">
+    <div class="filtros-titulo">
+      <i class="pi pi-sliders-h"></i>
+      <span>Ordenar y visualizar tickets</span>
+    </div>
+    
+    <div class="filtros-grid">
+      <div class="filtro-orden-item">
+        <label>Estatus</label>
+        <select class="filtro-orden-select" [(ngModel)]="filtroEstatus" (change)="aplicarOrdenamientoYFiltros()">
+          <option value="todos">Todos</option>
+          <option value="Nuevo">Nuevo</option>
+          <option value="Asignado">Asignado</option>
+          <option value="En proceso">En proceso</option>
+          <option value="Resuelto">Resuelto</option>
+          <option value="Cerrado">Cerrado</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </div>
+      
+      <div class="filtro-orden-item">
+        <label>Prioridad</label>
+        <select class="filtro-orden-select" [(ngModel)]="filtroPrioridad" (change)="aplicarOrdenamientoYFiltros()">
+          <option value="todas">Todas</option>
+          <option value="baja">Baja</option>
+          <option value="Mediana">Mediana</option>
+          <option value="Alta">Alta</option>
+          <option value="Critica">Crítica</option>
+        </select>
+      </div>
+      
+      <div class="filtro-orden-item">
+        <label>Tipo</label>
+        <select class="filtro-orden-select" [(ngModel)]="filtroTipo" (change)="aplicarOrdenamientoYFiltros()">
+          <option value="todos">Todos</option>
+          <option value="mantenimiento">Mantenimiento</option>
+          <option value="incidente">Incidente</option>
+          <option value="requerimiento">Requerimiento</option>
+          <option value="asignacion activo/dispositivo">Asignación Activo</option>
+        </select>
+      </div>
+      
+      <div class="filtro-orden-item">
+        <label>Búsqueda</label>
+        <div class="search-box-filtro">
+          <i class="pi pi-search"></i>
+          <input type="text" 
+                 placeholder="Buscar por folio, título, descripción..." 
+                 [(ngModel)]="filtroBusqueda" 
+                 (ngModelChange)="aplicarOrdenamientoYFiltros()" />
+        </div>
+      </div>
+    </div>
+    
+    <div class="filtros-actions">
+      <button class="btn-limpiar-filtros" (click)="limpiarFiltros()">
+        <i class="pi pi-filter-slash"></i>
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-ticket"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTotalTickets()}}</div>
+          <div class="stat-label">Total Tickets</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-nuevo">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-plus-circle"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTicketsPorEstatus('Nuevo')}}</div>
+          <div class="stat-label">Nuevos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-asignado">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-user-check"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTicketsPorEstatus('Asignado')}}</div>
+          <div class="stat-label">Asignados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-proceso">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-spinner"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTicketsPorEstatus('En proceso')}}</div>
+          <div class="stat-label">En Proceso</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-resuelto">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTicketsPorEstatus('Resuelto')}}</div>
+          <div class="stat-label">Resueltos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-cerrado">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <i class="pi pi-lock"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-number">{{getTicketsPorEstatus('Cerrado')}}</div>
+          <div class="stat-label">Cerrados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content" [ngClass]="{'lista-activa': vistaActual === 'lista'}">
+    <!-- Vista de Cards -->
+    <div *ngIf="vistaActual === 'cards'" class="tickets-view">
+      <div class="pagination-controls-top">
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="pagination-info">
+          Mostrando {{getDisplayRange()}} de {{ticketsFiltrados.length}} tickets
+        </div>
+      </div>
+
+      <div class="tickets-grid-container">
+        <div *ngIf="paginatedTickets.length === 0 && !cargando" class="no-tickets">
+          <i class="pi pi-inbox no-tickets-icon"></i>
+          <h3>No se encontraron tickets</h3>
+          <p>No hay tickets que coincidan con los filtros seleccionados.</p>
+          <button pButton label="Limpiar filtros" icon="pi pi-filter-slash"
+                  class="p-button-outlined" (click)="limpiarFiltros()"></button>
+        </div>
+
+        <div class="tickets-grid">
+          <div *ngFor="let ticket of paginatedTickets" 
+               class="ticket-card" 
+               [class.ticket-vencido]="ticket.vencido"
+               [class.ticket-cerrado]="ticket.estatus === 'Cerrado' || ticket.estatus === 'Cancelado'"
+               (click)="verDetalle(ticket, $event)">
+            
+            <div class="ticket-header">
+              <div class="ticket-id">
+                <span class="id-label">ID:</span>
+                <span class="id-value">{{ticket.folio || 'Sin folio'}}</span>
+              </div>
+              <div class="ticket-prioridad" 
+                   [style.background-color]="getColorPrioridad(ticket.prioridad, ticket.estatus)"
+                   [ngClass]="{'prioridad-opaco-card': ticket.estatus === 'Cerrado' || ticket.estatus === 'Cancelado'}">
+                {{ticket.prioridad || 'Sin prioridad'}}
+              </div>
+            </div>
+
+            <div class="ticket-body">
+              <h3 class="ticket-titulo">{{ticket.titulo || 'Sin título'}}</h3>
+              <p class="ticket-descripcion">{{getDescripcionCorta(ticket.descripcion)}}</p>
+              
+              <div class="ticket-meta">
+                <div class="meta-item">
+                  <i [class]="getIconoTipo(ticket.tipo)" class="meta-icon"></i>
+                  <span class="meta-text">{{ticket.tipo || 'Sin tipo'}}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="pi pi-calendar meta-icon"></i>
+                  <span class="meta-text">{{ticket.fechaCreacionFormatted || 'Sin fecha'}}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ticket-footer">
+              <div class="estatus-container">
+                <span class="estatus-badge" [ngClass]="getEstatusClass(ticket.estatus)">
+                  <i [class]="getEstatusIcon(ticket.estatus)" class="estatus-icon"></i>
+                  {{ticket.estatus || 'Sin estatus'}}
+                </span>
+              </div>
+              
+              <div class="dias-container">
+                <span class="dias-badge" [ngClass]="getDiasRestantesClass(ticket)">
+                  {{getDiasRestantesText(ticket)}}
+                </span>
+              </div>
+            </div>
+
+            <div class="ticket-persons">
+              <div class="person-item">
+                <div class="person-label">
+                  <i class="pi pi-user-plus"></i>
+                  Creado por:
+                </div>
+                <div class="person-name">{{ticket.creadoPor?.nombre || 'Usuario'}}</div>
+              </div>
+              
+              <div class="person-item" *ngIf="ticket.asignadoA?.nombre">
+                <div class="person-label">
+                  <i class="pi pi-user-check"></i>
+                  Asignado a:
+                </div>
+                <div class="person-name">{{ticket.asignadoA.nombre}}</div>
+              </div>
+              
+              <div class="person-item" *ngIf="!ticket.asignadoA?.nombre">
+                <div class="person-label">
+                  <i class="pi pi-user-times"></i>
+                  Asignado a:
+                </div>
+                <div class="person-name no-asignado">Sin asignar</div>
+              </div>
+            </div>
+
+            <div class="ticket-actions" 
+                 *ngIf="ticket.estatus !== 'Cancelado' && ticket.estatus !== 'Cerrado'">
+              
+              <div *ngIf="ticket.estatus === 'Nuevo' && ticket.asignadoA?.id === usuario?.id" class="actions-container-nuevo">
+                <button class="btn-aceptar-card" (click)="aceptarTicket(ticket, $event)" [disabled]="ticketActualizando === ticket.id">
+                  <i class="pi pi-check"></i>
+                  <span>Aceptar</span>
+                </button>
+                <button class="btn-rechazar-card" (click)="rechazarTicket(ticket, $event)" [disabled]="ticketActualizando === ticket.id">
+                  <i class="pi pi-times"></i>
+                  <span>Rechazar</span>
+                </button>
+              </div>
+              
+              <div *ngIf="ticket.estatus !== 'Nuevo' && puedeCambiarEstatus(ticket)" class="actions-container">
+                <button class="btn-cancelar" 
+                        (click)="cancelarTicket(ticket, $event)"
+                        [disabled]="ticketActualizando === ticket.id">
+                  <i class="pi pi-times"></i>
+                  <span>Cancelar</span>
+                </button>
+                
+                <button class="btn-estatus" 
+                        [ngClass]="getClaseBotonEstatus(ticket)"
+                        (click)="cambiarEstatus(ticket, $event)"
+                        [disabled]="ticketActualizando === ticket.id">
+                  <i [class]="getIconoBotonEstatus(ticket)"></i>
+                  <span>{{getTextoBotonEstatus(ticket)}}</span>
+                  <i *ngIf="ticketActualizando === ticket.id" 
+                    class="pi pi-spinner pi-spin ml-1"></i>
+                </button>
+              </div>
+              
+              <div *ngIf="ticketActualizando === ticket.id" class="actualizando-indicator">
+                <i class="pi pi-spinner pi-spin"></i>
+                <span>Actualizando...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of pageNumbers" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="changePage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          Siguiente
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista de Lista -->
+    <div *ngIf="vistaActual === 'lista'" class="tickets-view lista-view-full">
+      <div class="lista-controls">
+        <div class="items-per-page">
+          <label>Mostrar:</label>
+          <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        
+        <div class="pagination-info">
+          Mostrando {{getDisplayRange()}} de {{ticketsFiltrados.length}} tickets
+        </div>
+      </div>
+
+      <div class="tickets-table-wrapper">
+        <div class="tickets-table-container">
+          <table class="tickets-table">
+            <thead>
+              <tr class="table-header">
+                <th class="col-id sortable" (click)="cambiarOrdenamientoColumna('id')">
+                  <div class="th-content">
+                    <span class="th-label">ID</span>
+                    <i [class]="getOrdenIcono('id')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-titulo sortable" (click)="cambiarOrdenamientoColumna('titulo')">
+                  <div class="th-content">
+                    <span class="th-label">Título</span>
+                    <i [class]="getOrdenIcono('titulo')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-creador sortable" (click)="cambiarOrdenamientoColumna('creador')">
+                  <div class="th-content">
+                    <span class="th-label">Creado por</span>
+                    <i [class]="getOrdenIcono('creador')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-tipo sortable" (click)="cambiarOrdenamientoColumna('tipo')">
+                  <div class="th-content">
+                    <span class="th-label">Tipo</span>
+                    <i [class]="getOrdenIcono('tipo')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-estatus sortable" (click)="cambiarOrdenamientoColumna('estatus')">
+                  <div class="th-content">
+                    <span class="th-label">Estatus</span>
+                    <i [class]="getOrdenIcono('estatus')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-prioridad sortable" (click)="cambiarOrdenamientoColumna('prioridad')">
+                  <div class="th-content">
+                    <span class="th-label">Prioridad</span>
+                    <i [class]="getOrdenIcono('prioridad')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-fecha sortable" (click)="cambiarOrdenamientoColumna('fechaCreacion')">
+                  <div class="th-content">
+                    <span class="th-label">Fecha Creación</span>
+                    <i [class]="getOrdenIcono('fechaCreacion')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-fecha-limite sortable" (click)="cambiarOrdenamientoColumna('fechaLimite')">
+                  <div class="th-content">
+                    <span class="th-label">Fecha Límite</span>
+                    <i [class]="getOrdenIcono('fechaLimite')" class="sort-icon"></i>
+                  </div>
+                </th>
+                
+                <th class="col-dias sortable" (click)="cambiarOrdenamientoColumna('estado')">
+                  <div class="th-content">
+                    <span class="th-label">Estado</span>
+                    <i [class]="getOrdenIcono('estado')" class="sort-icon"></i>
+                  </div>
+                </th>
+               </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="paginatedTickets.length === 0 && !cargando" class="no-results-row">
+                <td colspan="9" class="no-results-cell">
+                  <div class="no-tickets-inline">
+                    <i class="pi pi-inbox"></i>
+                    <span>No se encontraron tickets</span>
+                    <button class="btn-clear-filters" (click)="limpiarFiltros()">
+                      Limpiar filtros
+                    </button>
+                  </div>
+                 </td>
+               </tr>
+              
+              <tr *ngFor="let ticket of paginatedTickets" 
+                  class="table-row" 
+                  [class.row-vencido]="ticket.vencido"
+                  [class.row-cerrado]="ticket.estatus === 'Cerrado' || ticket.estatus === 'Cancelado'"
+                  (click)="verDetalle(ticket, $event)">
+                
+                <td class="col-id">
+                  <span class="cell-id">{{ticket.folio || 'Sin folio'}}</span>
+                 </td>
+                
+                <td class="col-titulo">
+                  <div class="cell-titulo" [pTooltip]="ticket.titulo || 'Sin título'" tooltipPosition="top">
+                    {{ticket.titulo || 'Sin título'}}
+                  </div>
+                 </td>
+                
+                <td class="col-creador">
+                  <div class="cell-persona">
+                    <i class="pi pi-user-plus"></i>
+                    <span>{{ticket.creadoPor?.nombre || 'Usuario'}}</span>
+                  </div>
+                 </td>
+                
+                <td class="col-tipo">
+                  <i [class]="getIconoTipo(ticket.tipo)"></i>
+                 </td>
+                
+                <td class="col-estatus">
+                  <span class="status-badge" [ngClass]="getEstatusClass(ticket.estatus)">
+                    <i [class]="getEstatusIcon(ticket.estatus)"></i>
+                    {{ticket.estatus || 'Sin estatus'}}
+                  </span>
+                 </td>
+                
+                <td class="col-prioridad">
+                  <span class="priority-badge" 
+                        [style.background-color]="getColorPrioridad(ticket.prioridad, ticket.estatus)"
+                        [ngClass]="{'priority-opaco': ticket.estatus === 'Cerrado' || ticket.estatus === 'Cancelado'}">
+                    {{ticket.prioridad || 'Sin prioridad'}}
+                  </span>
+                  </td>
+                
+                <td class="col-fecha">
+                  <div class="cell-fecha">{{ticket.fechaCreacionFormatted || 'Sin fecha'}}</div>
+                  </td>
+                
+                <td class="col-fecha-limite">
+                  <div *ngIf="ticket.fechaLimiteFormatted !== 'Sin fecha límite'" 
+                      class="cell-fecha-limite" 
+                      [ngClass]="getFechaClass(ticket.estatus, ticket.fechaLimite)">
+                    <i class="pi pi-clock"></i>
+                    {{ticket.fechaLimiteFormatted}}
+                  </div>
+                  <div *ngIf="ticket.fechaLimiteFormatted === 'Sin fecha límite'" class="cell-fecha-sin-limite">
+                    <i class="pi pi-calendar"></i>
+                    Sin fecha
+                  </div>
+                  </td>
+                
+                <td class="col-dias">
+                  <span class="days-badge" [ngClass]="getDiasRestantesClass(ticket)">
+                    {{getDiasRestantesText(ticket)}}
+                  </span>
+                  </td>
+               </tr>
+            </tbody>
+           </table>
+        </div>
+      </div>
+
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="pi pi-chevron-left"></i>
+          Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let page of pageNumbers" 
+                  class="page-number" 
+                  [class.active]="page === currentPage"
+                  (click)="changePage(page)">
+            {{page}}
+          </button>
+        </div>
+        
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          Siguiente
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab" 
+                [class.active]="vistaSidebar === 'pendientes'"
+                (click)="cambiarVistaSidebar('pendientes')">
+          <i class="pi pi-clock tab-icon"></i>
+          <span>Pendientes</span>
+          <span class="tab-counter">{{getTicketsPendientes().length}}</span>
+        </button>
+        <button class="sidebar-tab" 
+                [class.active]="vistaSidebar === 'terminados'"
+                (click)="cambiarVistaSidebar('terminados')">
+          <i class="pi pi-check-circle tab-icon"></i>
+          <span>Terminados</span>
+          <span class="tab-counter">{{getTicketsTerminados().length}}</span>
+        </button>
+      </div>
+
+      <div class="sidebar-list">
+        <div *ngIf="getTicketsSidebarActual().length === 0" class="sidebar-empty">
+          <i class="pi pi-check-empty empty-icon"></i>
+          <p>No hay tickets {{vistaSidebar === 'pendientes' ? 'pendientes' : 'terminados'}}</p>
+        </div>
+
+        <div *ngFor="let ticket of getTicketsSidebarActual()" 
+             class="sidebar-item"
+             (click)="verDetalle(ticket)">
+          
+          <div class="sidebar-item-header">
+            <span class="sidebar-item-id">{{ticket.folio || ticket.id}}</span>
+            <span class="sidebar-item-estatus" [ngClass]="getEstatusClass(ticket.estatus)">
+              {{ticket.estatus}}
+            </span>
+          </div>
+          
+          <h4 class="sidebar-item-titulo">{{ticket.titulo | slice:0:40}}...</h4>
+          
+          <div class="sidebar-item-meta">
+            <div class="sidebar-meta-item">
+              <i class="pi pi-calendar"></i>
+              <span>{{ticket.fechaCreacionFormatted}}</span>
+            </div>
+            <div class="sidebar-meta-item" *ngIf="ticket.fechaLimiteFormatted !== 'Sin fecha límite'">
+              <i class="pi pi-clock"></i>
+              <span>{{ticket.fechaLimiteFormatted}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-vencidos">
+        <div class="sidebar-vencidos-header">
+          <h4>
+            <i class="pi pi-exclamation-triangle vencidos-icon"></i>
+            Tickets Vencidos
+          </h4>
+          <span class="vencidos-counter">{{getTicketsVencidos().length}}</span>
+        </div>
+
+        <div class="sidebar-vencidos-list">
+          <div *ngIf="getTicketsVencidos().length === 0" class="vencidos-empty">
+            <i class="pi pi-check-circle empty-icon"></i>
+            <p>No hay tickets vencidos</p>
+          </div>
+
+          <div *ngFor="let ticket of getTicketsVencidos().slice(0, 3)" 
+               class="vencido-item"
+               (click)="verDetalle(ticket)">
+            
+            <div class="vencido-alert">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>VENCIDO</span>
+            </div>
+            
+            <div class="vencido-info">
+              <span class="vencido-id">{{ticket.folio || ticket.id}}</span>
+              <h5 class="vencido-titulo">{{ticket.titulo | slice:0:30}}...</h5>
+              <div class="vencido-fecha">
+                <i class="pi pi-calendar"></i>
+                <span>Venció: {{ticket.fechaLimiteFormatted}}</span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="getTicketsVencidos().length > 3" class="vencidos-more">
+            <p>+{{getTicketsVencidos().length - 3}} más vencidos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner de carga -->
+  @if (cargando && tickets.length === 0) {
+    <p-blockUI [blocked]="cargando">
+      <div class="loading-container">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">Cargando tus tickets...</p>
+      </div>
+    </p-blockUI>
+  }
+</div>
+
+<!-- Modal para motivo de rechazo -->
+<p-dialog header="Motivo del Rechazo" 
+          [(visible)]="mostrandoModalRechazo" 
+          [modal]="true" 
+          [style]="{width: '500px'}" 
+          [draggable]="false" 
+          [resizable]="false">
+  
+  <div class="modal-content">
+    <p class="mb-4">
+      Estás rechazando el ticket: 
+      <strong>{{ticketSeleccionadoParaRechazo?.titulo}}</strong>
+    </p>
+    
+    <div class="field mb-4">
+      <label for="motivoRechazo" class="form-label">
+        Motivo del rechazo <span class="required">*</span>
+      </label>
+      <textarea id="motivoRechazo" 
+                [(ngModel)]="motivoRechazo" 
+                pInputTextarea 
+                rows="4" 
+                class="w-full" 
+                placeholder="Describe por qué rechazas este ticket..."></textarea>
+      <small class="form-hint">Este motivo será registrado en el historial del ticket</small>
+    </div>
+    
+    <div class="modal-actions">
+      <button pButton 
+              label="Cancelar" 
+              icon="pi pi-times" 
+              class="p-button-secondary" 
+              (click)="cancelarRechazo()"
+              [disabled]="ticketActualizando === ticketSeleccionadoParaRechazo?.id"></button>
+      
+      <button pButton 
+              label="Confirmar Rechazo" 
+              icon="pi pi-check" 
+              class="p-button-danger" 
+              (click)="confirmarRechazo()"
+              [disabled]="!motivoRechazo.trim() || ticketActualizando === ticketSeleccionadoParaRechazo?.id">
+        <i *ngIf="ticketActualizando === ticketSeleccionadoParaRechazo?.id" 
+           class="pi pi-spinner pi-spin ml-2"></i>
+      </button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Toast para mensajes -->
+<p-toast position="top-right"></p-toast>

@@ -1,0 +1,230 @@
+<div class="asignar-tickets-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Asignar Tickets</h1>
+        <p class="page-subtitle">Asigna tickets nuevos o sin asignar</p>
+      </div>
+      
+      <div class="header-stats">
+        <div class="stat-badge">
+          <i class="pi pi-ticket"></i>
+          <span class="stat-number">{{ticketsNuevos.length}}</span>
+          <span class="stat-label">Tickets Pendientes</span>
+        </div>
+        
+        <button class="btn-refresh" (click)="refrescar()" [disabled]="cargando">
+          <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+          Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtro de búsqueda -->
+  <div class="filtros-container">
+    <div class="search-box">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input type="text" pInputText placeholder="Buscar tickets por ID, título, descripción..." 
+               [(ngModel)]="filtroBusqueda" />
+      </span>
+    </div>
+    
+    <div class="filtros-actions">
+      <button class="btn-limpiar" (click)="limpiarFiltros()">
+        <i class="pi pi-filter-slash"></i>
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid de tickets -->
+  <div class="tickets-grid" *ngIf="!cargando && getTicketsFiltrados().length > 0">
+    <div *ngFor="let ticket of getTicketsFiltrados()" class="ticket-card">
+      <!-- Header -->
+      <div class="ticket-header">
+        <div class="ticket-info-top">
+          <div class="ticket-id">
+            <span class="id-label">ID:</span>
+            <span class="id-value">{{ticket.id}}</span>
+          </div>
+          <div class="ticket-estatus">
+            <span class="estatus-badge" [class.estatus-nuevo]="ticket.estatus === 'Nuevo'"
+                  [class.estatus-asignado]="ticket.estatus === 'Asignado'">
+              {{ticket.estatus}}
+            </span>
+          </div>
+        </div>
+        <div class="ticket-prioridad" [style.background-color]="ticket.colorPrioridad">
+          {{ticket.prioridad}}
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="ticket-body">
+        <h3 class="ticket-titulo">{{ticket.titulo}}</h3>
+        <p class="ticket-descripcion">{{ticket.descripcion | slice:0:100}}...</p>
+        
+        <div class="ticket-info">
+          <div class="info-item">
+            <i [class]="ticket.iconoTipo" class="info-icon"></i>
+            <span>{{ticket.tipo}}</span>
+          </div>
+          <div class="info-item">
+            <i class="pi pi-user info-icon"></i>
+            <span>{{ticket.creadoPor?.nombre || 'Usuario'}}</span>
+          </div>
+          <div class="info-item">
+            <i class="pi pi-calendar info-icon"></i>
+            <span>{{ticket.fechaCreacionFormatted}}</span>
+          </div>
+        </div>
+        
+        <div class="ticket-meta">
+          <div *ngIf="ticket.diasRestantes !== null" class="dias-restantes">
+            <i class="pi pi-clock"></i>
+            <span>{{ticket.diasRestantes}} días restantes</span>
+          </div>
+          <div class="asignado-actual">
+            <i class="pi pi-user-check"></i>
+            <span>{{ticket.asignadoTexto}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asignación - Dropdown por ticket -->
+      <div class="ticket-asignacion">
+        <div class="asignacion-control">
+          
+          <!-- Dropdown para seleccionar técnico -->
+          <div class="dropdown-container">
+            <label class="dropdown-label">Asignar a:</label>
+            <p-dropdown 
+              [options]="tecnicos"
+              [(ngModel)]="empleadosPorTicket[ticket.firestoreId]"
+              (onChange)="onTecnicoSeleccionado(ticket.firestoreId, $event)"
+              optionLabel="displayText"
+              [filter]="true"
+              filterBy="displayText"
+              [showClear]="true"
+              placeholder="Seleccionar técnico..."
+              styleClass="w-full">
+              <ng-template pTemplate="selectedItem">
+                <div *ngIf="empleadosPorTicket[ticket.firestoreId]" class="empleado-selected">
+                  <i class="pi pi-user"></i>
+                  <span>{{empleadosPorTicket[ticket.firestoreId]?.nombre}}</span>
+                  <span class="tecnico-id">({{empleadosPorTicket[ticket.firestoreId]?.tecnicoId}})</span>
+                </div>
+              </ng-template>
+              <ng-template let-tecnico pTemplate="item">
+                <div class="empleado-item">
+                  <i class="pi pi-user"></i>
+                  <div class="empleado-info-dropdown">
+                    <div class="empleado-nombre-dropdown">{{tecnico.nombre}}</div>
+                    <div class="empleado-detalles-dropdown">
+                      <span class="tecnico-id">{{tecnico.tecnicoId}}</span>
+                      <span class="tecnico-tipo">{{tecnico.tipo}}</span>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </p-dropdown>
+          </div>
+
+          <!-- Botón para asignar -->
+          <div class="asignacion-actions">
+            <button class="btn-asignar" 
+                    (click)="asignarTicket(ticket)"
+                    [disabled]="asignando[ticket.firestoreId] || !empleadosPorTicket[ticket.firestoreId]">
+              <i *ngIf="!ticket.asignadoA" class="pi pi-user-plus"></i>
+              <i *ngIf="ticket.asignadoA" class="pi pi-user-edit"></i>
+              <span *ngIf="!ticket.asignadoA && empleadosPorTicket[ticket.firestoreId]">
+                Asignar Ticket
+              </span>
+              <span *ngIf="ticket.asignadoA && empleadosPorTicket[ticket.firestoreId]">
+                Reasignar Ticket
+              </span>
+              <span *ngIf="!empleadosPorTicket[ticket.firestoreId]">
+                Selecciona un técnico
+              </span>
+              <i *ngIf="asignando[ticket.firestoreId]" class="pi pi-spinner pi-spin ml-1"></i>
+            </button>
+          </div>
+
+          <!-- Mensaje si ya está asignado -->
+          <div *ngIf="ticket.asignadoA && empleadosPorTicket[ticket.firestoreId]?.empleadoId === ticket.asignadoA.id" 
+              class="asignacion-warning">
+            <i class="pi pi-info-circle"></i>
+            <span>Actualmente asignado a este técnico</span>
+          </div>
+
+          <!-- Botón para asignar -->
+          <div class="asignacion-actions">
+            <button class="btn-asignar" 
+                    (click)="asignarTicket(ticket)"
+                    [disabled]="asignando[ticket.firestoreId] || !empleadosPorTicket[ticket.firestoreId] || ticket.yaAsignado">
+              <i class="pi pi-user-plus"></i>
+              <span *ngIf="!ticket.yaAsignado && empleadosPorTicket[ticket.firestoreId]">
+                Asignar Ticket
+              </span>
+              <span *ngIf="!ticket.yaAsignado && !empleadosPorTicket[ticket.firestoreId]">
+                Selecciona un técnico
+              </span>
+              <span *ngIf="ticket.yaAsignado">
+                Ya asignado
+              </span>
+              <i *ngIf="asignando[ticket.firestoreId]" class="pi pi-spinner pi-spin ml-1"></i>
+            </button>
+          </div>
+
+          <!-- Mensaje si ya está asignado -->
+          <div *ngIf="ticket.yaAsignado" class="asignacion-warning">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span>Este ticket ya está asignado y no puede ser reasignado desde aquí</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estados vacíos -->
+  <div *ngIf="!cargando && getTicketsFiltrados().length === 0 && ticketsNuevos.length === 0" class="empty-state">
+    <div class="empty-content">
+      <i class="pi pi-check-circle empty-icon"></i>
+      <h3>¡No hay tickets pendientes!</h3>
+      <p>Todos los tickets han sido asignados o no hay tickets que requieran asignación.</p>
+    </div>
+  </div>
+
+  <div *ngIf="!cargando && getTicketsFiltrados().length === 0 && ticketsNuevos.length > 0" class="empty-state">
+    <div class="empty-content">
+      <i class="pi pi-filter empty-icon"></i>
+      <h3>No se encontraron tickets</h3>
+      <p>No hay tickets que coincidan con los filtros aplicados.</p>
+      <button class="btn-limpiar-principal" (click)="limpiarFiltros()">
+        <i class="pi pi-filter-slash"></i>
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="loading-content">
+      <p-progressSpinner ariaLabel="loading" />
+      <p>Cargando tickets pendientes...</p>
+    </div>
+  </div>
+</div>
+
+<p-confirmDialog 
+  [style]="{width: '450px'}" 
+  header="Confirmación"
+  icon="pi pi-exclamation-triangle"
+  acceptButtonStyleClass="p-button-text"
+  rejectButtonStyleClass="p-button-text">
+</p-confirmDialog>
+
+<p-toast position="top-right"></p-toast>

@@ -1,0 +1,347 @@
+<div class="detalle-container">
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i> Volver
+      </button>
+
+      <div class="header-title">
+        <h1 class="page-title">
+          <i [class]="ticket?.tipoTicket === 'PRODUCTO' ? 'pi pi-box' : ticket?.tipoTicket === 'GASOLINA' ? 'pi pi-bolt' : 'pi pi-wrench'"></i>
+          {{ ticket?.tipoTicket === 'PRODUCTO' ? 'Solicitud de Insumos' : ticket?.tipoTicket === 'GASOLINA' ? 'Solicitud de Gasolina' : 'Solicitud de Reparación' }}
+        </h1>
+        <p class="page-subtitle">{{ ticket?.folio || 'Cargando...' }}</p>
+      </div>
+
+      <div *ngIf="ticket">
+        <span class="estado-badge-lg" [ngClass]="getEstadoClass(ticket.estado)">
+          {{ getEstadoLabel(ticket.estado) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="grid-container" *ngIf="!cargando && ticket">
+
+    <!-- Columna izquierda -->
+    <div class="col-principal">
+
+      <!-- ── GASOLINA: datos de la solicitud ── -->
+      <ng-container *ngIf="ticket.tipoTicket === 'GASOLINA'">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="pi pi-bolt"></i> Detalle de la Solicitud</h2>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item" *ngIf="ticket.placas">
+                <label>Placas</label>
+                <span class="badge-placas">{{ ticket.placas }}</span>
+              </div>
+              <div class="info-item">
+                <label>Litros solicitados</label>
+                <div class="info-value">{{ ticket.litrosSolicitados }} L</div>
+              </div>
+              <div class="info-item" *ngIf="ticket.litrosAutorizados != null">
+                <label>Litros autorizados</label>
+                <div class="info-value" style="color:#16a34a;font-size:1.1rem;">{{ ticket.litrosAutorizados }} L</div>
+              </div>
+              <div class="info-item" *ngIf="ticket.montoDepositado != null">
+                <label>Monto depositado</label>
+                <div class="monto-valor">{{ formatPrecio(ticket.montoDepositado) }}</div>
+              </div>
+              <div class="info-item" *ngIf="ticket.estacion">
+                <label>Gasolinera sugerida</label>
+                <div class="info-value">{{ ticket.estacion }}</div>
+              </div>
+              <div class="info-item" *ngIf="ticket.fechaCargaEstimada">
+                <label>Fecha estimada de carga</label>
+                <div class="info-value texto-fecha">{{ formatFecha(ticket.fechaCargaEstimada) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Documentos adjuntos del solicitante (gasolina) -->
+        <div class="card" *ngIf="ticket.documentos && ticket.documentos.length > 0">
+          <div class="card-header">
+            <h2><i class="pi pi-paperclip"></i> Documentos Adjuntos</h2>
+          </div>
+          <div class="card-body">
+            <div class="docs-list">
+              <a class="doc-item" *ngFor="let doc of ticket.documentos" [href]="doc.url" target="_blank" rel="noopener">
+                <i class="pi pi-file"></i>
+                <span>{{ doc.nombre }}</span>
+                <i class="pi pi-external-link doc-ext"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ── PRODUCTO: tabla de insumos ── -->
+      <ng-container *ngIf="ticket.tipoTicket === 'PRODUCTO'">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="pi pi-box"></i> Insumos Solicitados</h2>
+          </div>
+          <div class="card-body">
+            <div class="tabla-insumos">
+              <div class="tabla-header">
+                <span>Insumo</span>
+                <span>Precio unit.</span>
+                <span>Cantidad</span>
+                <span>Subtotal</span>
+              </div>
+              <div class="tabla-row" *ngFor="let linea of ticket.lineas">
+                <div class="linea-nombre">
+                  <i class="pi pi-box"></i>
+                  <div>
+                    <span class="nombre-insumo">{{ linea.insumoNombre }}</span>
+                    <div class="linea-meta">
+                      <span *ngIf="linea.insumoSKU" class="meta-chip">SKU: {{ linea.insumoSKU }}</span>
+                      <span *ngIf="linea.insumoFamilia" class="meta-chip">{{ linea.insumoFamilia }}</span>
+                      <span *ngIf="linea.insumoMarca" class="meta-chip">{{ linea.insumoMarca }}</span>
+                    </div>
+                  </div>
+                </div>
+                <span>{{ formatPrecio(linea.precioUnitario) }}</span>
+                <span>{{ linea.cantidad }}</span>
+                <span class="subtotal-cell">{{ formatPrecio(linea.subtotal) }}</span>
+              </div>
+              <div class="tabla-total">
+                <span>Total estimado</span>
+                <span>{{ formatPrecio(ticket.totalEstimado || 0) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ── REPARACION: datos del vehículo ── -->
+      <ng-container *ngIf="ticket.tipoTicket === 'REPARACION'">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="pi pi-car"></i> Datos de la Reparación</h2>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item" *ngIf="ticket.placas">
+                <label>Placas</label>
+                <span class="badge-placas">{{ ticket.placas }}</span>
+              </div>
+              <div class="info-item" *ngIf="ticket.tipoReparacion">
+                <label>Tipo de reparación</label>
+                <div class="info-value">{{ ticket.tipoReparacion }}</div>
+              </div>
+              <div class="info-item full" *ngIf="ticket.montoReparacion != null">
+                <label>Monto de reparación</label>
+                <div class="monto-valor">{{ formatPrecio(ticket.montoReparacion) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datos del taller (cuando ya hay cotización) -->
+        <div class="card" *ngIf="ticket.nombreTaller || ticket.ubicacionTaller || ticket.fechaEntradaTaller || ticket.fechaSalidaEstimada">
+          <div class="card-header">
+            <h2><i class="pi pi-building"></i> Datos del Taller</h2>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item" *ngIf="ticket.nombreTaller">
+                <label>Nombre del taller</label>
+                <div class="info-value">{{ ticket.nombreTaller }}</div>
+              </div>
+              <div class="info-item full" *ngIf="ticket.ubicacionTaller">
+                <label>Ubicación</label>
+                <div class="info-value">{{ ticket.ubicacionTaller }}</div>
+              </div>
+              <div class="info-item" *ngIf="ticket.fechaEntradaTaller">
+                <label>Fecha de entrada</label>
+                <div class="info-value texto-fecha">{{ formatFecha(ticket.fechaEntradaTaller) }}</div>
+              </div>
+              <div class="info-item" *ngIf="ticket.fechaSalidaEstimada">
+                <label>Salida estimada</label>
+                <div class="info-value texto-fecha">{{ formatFecha(ticket.fechaSalidaEstimada) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentos de cotización -->
+        <div class="card" *ngIf="ticket.documentosCotizacion && ticket.documentosCotizacion.length > 0">
+          <div class="card-header">
+            <h2><i class="pi pi-file-pdf"></i> Documentos de Cotización</h2>
+          </div>
+          <div class="card-body">
+            <div class="docs-list">
+              <a class="doc-item" *ngFor="let doc of ticket.documentosCotizacion" [href]="doc.url" target="_blank">
+                <i class="pi pi-file"></i>
+                <span>{{ doc.nombre }}</span>
+                <i class="pi pi-external-link doc-ext"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentos adjuntos (del solicitante) -->
+        <div class="card" *ngIf="ticket.documentos && ticket.documentos.length > 0">
+          <div class="card-header">
+            <h2><i class="pi pi-paperclip"></i> Documentos Adjuntos</h2>
+          </div>
+          <div class="card-body">
+            <div class="docs-list">
+              <a class="doc-item" *ngFor="let doc of ticket.documentos" [href]="doc.url" target="_blank">
+                <i class="pi pi-file"></i>
+                <span>{{ doc.nombre }}</span>
+                <i class="pi pi-external-link doc-ext"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Justificación / descripción -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="pi pi-comment"></i>
+            {{ ticket.tipoTicket === 'PRODUCTO' ? 'Justificación' : 'Descripción del problema' }}
+          </h2>
+        </div>
+        <div class="card-body">
+          <p class="texto-largo">{{ ticket.justificacion }}</p>
+        </div>
+      </div>
+
+      <!-- Motivo de rechazo -->
+      <div class="card card-rechazo" *ngIf="ticket.estado === 'RECHAZADO' && ticket.motivoRechazo">
+        <div class="card-header">
+          <h2><i class="pi pi-times-circle"></i> Motivo de Rechazo</h2>
+        </div>
+        <div class="card-body">
+          <p class="texto-rechazo">{{ ticket.motivoRechazo }}</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="col-secundaria">
+
+      <!-- Info general -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="pi pi-info-circle"></i> Información</h2>
+        </div>
+        <div class="card-body">
+          <div class="info-list">
+            <div class="info-item">
+              <label>Folio</label>
+              <span class="badge-folio">{{ ticket.folio || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Tipo</label>
+              <span class="badge-tipo"
+                    [class.tipo-producto]="ticket.tipoTicket === 'PRODUCTO'"
+                    [class.tipo-reparacion]="ticket.tipoTicket === 'REPARACION'"
+                    [class.tipo-gasolina]="ticket.tipoTicket === 'GASOLINA'">
+                <i [class]="ticket.tipoTicket === 'PRODUCTO' ? 'pi pi-box' : ticket.tipoTicket === 'GASOLINA' ? 'pi pi-bolt' : 'pi pi-wrench'"></i>
+                {{ ticket.tipoTicket === 'PRODUCTO' ? 'Insumos' : ticket.tipoTicket === 'GASOLINA' ? 'Gasolina' : 'Reparación' }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Solicitante</label>
+              <div class="info-value">{{ ticket.solicitante?.nombre || '⚠ Solicitante no disponible' }}</div>
+            </div>
+            <div class="info-item">
+              <label>Fecha de solicitud</label>
+              <div class="info-value texto-fecha">{{ formatFecha(ticket.fechaCreacion) }}</div>
+            </div>
+            <div class="info-item" *ngIf="ticket.autorizador">
+              <label>Autorizador</label>
+              <div class="info-value">{{ ticket.autorizador.nombre }}</div>
+            </div>
+            <div class="info-item" *ngIf="ticket.operador">
+              <label>Operador / Entregó</label>
+              <div class="info-value">{{ ticket.operador.nombre }}</div>
+            </div>
+            <div class="info-item" *ngIf="ticket.responsableReparacion">
+              <label>Responsable reparación</label>
+              <div class="info-value">{{ ticket.responsableReparacion.nombre }}</div>
+            </div>
+            <div class="info-item" *ngIf="ticket.fechaCompletado">
+              <label>Fecha completado</label>
+              <div class="info-value texto-fecha">{{ formatFecha(ticket.fechaCompletado) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultado del completado (visible para el solicitante) -->
+      <div class="card card-completado"
+           *ngIf="ticket.estado === 'COMPLETADO' && (ticket.observacionesCompletado || (ticket.documentosCompletar && ticket.documentosCompletar.length > 0))">
+        <div class="card-header">
+          <h2><i class="pi pi-check-square"></i> Resultado</h2>
+        </div>
+        <div class="card-body">
+          <div class="completado-obs" *ngIf="ticket.observacionesCompletado">
+            <i class="pi pi-comment"></i>
+            <span>{{ ticket.observacionesCompletado }}</span>
+          </div>
+          <div *ngIf="ticket.documentosCompletar && ticket.documentosCompletar.length > 0" style="margin-top: 0.75rem;">
+            <p class="docs-label"><i class="pi pi-paperclip"></i> Documentos adjuntos</p>
+            <div class="docs-list">
+              <a class="doc-item" *ngFor="let d of ticket.documentosCompletar"
+                 [href]="d.url" target="_blank" rel="noopener">
+                <i class="pi pi-file"></i>
+                <span>{{ d.nombre }}</span>
+                <i class="pi pi-external-link" style="margin-left:auto;opacity:.5;"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial -->
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <i class="pi pi-history"></i> Historial
+            <span class="historial-count">{{ ticket.historial?.length || 0 }}</span>
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline-item" *ngFor="let mov of ticket.historial" [ngClass]="getMovimientoClass(mov.tipoMovimiento)">
+              <div class="timeline-marker">
+                <i [class]="getMovimientoIcon(mov.tipoMovimiento)"></i>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <strong>{{ getMovimientoLabel(mov.tipoMovimiento) }}</strong>
+                  <span class="timeline-fecha">{{ formatFecha(mov.fechaMovimiento) }}</span>
+                </div>
+                <div class="timeline-usuario"><i class="pi pi-user"></i> {{ mov.usuarioNombre }}</div>
+                <div class="timeline-obs" *ngIf="mov.observaciones">
+                  <i class="pi pi-comment"></i> {{ mov.observaciones }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="cargando">
+    <p-progressSpinner ariaLabel="loading" />
+  </div>
+
+</div>
+
+<p-toast position="top-right"></p-toast>

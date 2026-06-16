@@ -1,0 +1,387 @@
+<div class="reportes-container">
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Activos</span>
+      </button>
+      
+      <div class="header-title">
+        <h1 class="page-title">Reportes de Activos</h1>
+        <p class="page-subtitle">Consulta y genera reportes de ubicaciones y categorías</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selector de tipo de reporte -->
+  <div class="reporte-selector">
+    <button class="tipo-btn" 
+            [class.active]="tipoReporte === 'almacen'"
+            (click)="tipoReporte = 'almacen'; activosSubalmacen = []">
+      <i class="pi pi-building"></i>
+      <span>Por Subalmacén</span>
+    </button>
+    <button class="tipo-btn" 
+            [class.active]="tipoReporte === 'categoria'"
+            (click)="tipoReporte = 'categoria'; activosPorCategoria = []">
+      <i class="pi pi-tags"></i>
+      <span>Por Categoría</span>
+    </button>
+    <button class="tipo-btn" 
+            [class.active]="tipoReporte === 'general'"
+            (click)="tipoReporte = 'general'; reporteGeneralData = []">
+      <i class="pi pi-globe"></i>
+      <span>General</span>
+    </button>
+  </div>
+
+  <!-- Reporte por Subalmacén -->
+  @if (tipoReporte === 'almacen') {
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <i class="pi pi-building"></i>
+          Activos por Subalmacén (No Asignados)
+        </h2>
+      </div>
+      
+      <div class="card-body">
+        <form [formGroup]="formReporteAlmacen" class="reporte-form">
+          <div class="form-row">
+            <div class="field">
+              <label for="subalmacenId">Seleccionar Subalmacén <span class="required">*</span></label>
+              <p-dropdown id="subalmacenId" 
+                         [options]="subalmacenesAgrupados"
+                         formControlName="subalmacenId"
+                         optionLabel="label" optionValue="value"
+                         [group]="true"
+                         placeholder="Seleccione subalmacén"
+                         styleClass="w-full"
+                         [filter]="true"
+                         [showClear]="true">
+                <ng-template pTemplate="group" let-lugar>
+                  <div class="flex align-items-center gap-2">
+                    <i class="pi pi-building"></i>
+                    <span>{{ lugar.label }}</span>
+                  </div>
+                </ng-template>
+                <ng-template pTemplate="item" let-sub>
+                  <div class="flex align-items-center gap-2">
+                    <i class="pi pi-box"></i>
+                    <span>{{ sub.label }}</span>
+                  </div>
+                </ng-template>
+              </p-dropdown>
+              @if (formReporteAlmacen.get('subalmacenId')?.invalid && formReporteAlmacen.get('subalmacenId')?.touched) {
+                <small class="p-error">Seleccione un subalmacén</small>
+              }
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button class="btn-consultar" 
+                    (click)="consultarSubalmacen()"
+                    [disabled]="formReporteAlmacen.invalid || cargando">
+              @if (cargando && tipoReporte === 'almacen') {
+                <i class="pi pi-spinner pi-spin"></i>
+              } @else {
+                <i class="pi pi-search"></i>
+              }
+              <span>Consultar</span>
+            </button>
+            
+            <button class="btn-descargar" 
+                    (click)="descargarReporteAlmacen()"
+                    [disabled]="formReporteAlmacen.invalid || cargando || activosSubalmacen.length === 0">
+              <i class="pi pi-file-pdf"></i>
+              <span>Descargar PDF</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Tabla de resultados -->
+        @if (activosSubalmacen.length > 0) {
+          <div class="resultados-container">
+            <h3>Activos no asignados encontrados ({{ activosSubalmacen.length }})</h3>
+            
+            <p-table [value]="activosSubalmacen" 
+                     [paginator]="true" 
+                     [rows]="10"
+                     [rowsPerPageOptions]="[10,25,50]"
+                     styleClass="p-datatable-gridlines p-datatable-sm"
+                     responsiveLayout="stack"
+                     [breakpoint]="'960px'">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                  <th>N° Serie</th>
+                  <th>Modelo</th>
+                  <th>Estado</th>
+                  <th>Ubicación</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-activo>
+                <tr>
+                  <td><span class="p-column-title">Nombre</span>{{ activo.nombre }}</td>
+                  <td><span class="p-column-title">Categoría</span>{{ activo.categoriaNombre || 'Sin categoría' }}</td>
+                  <td><span class="p-column-title">N° Serie</span>{{ activo.numeroSerie || 'N/A' }}</td>
+                  <td><span class="p-column-title">Modelo</span>{{ activo.modelo || 'N/A' }}</td>
+                  <td>
+                    <span class="p-column-title">Estado</span>
+                    <span class="estado-badge" [class]="getEstadoClass(activo.estadoTecnico)">
+                      <i [class]="getEstadoIcon(activo.estadoTecnico)"></i>
+                      {{ activo.estadoTecnico }}
+                    </span>
+                  </td>
+                  <td><span class="p-column-title">Ubicación</span>{{ activo.ubicacionNombre || 'Sin ubicación' }}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="6" class="text-center p-4">No se encontraron activos no asignados en este subalmacén</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Reporte por Categoría -->
+  @if (tipoReporte === 'categoria') {
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <i class="pi pi-tags"></i>
+          Activos por Categoría
+        </h2>
+      </div>
+      
+      <div class="card-body">
+        <form [formGroup]="formReporteCategoria" class="reporte-form">
+          <div class="form-row">
+            <div class="field">
+              <label for="categoriaId">Categoría <span class="required">*</span></label>
+              <p-dropdown id="categoriaId" 
+                         [options]="categorias"
+                         formControlName="categoriaId"
+                         optionLabel="nombre" optionValue="id"
+                         placeholder="Seleccione categoría"
+                         styleClass="w-full"
+                         [filter]="true"
+                         [showClear]="true">
+                <ng-template pTemplate="item" let-cat>
+                  <div class="flex align-items-center gap-2">
+                    <i class="pi pi-tag" [style.color]="getColorCategoria(cat)"></i>
+                    <span>{{ cat.nombre }}</span>
+                  </div>
+                </ng-template>
+              </p-dropdown>
+              @if (formReporteCategoria.get('categoriaId')?.invalid && formReporteCategoria.get('categoriaId')?.touched) {
+                <small class="p-error">Seleccione una categoría</small>
+              }
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="field">
+              <label>Mostrar activos</label>
+              <div class="filtro-opciones">
+                <p-selectButton [options]="[
+                    {label: 'No asignados', value: 'noAsignados'},
+                    {label: 'Todos', value: 'todos'}
+                  ]" 
+                  formControlName="filtroEstado" 
+                  optionLabel="label" optionValue="value">
+                </p-selectButton>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button class="btn-consultar" 
+                    (click)="consultarCategoria()"
+                    [disabled]="formReporteCategoria.invalid || cargando">
+              @if (cargando && tipoReporte === 'categoria') {
+                <i class="pi pi-spinner pi-spin"></i>
+              } @else {
+                <i class="pi pi-search"></i>
+              }
+              <span>Consultar</span>
+            </button>
+            
+            <button class="btn-descargar" 
+                    (click)="descargarReporteCategoria()"
+                    [disabled]="formReporteCategoria.invalid || cargando || activosPorCategoria.length === 0">
+              <i class="pi pi-file-pdf"></i>
+              <span>Descargar PDF</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Tabla de resultados -->
+        @if (activosPorCategoria.length > 0) {
+          <div class="resultados-container">
+            <h3>Activos encontrados ({{ activosPorCategoria.length }})</h3>
+            
+            <p-table [value]="activosPorCategoria" 
+                     [paginator]="true" 
+                     [rows]="10"
+                     [rowsPerPageOptions]="[10,25,50]"
+                     styleClass="p-datatable-gridlines p-datatable-sm"
+                     responsiveLayout="stack"
+                     [breakpoint]="'960px'">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Subalmacén</th>
+                  <th>N° Serie</th>
+                  <th>Modelo</th>
+                  <th>Estado</th>
+                  <th>Asignado a</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-activo>
+                <tr>
+                  <td><span class="p-column-title">Nombre</span>{{ activo.nombre }}</td>
+                  <td><span class="p-column-title">Subalmacén</span>{{ activo.ubicacionNombre || 'Sin ubicación' }}</td>
+                  <td><span class="p-column-title">N° Serie</span>{{ activo.numeroSerie || 'N/A' }}</td>
+                  <td><span class="p-column-title">Modelo</span>{{ activo.modelo || 'N/A' }}</td>
+                  <td>
+                    <span class="p-column-title">Estado</span>
+                    <span class="estado-badge" [class]="getEstadoClass(activo.estadoTecnico)">
+                      <i [class]="getEstadoIcon(activo.estadoTecnico)"></i>
+                      {{ activo.estadoTecnico }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="p-column-title">Asignado a</span>
+                    @if (activo.usuarioAsignadoNombre) {
+                      <span><i class="pi pi-user"></i> {{ activo.usuarioAsignadoNombre }}</span>
+                    } @else {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="6" class="text-center p-4">No se encontraron activos en esta categoría</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Reporte General -->
+  @if (tipoReporte === 'general') {
+    <div class="card">
+      <div class="card-header">
+        <h2>
+          <i class="pi pi-globe"></i>
+          Reporte General de Activos
+        </h2>
+      </div>
+      
+      <div class="card-body">
+        <form [formGroup]="formReporteGeneral" class="reporte-form">
+          <div class="form-row">
+            <div class="field">
+              <label>Mostrar activos</label>
+              <div class="filtro-opciones">
+                <p-selectButton [options]="[
+                    {label: 'Asignados', value: 'asignados'},
+                    {label: 'No asignados', value: 'noAsignados'},
+                    {label: 'Todos', value: 'todos'}
+                  ]" 
+                  formControlName="filtroEstado" 
+                  optionLabel="label" optionValue="value">
+                </p-selectButton>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button class="btn-consultar" 
+                    (click)="consultarGeneral()"
+                    [disabled]="cargando">
+              @if (cargando && tipoReporte === 'general') {
+                <i class="pi pi-spinner pi-spin"></i>
+              } @else {
+                <i class="pi pi-search"></i>
+              }
+              <span>Consultar</span>
+            </button>
+            
+            <button class="btn-descargar" 
+                    (click)="descargarReporteGeneral()"
+                    [disabled]="cargando || reporteGeneralData.length === 0">
+              <i class="pi pi-file-pdf"></i>
+              <span>Descargar PDF</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Tabla de resultados -->
+        @if (reporteGeneralData.length > 0) {
+          <div class="resultados-container">
+            <h3>Activos encontrados ({{ reporteGeneralData.length }})</h3>
+            
+            <p-table [value]="reporteGeneralData" 
+                     [paginator]="true" 
+                     [rows]="10"
+                     [rowsPerPageOptions]="[10,25,50]"
+                     styleClass="p-datatable-gridlines p-datatable-sm"
+                     responsiveLayout="stack"
+                     [breakpoint]="'960px'">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                  <th>Subalmacén</th>
+                  <th>N° Serie</th>
+                  <th>Estado</th>
+                  <th>Asignado a</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-activo>
+                <tr>
+                  <td><span class="p-column-title">Nombre</span>{{ activo.nombre }}</td>
+                  <td><span class="p-column-title">Categoría</span>{{ activo.categoriaNombre || 'Sin categoría' }}</td>
+                  <td><span class="p-column-title">Subalmacén</span>{{ activo.ubicacionNombre || 'Sin ubicación' }}</td>
+                  <td><span class="p-column-title">N° Serie</span>{{ activo.numeroSerie || 'N/A' }}</td>
+                  <td>
+                    <span class="p-column-title">Estado</span>
+                    <span class="estado-badge" [class]="getEstadoClass(activo.estadoTecnico)">
+                      <i [class]="getEstadoIcon(activo.estadoTecnico)"></i>
+                      {{ activo.estadoTecnico }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="p-column-title">Asignado a</span>
+                    @if (activo.usuarioAsignadoNombre) {
+                      <span><i class="pi pi-user"></i> {{ activo.usuarioAsignadoNombre }}</span>
+                    } @else {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="6" class="text-center p-4">No se encontraron activos</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

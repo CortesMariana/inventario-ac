@@ -1,0 +1,55 @@
+<ul class="layout-menu">
+  <ng-container *ngFor="let item of model">
+    <li class="menu-group">
+      <div class="menu-group-label">
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </div>
+      
+      <ul class="menu-group-items">
+        <ng-container *ngFor="let subItem of item.items">
+          <ng-container *ngIf="subItem.visible !== false">
+            
+            <li *ngIf="subItem.separator" class="menu-separator">
+              <hr>
+            </li>
+            
+            <li *ngIf="subItem.items && subItem.items.length > 0" class="menu-section">
+              <div class="menu-section-header" (click)="toggleSection(getSectionKey(subItem.label))">
+                <i [class]="subItem.icon"></i>
+                <span>{{ subItem.label }}</span>
+                
+                <span *ngIf="subItem.badge" class="menu-badge">{{ subItem.badge }}</span>
+                
+                <i class="pi" [ngClass]="menuState[getSectionKey(subItem.label)] ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+              </div>
+              
+              <ul class="menu-section-items" *ngIf="menuState[getSectionKey(subItem.label)]">
+                <li *ngFor="let childItem of subItem.items">
+                  <a [routerLink]="childItem.routerLink" 
+                     [class.active]="isActiveRoute(childItem.routerLink ? childItem.routerLink[0] : '')"
+                     (click)="childItem.command ? childItem.command() : null">
+                    <i [class]="childItem.icon"></i>
+                    <span>{{ childItem.label }}</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            
+            <li *ngIf="!subItem.items">
+              <a [routerLink]="subItem.routerLink" 
+                 [class.active]="isActiveRoute(subItem.routerLink ? subItem.routerLink[0] : '')"
+                 (click)="subItem.command ? subItem.command() : null">
+                <i [class]="subItem.icon"></i>
+                <span>{{ subItem.label }}</span>
+                
+                <span *ngIf="subItem.badge" class="menu-badge">{{ subItem.badge }}</span>
+              </a>
+            </li>
+            
+          </ng-container>
+        </ng-container>
+      </ul>
+    </li>
+  </ng-container>
+</ul>

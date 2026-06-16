@@ -1,0 +1,328 @@
+<div class="grid">
+  <div class="col-10 col-offset-1">
+    <div class="card px-6 py-6">
+      
+      <!-- Título y breadcrumb -->
+      <div class="flex align-items-center mb-5">
+        <button class="btn-volver mr-3" (click)="cancelar()">
+          <i class="pi pi-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="page-title m-0">{{titulo}}</h1>
+          <p class="page-subtitle m-0">Complete todos los campos requeridos (*)</p>
+        </div>
+      </div>
+      
+      <!-- Formulario -->
+      @if (formInsumo) {
+        <form [formGroup]="formInsumo" class="insumo-form">
+          
+          <!-- Sección 1: Información Básica -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-info-circle"></i>
+              Información Básica del Insumo
+            </h3>
+            
+            <div class="grid">
+              <!-- Nombre del Insumo -->
+              <div class="field col-6 mb-4">
+                <label for="nombre" class="form-label">
+                  Nombre del Insumo <span class="required">*</span>
+                </label>
+                <input id="nombre" class="w-full" type="text" pInputText formControlName="nombre" 
+                       placeholder="Ej: Tornillo, Cable UTP, Grapas..." 
+                       [class.p-invalid]="formInsumo.get('nombre')?.invalid && formInsumo.get('nombre')?.touched" />
+                @if (formInsumo.get('nombre')?.invalid && formInsumo.get('nombre')?.touched) {
+                  <small class="p-error">El nombre es requerido (mínimo 3 caracteres)</small>
+                }
+              </div>
+              
+              <!-- Tipo de Empaque -->
+              <div class="field col-6 mb-4">
+                <label for="tipoEmpaque" class="form-label">
+                  Tipo de Empaque <span class="required">*</span>
+                </label>
+                <p-dropdown id="tipoEmpaque" 
+                           [options]="opcionesTipoEmpaque" 
+                           formControlName="tipoEmpaque" 
+                           optionLabel="label" optionValue="value" 
+                           styleClass="w-full"
+                           placeholder="Seleccione tipo de empaque"
+                           [class.p-invalid]="formInsumo.get('tipoEmpaque')?.invalid && formInsumo.get('tipoEmpaque')?.touched">
+                </p-dropdown>
+                <small class="form-hint">Unitario, bolsa, caja, kit, etc.</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sección 2: Cantidad y Precio -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-chart-line"></i>
+              Cantidad y Precio
+            </h3>
+            
+            <div class="grid">
+              <!-- Cantidad -->
+              <div class="field col-4 mb-4">
+                <label for="cantidad" class="form-label">
+                  Cantidad <span class="required">*</span>
+                </label>
+                <p-inputNumber id="cantidad" 
+                              formControlName="cantidad" 
+                              mode="decimal" 
+                              [min]="1" 
+                              [max]="999999"
+                              styleClass="w-full"
+                              placeholder="Ej: 5"
+                              [class.p-invalid]="formInsumo.get('cantidad')?.invalid && formInsumo.get('cantidad')?.touched">
+                </p-inputNumber>
+                @if (formInsumo.get('cantidad')?.invalid && formInsumo.get('cantidad')?.touched) {
+                  <small class="p-error">La cantidad debe ser mayor a 0</small>
+                }
+              </div>
+
+              <!-- Campos dinámicos para Bolsa/Caja/Rollo -->
+              <div class="grid" *ngIf="mostrarCamposUnidades">
+                <!-- Unidades por empaque -->
+                <div class="field col-6 mb-4">
+                  <label for="unidadesPorEmpaque" class="form-label">
+                    <ng-container *ngIf="formInsumo.get('tipoEmpaque')?.value === 'Rollo'">
+                      Metros por Rollo <span class="required">*</span>
+                    </ng-container>
+                    <ng-container *ngIf="formInsumo.get('tipoEmpaque')?.value !== 'Rollo'">
+                      Piezas por {{formInsumo.get('tipoEmpaque')?.value}} <span class="required">*</span>
+                    </ng-container>
+                  </label>
+                  <p-inputNumber id="unidadesPorEmpaque" 
+                                formControlName="unidadesPorEmpaque" 
+                                [min]="formInsumo.get('tipoEmpaque')?.value === 'Rollo' ? 0.1 : 1" 
+                                [max]="99999"
+                                [mode]="formInsumo.get('tipoEmpaque')?.value === 'Rollo' ? 'decimal' : 'decimal'"
+                                styleClass="w-full"
+                                [placeholder]="formInsumo.get('tipoEmpaque')?.value === 'Rollo' ? 'Ej: 50' : 'Ej: 100'">
+                  </p-inputNumber>
+                  <small class="form-hint">
+                    <ng-container *ngIf="formInsumo.get('tipoEmpaque')?.value === 'Rollo'">
+                      Total de metros que contiene cada rollo
+                    </ng-container>
+                    <ng-container *ngIf="formInsumo.get('tipoEmpaque')?.value !== 'Rollo'">
+                      Número de piezas que contiene cada {{formInsumo.get('tipoEmpaque')?.value | lowercase}}
+                    </ng-container>
+                  </small>
+                </div>
+                
+                <!-- Mostrar total de unidades -->
+                <div class="field col-6 mb-4">
+                  <label class="form-label">Total de unidades disponibles</label>
+                  <div class="precio-total-display">
+                    <i class="pi" [class.pi-cubes]="formInsumo.get('tipoContenido')?.value === 'PIEZAS'" 
+                      [class.pi-arrows-h]="formInsumo.get('tipoContenido')?.value === 'METROS'"></i>
+                    <span class="precio-total-valor">
+                      {{ (formInsumo.get('cantidad')?.value || 0) * (formInsumo.get('unidadesPorEmpaque')?.value || 0) | number }}
+                      <small>
+                        {{formInsumo.get('tipoContenido')?.value === 'PIEZAS' ? 'piezas' : 'metros'}}
+                      </small>
+                    </span>
+                  </div>
+                  <small class="form-hint">
+                    Total = {{formInsumo.get('cantidad')?.value || 0}} × 
+                    {{formInsumo.get('unidadesPorEmpaque')?.value || 0}} 
+                    {{formInsumo.get('tipoContenido')?.value === 'PIEZAS' ? 'piezas' : 'metros'}}
+                  </small>
+                </div>
+              </div>
+              
+              <!-- Precio Unitario -->
+              <div class="field col-4 mb-4">
+                <label for="precioUnitario" class="form-label">
+                  Precio Unitario <span class="required">*</span>
+                </label>
+                <span class="p-input-icon-left w-full">
+                  <p-inputNumber id="precioUnitario" 
+                                formControlName="precioUnitario" 
+                                mode="currency" 
+                                currency="MXN" 
+                                locale="es-MX"
+                                styleClass="w-full"
+                                placeholder="$0.00"
+                                [class.p-invalid]="formInsumo.get('precioUnitario')?.invalid && formInsumo.get('precioUnitario')?.touched">
+                  </p-inputNumber>
+                </span>
+                @if (formInsumo.get('precioUnitario')?.invalid && formInsumo.get('precioUnitario')?.touched) {
+                  <small class="p-error">El precio unitario es requerido</small>
+                }
+              </div>
+              
+              <!-- Precio Total (automático) -->
+              <div class="field col-4 mb-4">
+                <label for="precioTotal" class="form-label">Precio Total</label>
+                <div class="precio-total-display">
+                  <i class="pi pi-calculator"></i>
+                  <span class="precio-total-valor">${{formInsumo.get('precioTotal')?.value | number:'1.2-2'}}</span>
+                </div>
+                <small class="form-hint">Calculado automáticamente</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sección 3: Marca y Estado -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-tag"></i>
+              Marca y Estado
+            </h3>
+            
+            <div class="grid">
+              <!-- Marca -->
+              <div class="field col-6 mb-4">
+                <label for="marca" class="form-label">
+                  Marca <span class="required">*</span>
+                </label>
+                <input id="marca" class="w-full" type="text" pInputText formControlName="marca" 
+                       placeholder="Ej: Generico, 3M, Steren, etc." 
+                       [class.p-invalid]="formInsumo.get('marca')?.invalid && formInsumo.get('marca')?.touched" />
+                @if (formInsumo.get('marca')?.invalid && formInsumo.get('marca')?.touched) {
+                  <small class="p-error">La marca es requerida</small>
+                }
+              </div>
+              
+              <!-- Estado -->
+              <div class="field col-6 mb-4">
+              <label for="estado" class="form-label">
+                Estado <span class="required">*</span>
+                </label>
+                <p-dropdown id="estado" 
+                  [options]="opcionesEstado" 
+                  formControlName="estado" 
+                  optionLabel="label" 
+                  optionValue="value" 
+                  styleClass="w-full"
+                  placeholder="Seleccione estado"
+                  [class.p-invalid]="formInsumo.get('estado')?.invalid && formInsumo.get('estado')?.touched">
+                </p-dropdown>
+                @if (formInsumo.get('estado')?.invalid && formInsumo.get('estado')?.touched) {
+                  <small class="p-error">El estado es requerido</small>
+                }
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sección 4: Ubicación -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-map-marker"></i>
+              Ubicación
+            </h3>
+            
+            <div class="grid">
+              <!-- Subalmacén -->
+              <div class="field col-12 mb-4">
+                <label for="subalmacenId" class="form-label">
+                  Subalmacén <span class="required">*</span>
+                </label>
+                <p-dropdown 
+                  id="subalmacenId" 
+                  [options]="subalmacenesAgrupados"
+                  formControlName="subalmacenId"
+                  optionLabel="label" 
+                  optionValue="value"
+                  [group]="true"
+                  styleClass="w-full"
+                  placeholder="Seleccione subalmacén"
+                  [filter]="true"
+                  [showClear]="true" 
+                  (onChange)="onSubalmacenSelect($event)"
+                  [class.p-invalid]="formInsumo.get('subalmacenId')?.invalid && formInsumo.get('subalmacenId')?.touched">
+                  
+                  <ng-template pTemplate="group" let-lugar>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-building"></i>
+                      <span>{{ lugar.label }}</span>
+                    </div>
+                  </ng-template>
+                  
+                  <ng-template pTemplate="item" let-sub>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-box"></i>
+                      <span>{{ sub.label }}</span>
+                    </div>
+                  </ng-template>
+                </p-dropdown>
+                @if (formInsumo.get('subalmacenId')?.invalid && formInsumo.get('subalmacenId')?.touched) {
+                  <small class="p-error">El subalmacén es requerido</small>
+                }
+                <small class="form-hint">Ubicación física donde se almacena el insumo</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sección 5: Configuración Adicional -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-cog"></i>
+              Configuración Adicional
+            </h3>
+            
+            <div class="grid">
+              <!-- Stock Mínimo -->
+              <div class="field col-6 mb-4">
+                <label for="stockMinimo" class="form-label">Stock Mínimo de Alerta</label>
+                <p-inputNumber id="stockMinimo" 
+                              formControlName="stockMinimo" 
+                              mode="decimal" 
+                              [min]="0" 
+                              [max]="999"
+                              styleClass="w-full"
+                              placeholder="Ej: 5">
+                </p-inputNumber>
+                <small class="form-hint">Cuando la cantidad baje de este valor, se mostrará una alerta</small>
+              </div>
+              
+              <!-- Notas -->
+              <div class="field col-12 mb-4">
+                <label for="notas" class="form-label">Notas adicionales</label>
+                <textarea id="notas" rows="3" class="w-full" pTextarea formControlName="notas"
+                          placeholder="Observaciones adicionales sobre el insumo (opcional)"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+      
+      <!-- Botones de acción -->
+      <div class="form-actions">
+        <div class="actions-container">
+          <button type="button" class="btn-cancelar" (click)="cancelar()" [disabled]="cargando">
+            <i class="pi pi-times"></i>
+            Cancelar
+          </button>
+          
+          <button type="button" class="btn-guardar" (click)="guardarInsumo()" [disabled]="cargando">
+            <i class="pi pi-save"></i>
+            {{ isNew ? 'Crear Insumo' : 'Guardar Cambios' }}
+            @if (cargando) {
+              <i class="pi pi-spinner pi-spin ml-2"></i>
+            }
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Spinner de carga -->
+@if (cargando) {
+  <p-blockUI [blocked]="cargando">
+    <div class="flex justify-content-center align-items-center w-full h-full">
+      <div class="loading-card">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">{{ isNew ? 'Creando insumo...' : 'Guardando cambios...' }}</p>
+      </div>
+    </div>
+  </p-blockUI>
+}
+
+<p-toast position="top-right"></p-toast>

@@ -1,0 +1,233 @@
+<div class="detalle-insumo-container">
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Insumos</span>
+      </button>
+
+      <div class="header-title">
+        <h1 class="page-title">Detalle del Insumo</h1>
+        <p class="page-subtitle">{{ insumo?.nombre || 'Cargando...' }}</p>
+      </div>
+
+      <div class="header-actions" *ngIf="insumo && !cargando">
+        <span class="badge-estado" [class.badge-activo]="insumo.activo" [class.badge-inactivo]="!insumo.activo">
+          <i [class]="insumo.activo ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+          {{ insumo.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+
+        <button class="btn-editar-principal" (click)="editar()" [disabled]="procesando">
+          <i class="pi pi-pencil"></i>
+          <span>Editar</span>
+        </button>
+
+        <button class="btn-toggle-estado"
+                [class.btn-desactivar]="insumo.activo"
+                [class.btn-reactivar]="!insumo.activo"
+                (click)="toggleEstado()"
+                [disabled]="procesando">
+          <i [class]="insumo.activo ? 'pi pi-ban' : 'pi pi-refresh'"></i>
+          <span>{{ insumo.activo ? 'Desactivar' : 'Reactivar' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content" *ngIf="!cargando && insumo">
+    <div class="grid-container">
+
+      <!-- ── Columna izquierda ── -->
+      <div class="col-principal">
+
+        <!-- Tarjeta: Información del Insumo -->
+        <div class="card info-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-box"></i>
+              Información del Insumo
+            </h2>
+          </div>
+
+          <div class="card-body">
+            <div class="info-grid">
+
+              <div class="info-item full-width">
+                <label>Nombre</label>
+                <div class="info-value">{{ insumo.nombre }}</div>
+              </div>
+
+              <div class="info-item" *ngIf="insumo.idERP">
+                <label>ID en el ERP (Enersis)</label>
+                <div class="info-value">
+                  <span class="badge-erp">{{ insumo.idERP }}</span>
+                </div>
+              </div>
+
+              <div class="info-item" *ngIf="insumo.SKU">
+                <label>SKU</label>
+                <div class="info-value">{{ insumo.SKU }}</div>
+              </div>
+
+              <div class="info-item" *ngIf="insumo.familia">
+                <label>Familia</label>
+                <div class="info-value">
+                  <span class="badge-catalogo">{{ insumo.familia }}</span>
+                </div>
+              </div>
+
+              <div class="info-item" *ngIf="insumo.marca">
+                <label>Marca</label>
+                <div class="info-value">
+                  <span class="badge-catalogo">{{ insumo.marca }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Precio Unitario</label>
+                <div class="info-value precio-valor">${{ insumo.precioUnitario | number:'1.2-2' }}</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Descripción -->
+        <div class="card" *ngIf="insumo.descripcion">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-align-left"></i>
+              Descripción
+            </h2>
+          </div>
+          <div class="card-body">
+            <p class="texto-largo">{{ insumo.descripcion }}</p>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Notas -->
+        <div class="card" *ngIf="insumo.notas">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-comment"></i>
+              Notas Adicionales
+            </h2>
+          </div>
+          <div class="card-body">
+            <p class="texto-largo">{{ insumo.notas }}</p>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Fechas -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-calendar"></i>
+              Registro
+            </h2>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Fecha de creación</label>
+                <div class="info-value texto-fecha">{{ formatFecha(insumo.fechaCreacion) }}</div>
+              </div>
+              <div class="info-item" *ngIf="insumo.fechaModificacion">
+                <label>Última modificación</label>
+                <div class="info-value texto-fecha">{{ formatFecha(insumo.fechaModificacion) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Columna derecha: Historial ── -->
+      <div class="col-secundaria">
+        <div class="card historial-card">
+          <div class="card-header">
+            <h2>
+              <i class="pi pi-history"></i>
+              Historial de Movimientos
+              <span class="historial-count">{{ historialMovimientos.length }}</span>
+            </h2>
+          </div>
+
+          <div class="card-body">
+
+            <div *ngIf="historialMovimientos.length === 0" class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>No hay movimientos registrados</p>
+            </div>
+
+            <div class="timeline">
+              <div *ngFor="let mov of historialMovimientos"
+                   class="timeline-item"
+                   [ngClass]="getMovimientoClass(mov.tipoMovimiento)">
+
+                <div class="timeline-marker">
+                  <i [class]="getMovimientoIcon(mov.tipoMovimiento)"></i>
+                </div>
+
+                <div class="timeline-content">
+                  <!-- Tipo + fecha -->
+                  <div class="timeline-header">
+                    <strong class="timeline-tipo">{{ getMovimientoLabel(mov.tipoMovimiento) }}</strong>
+                    <span class="timeline-fecha">
+                      <i class="pi pi-calendar"></i>
+                      {{ formatFecha(mov.fechaMovimiento) }}
+                    </span>
+                  </div>
+
+                  <!-- Cantidad usada -->
+                  <div *ngIf="mov.tipoMovimiento === 'USO' && mov.cantidadUsada" class="timeline-cantidad-usada">
+                    <i class="pi pi-send"></i>
+                    <span>Cantidad usada: <strong>{{ mov.cantidadUsada }}</strong></span>
+                  </div>
+
+                  <!-- Usuario -->
+                  <div class="timeline-usuario">
+                    <i class="pi pi-user"></i>
+                    <span>{{ mov.usuarioMovimientoNombre }}</span>
+                  </div>
+
+                  <!-- Ticket relacionado -->
+                  <div *ngIf="mov.ticketRelacionadoId" class="timeline-ticket">
+                    <i class="pi pi-ticket"></i>
+                    <span class="ticket-ref">Ticket: {{ mov.ticketRelacionadoId }}</span>
+                  </div>
+
+                  <!-- Observaciones -->
+                  <div *ngIf="mov.observaciones" class="timeline-observaciones">
+                    <i class="pi pi-comment"></i>
+                    <span>{{ mov.observaciones }}</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="loading-content">
+      <p-progressSpinner ariaLabel="loading" />
+      <p>Cargando detalles del insumo...</p>
+    </div>
+  </div>
+
+</div>
+
+<p-toast position="top-right"></p-toast>
+<p-confirmDialog key="confirmDetalle"></p-confirmDialog>

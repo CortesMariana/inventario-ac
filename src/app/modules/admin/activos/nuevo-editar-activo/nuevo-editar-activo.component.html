@@ -1,0 +1,591 @@
+<div class="grid">
+  <div class="col-10 col-offset-1">
+    <div class="card px-6 py-6" [ngClass]="{'mobile-scrollable-card': isMobileView}">
+      
+      <!-- Título y breadcrumb -->
+      <div class="flex align-items-center mb-5">
+        <button class="btn-volver mr-3" (click)="cancelar()">
+          <i class="pi pi-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="page-title m-0">{{titulo}}</h1>
+          <p class="page-subtitle m-0">Complete todos los campos requeridos (*)</p>
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      @if (formActivo) {
+        <form [formGroup]="formActivo" class="activo-form">
+          
+          <!-- Sección 1: Información Básica -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-info-circle"></i>
+              Información Básica del Activo
+            </h3>
+            
+            <div class="grid">
+              <!-- Nombre del Activo -->
+              <div class="field col-6 mb-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="nombre" class="form-label">
+                  Nombre del Activo <span class="required">*</span>
+                </label>
+                <input id="nombre" class="w-full" type="text" pInputText formControlName="nombre" 
+                       placeholder="Ej: Tablet GHIA Ventas - Rene Juarez" 
+                       [class.p-invalid]="formActivo.get('nombre')?.invalid && formActivo.get('nombre')?.touched" />
+                <small class="form-hint">Nombre descriptivo para identificar el activo</small>
+                @if (formActivo.get('nombre')?.invalid && formActivo.get('nombre')?.touched) {
+                  <small class="p-error">El nombre es requerido</small>
+                }
+              </div>
+
+              <!-- Tipo de Activo -->
+              <div class="field col-6 mb-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="tipoActivo" class="form-label">
+                  Tipo de Activo <span class="required">*</span>
+                </label>
+                <p-dropdown id="tipoActivo" 
+                           [options]="[
+                             {label: 'Tablet', value: 'Tablet'},
+                             {label: 'Laptop', value: 'Laptop'},
+                             {label: 'Desktop', value: 'Desktop'},
+                             {label: 'Monitor', value: 'Monitor'},
+                             {label: 'Impresora', value: 'Impresora'},
+                             {label: 'Teléfono', value: 'Teléfono'},
+                             {label: 'Router', value: 'Router'},
+                             {label: 'Switch', value: 'Switch'},
+                             {label: 'Accesorio', value: 'Accesorio'},
+                             {label: 'Otro', value: 'Otro'}
+                           ]" 
+                           formControlName="tipoActivo" 
+                           optionLabel="label" optionValue="value" 
+                           styleClass="w-full"
+                           placeholder="Seleccione tipo"
+                           [class.p-invalid]="formActivo.get('tipoActivo')?.invalid && formActivo.get('tipoActivo')?.touched">
+                </p-dropdown>
+                @if (formActivo.get('tipoActivo')?.invalid && formActivo.get('tipoActivo')?.touched) {
+                  <small class="p-error">El tipo es requerido</small>
+                }
+              </div>
+
+              <!-- Categoría -->
+              <div class="field col-6 mb-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="categoriaId" class="form-label">
+                  Categoría <span class="required">*</span>
+                </label>
+                <p-dropdown id="categoriaId" 
+                          [options]="categorias"
+                          formControlName="categoriaId"
+                          optionLabel="nombre" 
+                          optionValue="id"
+                          styleClass="w-full"
+                          placeholder="Seleccione categoría"
+                          [filter]="true"
+                          [showClear]="false"
+                          [class.p-invalid]="formActivo.get('categoriaId')?.invalid && formActivo.get('categoriaId')?.touched">
+                  <ng-template pTemplate="item" let-cat>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-tag" [style.color]="getColorCategoria(cat)"></i>
+                      <span>{{ cat.nombre }}</span>
+                    </div>
+                  </ng-template>
+                </p-dropdown>
+                @if (formActivo.get('categoriaId')?.invalid && formActivo.get('categoriaId')?.touched) {
+                  <small class="p-error">La categoría es requerida</small>
+                }
+              </div>
+
+              <!-- Descripción -->
+              <div class="field col-12 mb-4">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea id="descripcion" rows="3" class="w-full" pTextarea formControlName="descripcion"
+                          placeholder="Descripción adicional del activo (opcional)"></textarea>
+                <small class="form-hint">Información adicional relevante</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 2: Identificación y Especificaciones -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-tag"></i>
+              Identificación y Especificaciones
+            </h3>
+            
+            <div class="grid">
+              <!-- Marca -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="marca" class="form-label">
+                  Marca <span class="required">*</span>
+                </label>
+                
+                <!-- Dropdown de marcas -->
+                <p-dropdown 
+                  id="marca" 
+                  [options]="marcas" 
+                  formControlName="marca" 
+                  optionLabel="label" 
+                  optionValue="value" 
+                  styleClass="w-full"
+                  placeholder="Seleccione marca"
+                  [filter]="true"
+                  (onChange)="onMarcaSelect($event)"
+                  [class.p-invalid]="formActivo.get('marca')?.invalid && formActivo.get('marca')?.touched">
+                  
+                  <ng-template pTemplate="item" let-marca>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-tag"></i>
+                      <span>{{marca.label}}</span>
+                    </div>
+                  </ng-template>
+                </p-dropdown>
+
+                <!-- Campo para marca personalizada (aparece cuando selecciona "OTRA") -->
+                @if (mostrarCampoOtraMarca) {
+                  <div class="campo-marca-personalizada mt-2">
+                    <label for="marcaPersonalizada" class="form-label form-label-small">
+                      Especificar marca <span class="required">*</span>
+                    </label>
+                    <input 
+                      id="marcaPersonalizada" 
+                      type="text" 
+                      pInputText 
+                      class="w-full"
+                      [value]="marcaPersonalizada"
+                      (input)="onMarcaPersonalizadaChange($event)"
+                      placeholder="Ingrese la marca"
+                      [class.p-invalid]="formActivo.get('marca')?.invalid && formActivo.get('marca')?.touched && mostrarCampoOtraMarca">
+                    
+                    @if (formActivo.get('marca')?.invalid && formActivo.get('marca')?.touched && mostrarCampoOtraMarca) {
+                      <small class="p-error">Debe especificar la marca</small>
+                    }
+                    
+                    <small class="form-hint">Ingrese el nombre de la marca</small>
+                  </div>
+                }
+
+                @if (formActivo.get('marca')?.invalid && formActivo.get('marca')?.touched && !mostrarCampoOtraMarca) {
+                  <small class="p-error">La marca es requerida</small>
+                }
+              </div>
+
+              <!-- Modelo -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="modelo" class="form-label">
+                  Modelo <!--<span class="required">*</span>-->
+                </label>
+                <input id="modelo" class="w-full" type="text" pInputText formControlName="modelo" 
+                       placeholder="Ej: Vector+"
+                       [class.p-invalid]="formActivo.get('modelo')?.invalid && formActivo.get('modelo')?.touched" />
+                @if (formActivo.get('modelo')?.invalid && formActivo.get('modelo')?.touched) {
+                  <small class="p-error">El modelo es requerido</small>
+                }
+              </div>
+
+              <!-- Número de Serie -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="numeroSerie" class="form-label">Número de Serie</label>
+                <input id="numeroSerie" class="w-full" type="text" pInputText formControlName="numeroSerie" 
+                       placeholder="Ej: 4137573d62040792291" />
+                <small class="form-hint">Identificador único del fabricante</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 3: Características Técnicas (del PDF) -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-microchip"></i>
+              Características Técnicas
+            </h3>
+            
+            <div class="grid">
+              <!-- Procesador -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="procesador" class="form-label">Procesador</label>
+                <input id="procesador" class="w-full" type="text" pInputText formControlName="procesador" 
+                       placeholder="Ej: Snapdragon 680" />
+              </div>
+
+              <!-- Memoria RAM -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="memoriaRam" class="form-label">Memoria RAM (GB)</label>
+                <p-inputNumber id="memoriaRam" formControlName="memoriaRam" 
+                              mode="decimal" [min]="0" [max]="128"
+                              styleClass="w-full" 
+                              placeholder="Ej: 4">
+                </p-inputNumber>
+              </div>
+
+              <!-- IP -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="ip" class="form-label">Dirección IP</label>
+                <input id="ip" class="w-full" type="text" pInputText formControlName="ip" 
+                       placeholder="Ej: 192.168.1.100" />
+              </div>
+
+              <!-- IMEI -->
+              <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="imei" class="form-label">IMEI</label>
+                <input id="imei" class="w-full" type="text" pInputText formControlName="imei" 
+                       placeholder="Ej: 4137573d62040792291" />
+              </div>
+
+              <!-- Cargador Incluido -->
+              <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="cargadorIncluido" class="form-label">Cargador Incluido</label>
+                <p-selectButton [options]="[
+                    {label: 'Sí', value: true},
+                    {label: 'No', value: false}
+                  ]" 
+                  formControlName="cargadorIncluido" 
+                  optionLabel="label" optionValue="value">
+                </p-selectButton>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 4: Estado y Ubicación -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-map-marker"></i>
+              Estado y Ubicación
+            </h3>
+            
+            <div class="grid">
+              <!-- Estado Técnico -->
+              <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="estadoTecnico" class="form-label">
+                    Estado Técnico <span class="required">*</span>
+                </label>
+                <p-dropdown id="estadoTecnico" 
+                            [options]="estadosTecnicos" 
+                            formControlName="estadoTecnico" 
+                            optionLabel="label" optionValue="value" 
+                            styleClass="w-full"
+                            placeholder="Seleccione estado">
+                    <ng-template pTemplate="selectedItem" let-estado>
+                    @if (estado) {
+                        <div class="flex align-items-center gap-2">
+                        <span class="estado-badge" [ngClass]="'estado-' + estado.value.toLowerCase()">
+                            {{estado.label}}
+                        </span>
+                        </div>
+                    }
+                    </ng-template>
+                    <ng-template pTemplate="item" let-estado>
+                    @if (estado) {
+                        <div class="flex align-items-center gap-2">
+                        <span class="estado-badge" [ngClass]="'estado-' + estado.value.toLowerCase()">
+                            {{estado.label}}
+                        </span>
+                        </div>
+                    }
+                    </ng-template>
+                </p-dropdown>
+                @if (formActivo.get('estadoTecnico')?.invalid && formActivo.get('estadoTecnico')?.touched) {
+                    <small class="p-error">El estado es requerido</small>
+                }
+              </div>
+              
+              <!-- Subalmacén -->
+              <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="ubicacionId" class="form-label">
+                  Subalmacén <span class="optional">(opcional)</span>
+                </label>
+                <p-dropdown 
+                  id="ubicacionId" 
+                  [options]="subalmacenesAgrupados"
+                  formControlName="ubicacionId"
+                  optionLabel="label" 
+                  optionValue="value"
+                  [group]="true"
+                  styleClass="w-full"
+                  placeholder="Seleccione subalmacén (opcional)"
+                  [filter]="true"
+                  [showClear]="true" 
+                  (onChange)="onSubalmacenSelect($event)">
+                  
+                  <ng-template pTemplate="group" let-lugar>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-building"></i>
+                      <span>{{ lugar.label }}</span>
+                    </div>
+                  </ng-template>
+                  
+                  <ng-template pTemplate="item" let-sub>
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-box"></i>
+                      <span>{{ sub.label }}</span>
+                    </div>
+                  </ng-template>
+                </p-dropdown>
+                <!-- Elimina el mensaje de error -->
+                <small class="form-hint">Ubicación física del activo (opcional)</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 4.5: Panel de Asignación (solo visible si estado = ASIGNADO) -->
+          @if (mostrarPanelAsignacion) {
+            <div class="form-section asignacion-panel">
+              <h3 class="section-title">
+                <i class="pi pi-user-plus"></i>
+                Asignación a Usuario
+                <span class="badge-asignacion">Nuevo</span>
+              </h3>
+              
+              <div class="grid">
+                <!-- Selección de Usuario -->
+                <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                  <label for="usuarioAsignadoId" class="form-label">
+                    Usuario <span class="required">*</span>
+                  </label>
+                  <p-dropdown 
+                    id="usuarioAsignadoId" 
+                    [options]="empleadosOpciones"
+                    formControlName="usuarioAsignadoId"
+                    optionLabel="label" 
+                    optionValue="value"
+                    placeholder="Seleccione usuario"
+                    (onChange)="onEmpleadoSelect($event)"
+                    styleClass="w-full"
+                    [filter]="true"
+                    filterBy="label"
+                    [showClear]="true"
+                    [class.p-invalid]="formActivo.get('usuarioAsignadoId')?.invalid && formActivo.get('usuarioAsignadoId')?.touched">
+                    
+                    <ng-template pTemplate="selectedItem" let-selectedItem>
+                      @if (selectedItem) {
+                        <div class="flex align-items-center gap-2">
+                          <i class="pi pi-user"></i>
+                          <span>{{selectedItem.label}}</span>
+                        </div>
+                      }
+                    </ng-template>
+                    
+                    <ng-template pTemplate="item" let-empleado>
+                      <div class="flex align-items-center gap-2 p-2">
+                        <i class="pi pi-user"></i>
+                        <div>
+                          <div>{{empleado.label}}</div>
+                          @if (empleado.data?.puesto?.nombre) {
+                            <small class="text-gray-500">{{empleado.data.puesto.nombre}}</small>
+                          }
+                          @if (empleado.data?.lugarDeTrabajo?.nombre) {
+                            <div class="text-xs text-gray-400 mt-1">
+                              <i class="pi pi-map-marker mr-1"></i>
+                              {{empleado.data.lugarDeTrabajo.nombre}}
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </ng-template>
+                  </p-dropdown>
+                  @if (formActivo.get('usuarioAsignadoId')?.invalid && formActivo.get('usuarioAsignadoId')?.touched) {
+                    <small class="p-error">El usuario es requerido para activos asignados</small>
+                  }
+                </div>
+
+                <!-- Ubicación del Usuario (se llena automáticamente desde el empleado) -->
+                <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                  <label for="ubicacionAsignadaId" class="form-label">
+                    Ubicación del Usuario <span class="required">*</span>
+                  </label>
+                  
+                  @if (formActivo.get('ubicacionAsignadaNombre')?.value) {
+                    <div class="ubicacion-autocompletada">
+                      <i class="pi pi-check-circle text-green-500 mr-2"></i>
+                      <i class="pi pi-building text-blue-500 mr-2"></i>
+                      <span class="font-medium">{{ formActivo.get('ubicacionAsignadaNombre')?.value }}</span>
+                      <small class="text-gray-500 ml-2">(automático desde el empleado)</small>
+                    </div>
+                  } @else {
+                    <div class="ubicacion-autocompletada warning">
+                      <i class="pi pi-exclamation-triangle text-yellow-500 mr-2"></i>
+                      <span>El empleado seleccionado no tiene ubicación asignada</span>
+                    </div>
+                    <p-dropdown 
+                      [options]="ubicaciones"
+                      formControlName="ubicacionAsignadaId"
+                      optionLabel="label" 
+                      optionValue="value"
+                      placeholder="Seleccione ubicación manualmente"
+                      styleClass="w-full mt-2"
+                      [filter]="true">
+                    </p-dropdown>
+                  }
+                  
+                  <input type="hidden" formControlName="ubicacionAsignadaNombre">
+                  
+                  @if (formActivo.get('ubicacionAsignadaId')?.invalid && formActivo.get('ubicacionAsignadaId')?.touched && !formActivo.get('ubicacionAsignadaNombre')?.value) {
+                    <small class="p-error">La ubicación es requerida</small>
+                  }
+                </div>
+
+                <!-- Observaciones de asignación - OPCIONAL -->
+                <div class="field col-12" [ngClass]="{'mobile-col-12': isMobileView}">
+                  <label for="observacionesAsignacion" class="form-label">Observaciones de asignación</label>
+                  <textarea 
+                    id="observacionesAsignacion" 
+                    rows="2" 
+                    class="w-full" 
+                    pTextarea 
+                    formControlName="observacionesAsignacion"
+                    placeholder="Observaciones adicionales sobre la asignación (opcional)"></textarea>
+                  <small class="form-hint text-gray-500">
+                    <i class="pi pi-info-circle mr-1"></i>
+                    Este campo es opcional, puedes dejarlo vacío
+                  </small>
+                </div>
+              </div>
+
+              <!-- Información adicional -->
+              <div class="asignacion-info-box">
+                <i class="pi pi-info-circle"></i>
+                <div>
+                  <strong>Nota:</strong> Al asignar el activo, su ubicación será automáticamente la del usuario seleccionado 
+                  (campo <strong>lugarDeTrabajo</strong> del empleado). Si el empleado no tiene ubicación asignada, deberás seleccionarla manualmente.
+                  Las observaciones son opcionales.
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Sección 5: Condición del Equipo (del PDF) -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-clipboard"></i>
+              Condición del Equipo
+            </h3>
+            
+            <div class="grid">
+              <!-- Condición -->
+              <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="condicionEquipo" class="form-label">Condición</label>
+                <p-selectButton [options]="[
+                    {label: 'Usado', value: 'usado'},
+                    {label: 'Nuevo', value: 'nuevo'},
+                    {label: 'Prestado', value: 'prestado'}
+                  ]" 
+                  formControlName="condicionEquipo" 
+                  optionLabel="label" optionValue="value"
+                  (onChange)="onCondicionChange()">
+                </p-selectButton>
+              </div>
+
+              <!-- Detalle de condición (especialmente si es Dañado) -->
+              <div class="field col-6" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="condicionDetalle" class="form-label">Detalle de Condición</label>
+                <p-selectButton [options]="[
+                    {label: 'En buenas condiciones', value: 'En buenas condiciones'},
+                    {label: 'Dañado', value: 'Dañado'}
+                  ]" 
+                  formControlName="condicionDetalle" 
+                  optionLabel="label" optionValue="value">
+                </p-selectButton>
+              </div>
+
+              <!-- Campo para especificar daños (aparece si selecciona Dañado) -->
+              @if (mostrarCampoDanos) {
+                <div class="field col-12 mt-2">
+                  <label for="descripcionDanos" class="form-label">Especificaciones del daño</label>
+                  <textarea id="descripcionDanos" rows="2" class="w-full" pTextarea 
+                            placeholder="Describa el daño en detalle..."></textarea>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Sección 6: Información para Carta Responsiva -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-file-pdf"></i>
+              Información para Carta Responsiva
+            </h3>
+            
+            <div class="grid">
+              <!-- Precio de entrega -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="precioEntrega" class="form-label">Precio del equipo</label>
+                <span class="p-input-icon-left w-full">
+                  <p-inputNumber id="precioEntrega" formControlName="precioEntrega" 
+                                mode="currency" currency="MXN" locale="es-MX"
+                                styleClass="w-full" 
+                                placeholder="$0.00">
+                  </p-inputNumber>
+                </span>
+                <small class="form-hint">Valor del activo para la carta</small>
+              </div>
+
+              <!-- NIP -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="nip" class="form-label">NIP</label>
+                <input id="nip" class="w-full" type="text" pInputText 
+                      formControlName="nip" 
+                      placeholder="Ingrese NIP o código">
+                <small class="form-hint">Puede ingresar cualquier número de caracteres</small>
+              </div>
+
+              <!-- Activo Fijo -->
+              <div class="field col-4" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="activoFijo" class="form-label">Activo Fijo</label>
+                <input id="activoFijo" class="w-full" type="text" pInputText formControlName="activoFijo" 
+                       placeholder="Ej: 2692" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 7: Información de ERP -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <i class="pi pi-database"></i>
+              Información de ERP
+            </h3>
+            
+            <div class="grid">
+              <!-- ID en ERP -->
+              <div class="field col-12" [ngClass]="{'mobile-col-12': isMobileView}">
+                <label for="erpId" class="form-label">ID en ERP</label>
+                <input id="erpId" class="w-full" type="text" pInputText formControlName="erpId" 
+                       placeholder="ID del activo en el sistema financiero" />
+                <small class="form-hint">Identificador en el sistema contable/financiero</small>
+              </div>
+            </div>
+          </div>
+        </form>
+      }
+
+      <!-- Botones de acción -->
+      <div class="form-actions">
+        <div class="actions-container">
+          <button type="button" class="btn-cancelar" (click)="cancelar()" [disabled]="cargando">
+            <i class="pi pi-times"></i>
+            Cancelar
+          </button>
+          
+          <button type="button" class="btn-guardar" (click)="guardarActivo()" [disabled]="cargando">
+            <i class="pi pi-save"></i>
+            {{ isNew ? 'Crear Activo' : 'Guardar Cambios' }}
+            @if (cargando) {
+              <i class="pi pi-spinner pi-spin ml-2"></i>
+            }
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Spinner de carga -->
+@if (cargando) {
+  <p-blockUI [blocked]="cargando">
+    <div class="flex justify-content-center align-items-center w-full h-full">
+      <div class="loading-card">
+        <p-progressSpinner ariaLabel="loading" />
+        <p class="loading-text">{{ isNew ? 'Creando activo...' : 'Guardando cambios...' }}</p>
+      </div>
+    </div>
+  </p-blockUI>
+}

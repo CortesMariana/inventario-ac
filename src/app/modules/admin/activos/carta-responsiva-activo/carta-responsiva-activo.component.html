@@ -1,0 +1,234 @@
+<div class="carta-container">
+  @if (!cargando && activo) {
+    <div class="no-print action-buttons">
+      <div class="buttons-left">
+        <button class="btn-volver" (click)="volver()">
+          <i class="pi pi-arrow-left"></i>
+          Volver al Detalle
+        </button>
+        <button class="btn-imprimir" (click)="imprimir()">
+          <i class="pi pi-print"></i>
+          Imprimir / Guardar PDF
+        </button>
+      </div>
+      
+      <!-- Campo Carta Resguardada por - FUERA de la carta -->
+      <div class="carta-resguardada-info">
+        <div class="resguardada-field">
+          <label for="resguardadaPor">Carta resguardada por:</label>
+          <input 
+            id="resguardadaPor"
+            type="text" 
+            pInputText 
+            [(ngModel)]="resguardadaPor"
+            placeholder="Nombre de quien resguarda la carta"
+            class="resguardada-input" />
+          <small class="resguardada-hint">Nombre de la persona que resguarda este documento</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="carta" id="carta-responsiva">
+      <div class="carta-header">
+        <div class="logo-empresa">
+          <h1>GRUPO ENERMAX</h1>
+          <p>S de R.L de C.V.</p>
+        </div>
+        <div class="titulo-carta">
+          <h2>CARTA RESPONSIVA</h2>
+          <p>Entrega de Equipo de Trabajo</p>
+        </div>
+      </div>
+
+      <div class="carta-body">
+        <p class="parrafo-recepcion">
+          Recibí de: <strong>{{nombreEmpresa}}</strong> la herramienta de trabajo 
+          mencionada a continuación, la cual es exclusivamente para el desempeño de mi trabajo.
+        </p>
+
+        <div class="datos-empleado">
+          <table class="tabla-empleado">
+            <tr>
+              <td class="label"><strong>Empleado:</strong></td>
+              <td class="value">{{ usuarioAsignado.nombre }}</td>
+            </tr>
+            <tr>
+              <td class="label"><strong>Puesto:</strong></td>
+              <td class="value">{{ usuarioAsignado.puesto }}</td>
+            </tr>
+            @if (usuarioAsignado.lugarTrabajo) {
+              <tr>
+                <td class="label"><strong>Ubicación:</strong></td>
+                <td class="value">{{ usuarioAsignado.lugarTrabajo }}</td>
+              </tr>
+            }
+          </table>
+        </div>
+
+        <div class="tabla-section">
+          <h3>DATOS DE ASIGNACIÓN DE ACCESORIOS</h3>
+          <table class="tabla-accesorios">
+            <thead>
+              <tr>
+                <th>Dispositivo</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Inventario</th>
+                <th>Serie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ getTipoActivo() }}</td>
+                <td>{{ getMarca() }}</td>
+                <td>{{ getModelo() }}</td>
+                <td>{{ getActivoFijo() }}</td>
+                <td>{{ getNumeroSerie() }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tabla-section">
+          <h3>CARACTERÍSTICAS GENERALES DEL EQUIPO</h3>
+          <table class="tabla-caracteristicas">
+            <tr>
+              <td class="label">Equipo:</td>
+              <td class="value">{{ getTipoActivo() }}</td>
+              <td class="label">Marca:</td>
+              <td class="value">{{ getMarca() }}</td>
+            </tr>
+            <tr>
+              <td class="label">Modelo:</td>
+              <td class="value">{{ getModelo() }}</td>
+              <td class="label">No. Serie:</td>
+              <td class="value">{{ getNumeroSerie() }}</td>
+            </tr>
+            <tr>
+              <td class="label">Cargador:</td>
+              <td class="value">{{ getCargadorTexto() }}</td>
+              <td class="label">Procesador:</td>
+              <td class="value">{{ getCaracteristica('procesador', '-') }}</td>
+            </tr>
+            <tr>
+              <td class="label">IMEI:</td>
+              <td class="value">{{ getCaracteristica('imei', '-') }}</td>
+              <td class="label">IP:</td>
+              <td class="value">{{ getCaracteristica('ip', '-') }}</td>
+            </tr>
+            <tr>
+              <td class="label">Memoria Ram (Gb):</td>
+              <td class="value">{{ getMemoriaRamTexto() }}</td>
+              <td class="label">Marca la condición del equipo:</td>
+              <td class="value">{{ getCondicionEquipoTexto() }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="tabla-section">
+          <h3>REVISIÓN PREVIA A LA ASIGNACIÓN</h3>
+          <table class="tabla-revision">
+            <tr>
+              <td class="label">Menciona las condiciones generales del equipo:</td>
+              <td class="value">{{ getCaracteristica('condicionDetalle', 'En buenas condiciones') }}</td>
+            </tr>
+            @if (esDanado()) {
+              <tr>
+                <td class="label">Especificaciones del daño:</td>
+                <td class="value">{{ getCaracteristica('descripcionDanos', 'No especificado') }}</td>
+              </tr>
+            }
+          </table>
+        </div>
+
+        <div class="parrafo-responsabilidad">
+          <p>
+            Me responsabilizo de su buen uso, estoy enterado y de acuerdo que la herramienta 
+            es exclusivamente para las funciones propias del empleo. Además, asumo la 
+            responsabilidad por cualquier daño causado por negligencia, omisión, descuido; 
+            por lo que pudiera causar cualquier daño y/o pérdida total, me comprometo a pagar 
+            el costo del daño causado o la reposición total o parcial.
+          </p>
+        </div>
+
+        <div class="info-entrega">
+          <p><strong>Precio del equipo entregado:</strong> ${{ getPrecioEntregaTexto() }}</p>
+          <p><strong>Fecha de entrega:</strong> {{ formatFecha(fechaActual) }}</p>
+          <p><strong>Activo Fijo:</strong> {{ getActivoFijo() }}</p>
+          <p><strong>NIP:</strong> {{ getNip() }}</p>
+        </div>
+
+        <div class="firma-recepcion">
+          <p><strong>Recibe:</strong> {{ usuarioAsignado.nombre }}</p>
+        </div>
+
+        <div class="aceptacion-politicas">
+          <p>Y confirmo estar de acuerdo con las políticas del equipo asignado (Marca según corresponda):</p>
+          <ul>
+            @for (politica of politicas; track politica) {
+              <li>{{ politica }}</li>
+            }
+          </ul>
+        </div>
+
+        <div class="parrafo-conformidad">
+          <p>
+            Firmo de conformidad, aceptando la responsabilidad y alcance de las condiciones 
+            señaladas, por lo que me comprometo a cuidar el equipo y seguir las recomendaciones 
+            estipuladas en las políticas correspondientes, en caso contrario estoy de acuerdo, 
+            con las sanciones que ENERMAX me determine.
+          </p>
+        </div>
+
+        <div class="firmas">
+          <div class="firma-columna">
+            <p class="firma-titulo">Conforme RECIBE</p>
+            <p class="firma-nombre">{{ usuarioAsignado.nombre }}</p>
+            <p class="firma-puesto">Puesto: {{ usuarioAsignado.puesto }}</p>
+          </div>
+          <div class="firma-columna">
+            <p class="firma-titulo">Conforme ENTREGA</p>
+            <p class="firma-nombre">Grupo Enermax</p>
+            <p class="firma-puesto">Puesto: Administrador</p>
+          </div>
+        </div>
+
+        <div class="devolucion-section">
+          <h3>DEVOLUCIÓN DE EQUIPO</h3>
+          
+          <table class="tabla-devolucion">
+            <tr>
+              <td class="label">Menciona las condiciones generales del equipo:</td>
+              <td class="value">_________________________</td>
+            </tr>
+            <tr>
+              <td class="label">Si tu respuesta fue "Dañado", menciona las especificaciones del daño:</td>
+              <td class="value">_________________________</td>
+            </tr>
+          </table>
+
+          <div class="firmas-devolucion">
+            <div class="firma-columna">
+              <p class="firma-titulo">Conforme ENTREGA</p>
+              <p class="firma-nombre">{{ usuarioAsignado.nombre }}</p>
+              <p class="firma-puesto">Puesto: {{ usuarioAsignado.puesto }}</p>
+            </div>
+            <div class="firma-columna">
+              <p class="firma-titulo">Conforme RECIBE</p>
+              <p class="firma-nombre">Grupo Enermax</p>
+              <p class="firma-puesto">Puesto: Administrador</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="visibility: hidden; height: 0; page-break-before: avoid; page-break-after: avoid;">&nbsp;</div>
+  }
+
+  @if (cargando) {
+    <div class="loading-container">
+      <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
+      <p class="loading-text">Cargando datos para la carta...</p>
+    </div>
+  }
+</div>

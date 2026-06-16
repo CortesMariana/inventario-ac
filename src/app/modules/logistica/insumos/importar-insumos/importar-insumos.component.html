@@ -1,0 +1,284 @@
+<div class="importar-container">
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Insumos</span>
+      </button>
+      <div class="header-title">
+        <h1 class="page-title"><i class="pi pi-file-excel"></i> Importar Insumos</h1>
+        <p class="page-subtitle">Carga masiva desde Excel — hasta miles de insumos en un solo paso</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard Steps -->
+  <div class="wizard-steps">
+    <div class="step" [class.active]="pasoActual >= 1" [class.completed]="pasoActual > 1">
+      <div class="step-number">1</div>
+      <div class="step-label">Seleccionar Archivo</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" [class.active]="pasoActual >= 2" [class.completed]="pasoActual > 2">
+      <div class="step-number">2</div>
+      <div class="step-label">Validar Datos</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" [class.active]="pasoActual >= 3">
+      <div class="step-number">3</div>
+      <div class="step-label">Resultado</div>
+    </div>
+  </div>
+
+  <!-- ── PASO 1 ── -->
+  @if (pasoActual === 1) {
+    <div class="card paso-card">
+      <div class="card-header">
+        <h2><i class="pi pi-upload"></i> Seleccionar Archivo</h2>
+      </div>
+      <div class="card-body">
+
+        <!-- Info -->
+        <div class="info-box">
+          <i class="pi pi-info-circle"></i>
+          <div>
+            <h3>Instrucciones</h3>
+            <ul>
+              <li>La primera fila debe contener los encabezados exactamente como en la plantilla</li>
+              <li>Columnas <strong>requeridas</strong>: <code>Nombre</code>, <code>Precio Unitario</code></li>
+              <li>Columnas opcionales: <code>SKU</code>, <code>Familia</code>, <code>Marca</code>, <code>ID ERP</code>, <code>Descripción</code>, <code>Notas</code></li>
+              <li>Formatos aceptados: <strong>.xlsx</strong>, <strong>.xls</strong>, <strong>.csv</strong> · Máx. 10 MB</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Plantilla -->
+        <div class="plantilla-box">
+          <i class="pi pi-file-excel" style="color:#16a34a;font-size:1.5rem;"></i>
+          <div>
+            <strong>¿No tienes el formato?</strong>
+            <p>Descarga la plantilla de Excel con las columnas correctas y ejemplos.</p>
+          </div>
+          <button class="btn-plantilla" (click)="descargarPlantilla()">
+            <i class="pi pi-download"></i> Descargar plantilla
+          </button>
+        </div>
+
+        <!-- Zona de carga -->
+        <div class="upload-area"
+             (click)="fileInput.click()"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave($event)"
+             (drop)="onDrop($event)">
+          <input type="file" #fileInput id="fileInput" accept=".xlsx,.xls,.csv"
+                 (change)="onFileSelect($event)" style="display:none">
+          <i class="pi pi-cloud-upload upload-icon"></i>
+          <h4>Arrastra tu archivo aquí</h4>
+          <p>o haz clic para buscarlo en tu computadora</p>
+          @if (archivoSeleccionado) {
+            <div class="file-selected">
+              <i class="pi pi-file-excel"></i>
+              <span>{{ archivoSeleccionado.name }}</span>
+              <small>({{ (archivoSeleccionado.size / 1024).toFixed(1) }} KB)</small>
+            </div>
+          }
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-primario"
+                  (click)="procesarArchivo()"
+                  [disabled]="!archivoSeleccionado || procesando">
+            @if (procesando) {
+              <i class="pi pi-spinner pi-spin"></i> Procesando...
+            } @else {
+              <i class="pi pi-search"></i> Subir y Validar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── PASO 2 ── -->
+  @if (pasoActual === 2) {
+    <div class="card paso-card">
+      <div class="card-header">
+        <h2><i class="pi pi-check-circle"></i> Validación de Datos</h2>
+      </div>
+      <div class="card-body">
+
+        <!-- KPIs validación -->
+        <div class="resumen-validacion">
+          <div class="resumen-item total">
+            <span class="resumen-label">Total registros</span>
+            <span class="resumen-valor">{{ totalRegistros }}</span>
+          </div>
+          <div class="resumen-item validos">
+            <span class="resumen-label">Válidos</span>
+            <span class="resumen-valor">{{ registrosValidos }}</span>
+          </div>
+          <div class="resumen-item errores" [class.tiene-errores]="registrosConError > 0">
+            <span class="resumen-label">Con errores</span>
+            <span class="resumen-valor">{{ registrosConError }}</span>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        @if (filasValidas.length > 0) {
+          <div class="preview-section">
+            <h3>Vista previa — primeros 5 insumos válidos</h3>
+            <div class="table-responsive">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>SKU</th>
+                    <th>Familia</th>
+                    <th>Marca</th>
+                    <th>Precio</th>
+                    <th>ID ERP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (fila of filasValidas | slice:0:5; track fila.nombre) {
+                    <tr>
+                      <td><strong>{{ fila.nombre }}</strong></td>
+                      <td>{{ fila.sku || '—' }}</td>
+                      <td>{{ fila.familia || '—' }}</td>
+                      <td>{{ fila.marca || '—' }}</td>
+                      <td class="precio-cell">
+                        {{ fila.precioUnitario | currency:'MXN':'symbol':'1.2-2' }}
+                      </td>
+                      <td>{{ fila.idERP || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (filasValidas.length > 5) {
+              <p class="preview-mas">... y {{ filasValidas.length - 5 }} insumos más</p>
+            }
+          </div>
+        }
+
+        <!-- Errores de validación -->
+        @if (filasConError.length > 0) {
+          <div class="errores-section">
+            <h3><i class="pi pi-exclamation-triangle"></i> Filas con errores (no se importarán)</h3>
+            <div class="errores-table-container">
+              <table class="errores-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Errores</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (fila of filasConError; track $index) {
+                    <tr>
+                      <td>{{ fila.nombre || '(sin nombre)' }}</td>
+                      <td class="error-message">{{ fila._errores.join(' · ') }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <div class="action-buttons">
+          <button class="btn-secundario" (click)="resetear()">
+            <i class="pi pi-arrow-left"></i> Cambiar archivo
+          </button>
+          <button class="btn-primario"
+                  (click)="importar()"
+                  [disabled]="filasValidas.length === 0 || procesando">
+            @if (procesando) {
+              <i class="pi pi-spinner pi-spin"></i> Importando...
+            } @else {
+              <i class="pi pi-save"></i> Importar {{ filasValidas.length }} insumo{{ filasValidas.length !== 1 ? 's' : '' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── PASO 3 ── -->
+  @if (pasoActual === 3) {
+    <div class="card paso-card">
+      <div class="card-header">
+        <h2><i class="pi pi-flag"></i> Resultado de la Importación</h2>
+      </div>
+      <div class="card-body">
+
+        <div class="resultado-icono" [class.exitoso]="fallidos === 0">
+          @if (fallidos === 0) {
+            <i class="pi pi-check-circle"></i>
+          } @else {
+            <i class="pi pi-exclamation-triangle"></i>
+          }
+        </div>
+
+        <h3 class="resultado-titulo">
+          {{ fallidos === 0 ? '¡Importación completada con éxito!' : 'Importación completada con algunos errores' }}
+        </h3>
+
+        <div class="resultado-stats">
+          <div class="stat-item">
+            <span class="stat-label">Importados</span>
+            <span class="stat-value">{{ importados }}</span>
+          </div>
+          @if (fallidos > 0) {
+            <div class="stat-item error">
+              <span class="stat-label">Fallidos</span>
+              <span class="stat-value">{{ fallidos }}</span>
+            </div>
+          }
+        </div>
+
+        @if (erroresImport.length > 0) {
+          <div class="errores-section">
+            <h4>Detalle de errores:</h4>
+            <div class="errores-lista">
+              @for (e of erroresImport; track e.fila) {
+                <div class="error-item">
+                  <strong>{{ e.nombre }}:</strong> {{ e.error }}
+                </div>
+              }
+            </div>
+            <button class="btn-secundario" (click)="descargarErrores()">
+              <i class="pi pi-download"></i> Descargar reporte de errores
+            </button>
+          </div>
+        }
+
+        <div class="action-buttons">
+          <button class="btn-secundario" (click)="resetear()">
+            <i class="pi pi-upload"></i> Importar otro archivo
+          </button>
+          <button class="btn-primario" (click)="volver()">
+            <i class="pi pi-list"></i> Ver catálogo de insumos
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- BlockUI procesando -->
+@if (procesando) {
+  <p-blockUI [blocked]="procesando">
+    <div class="loading-card">
+      <p-progressSpinner ariaLabel="loading" />
+      <p class="loading-text">
+        {{ pasoActual === 1 ? 'Procesando archivo...' : 'Importando insumos...' }}
+      </p>
+    </div>
+  </p-blockUI>
+}
+
+<p-toast position="top-right"></p-toast>

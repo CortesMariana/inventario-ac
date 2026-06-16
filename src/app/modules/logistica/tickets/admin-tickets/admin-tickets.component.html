@@ -1,0 +1,520 @@
+<div class="admin-container">
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div class="header-title">
+        <h1 class="page-title">
+          <i class="pi pi-shield"></i> Administración de Tickets
+        </h1>
+        <p class="page-subtitle">Gestión de solicitudes de insumos, reparaciones y gasolina</p>
+      </div>
+      <button class="btn-refrescar" (click)="cargarTickets()" [disabled]="cargando">
+        <i class="pi pi-refresh" [class.pi-spin]="cargando"></i> Actualizar
+      </button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis" *ngIf="!cargando">
+      <div class="kpi">
+        <span class="kpi-num">{{ conteoTotal }}</span>
+        <span class="kpi-label">Total</span>
+      </div>
+      <div class="kpi kpi-warn">
+        <span class="kpi-num">{{ conteoPendientes }}</span>
+        <span class="kpi-label">Pendientes</span>
+      </div>
+      <div class="kpi kpi-info">
+        <span class="kpi-num">{{ conteoEnProceso }}</span>
+        <span class="kpi-label">En proceso</span>
+      </div>
+      <div class="kpi kpi-success">
+        <span class="kpi-num">{{ conteoCompletados }}</span>
+        <span class="kpi-label">Completados</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-bar">
+    <div class="filtros-fila">
+      <div class="filtro-chips">
+        <button
+          *ngFor="let op of opcionesTipo"
+          class="chip"
+          [class.chip-activo]="filtroTipo === op.value"
+          (click)="filtroTipo = op.value; aplicarFiltros()"
+        >{{ op.label }}</button>
+      </div>
+      <div class="filtro-chips">
+        <button
+          *ngFor="let op of opcionesEstado"
+          class="chip"
+          [class.chip-activo]="filtroEstado === op.value"
+          (click)="filtroEstado = op.value; aplicarFiltros()"
+        >{{ op.label }}</button>
+      </div>
+    </div>
+    <div class="filtros-fila">
+      <div class="busqueda-wrapper">
+        <i class="pi pi-search busqueda-icon"></i>
+        <input
+          class="busqueda-input"
+          type="text"
+          placeholder="Buscar por folio, solicitante, placas..."
+          [(ngModel)]="filtroBusqueda"
+          (input)="aplicarFiltros()"
+        />
+      </div>
+      <button *ngIf="hasFiltros" class="btn-limpiar" (click)="limpiarFiltros()">
+        <i class="pi pi-times"></i> Limpiar
+      </button>
+      <span class="resumen-texto">
+        <strong>{{ ticketsFiltrados.length }}</strong> / {{ conteoTotal }} tickets
+      </span>
+    </div>
+  </div>
+
+  <!-- Grid de tickets -->
+  <div class="tickets-grid" *ngIf="!cargando">
+
+    <!-- Vacío -->
+    <div class="estado-vacio" *ngIf="ticketsFiltrados.length === 0">
+      <i class="pi pi-inbox"></i>
+      <p>Sin tickets con los filtros actuales</p>
+      <button class="btn-limpiar" *ngIf="hasFiltros" (click)="limpiarFiltros()">
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- Filas -->
+    <div class="ticket-row" *ngFor="let ticket of ticketsFiltrados">
+
+      <!-- Col: Tipo + Folio -->
+      <div class="col-folio">
+        <div class="tipo-badge"
+             [class.tipo-producto]="ticket.tipoTicket === 'PRODUCTO'"
+             [class.tipo-reparacion]="ticket.tipoTicket === 'REPARACION'"
+             [class.tipo-gasolina]="ticket.tipoTicket === 'GASOLINA'">
+          <i [class]="getTipoIcon(ticket.tipoTicket)"></i>
+          {{ getTipoLabel(ticket.tipoTicket) }}
+        </div>
+        <span class="folio-text">{{ ticket.folio || ticket.firestoreId?.slice(0,8) }}</span>
+        <span class="fecha-text">{{ formatFecha(ticket.fechaCreacion) }}</span>
+      </div>
+
+      <!-- Col: Solicitante + resumen -->
+      <div class="col-info">
+        <div class="solicitante">
+          @if (!ticket.solicitante?.nombre) {
+            <i class="pi pi-exclamation-triangle" style="color:#f59e0b"></i>
+            <span style="color:#f59e0b">Solicitante no disponible</span>
+          } @else {
+            <i class="pi pi-user"></i> {{ ticket.solicitante.nombre }}
+          }
+        </div>
+
+        <div class="resumen-chips" *ngIf="ticket.tipoTicket === 'PRODUCTO'">
+          <span class="rchip">{{ ticket.lineas?.length || 0 }} insumo(s)</span>
+          <span class="rchip rchip-monto" *ngIf="ticket.totalEstimado">{{ formatPrecio(ticket.totalEstimado) }}</span>
+        </div>
+
+        <div class="resumen-chips" *ngIf="ticket.tipoTicket === 'REPARACION'">
+          <span class="rchip" *ngIf="ticket.placas">
+            <i class="pi pi-car"></i> {{ ticket.placas }}
+          </span>
+          <span class="rchip" *ngIf="ticket.tipoReparacion">{{ ticket.tipoReparacion }}</span>
+          <span class="rchip rchip-monto" *ngIf="ticket.montoReparacion">{{ formatPrecio(ticket.montoReparacion) }}</span>
+        </div>
+
+        <div class="resumen-chips" *ngIf="ticket.tipoTicket === 'GASOLINA'">
+          <span class="rchip" *ngIf="ticket.placas">
+            <i class="pi pi-car"></i> {{ ticket.placas }}
+          </span>
+          <span class="rchip rchip-gas">
+            <i class="pi pi-bolt"></i> {{ ticket.litrosSolicitados }} L solicitados
+          </span>
+          <span class="rchip rchip-gas-aut" *ngIf="ticket.litrosAutorizados">
+            ✓ {{ ticket.litrosAutorizados }} L aut.
+          </span>
+        </div>
+
+        <p class="justificacion-corta">{{ ticket.justificacion }}</p>
+      </div>
+
+      <!-- Col: Estado -->
+      <div class="col-estado">
+        <span class="estado-badge" [ngClass]="getEstadoClass(ticket.estado)">
+          {{ getEstadoLabel(ticket.estado) }}
+        </span>
+        <span class="autorizador-text" *ngIf="ticket.autorizador">
+          <i class="pi pi-user-check"></i> {{ ticket.autorizador.nombre }}
+        </span>
+        <span class="autorizador-text" *ngIf="ticket.responsableReparacion">
+          <i class="pi pi-wrench"></i> {{ ticket.responsableReparacion.nombre }}
+        </span>
+      </div>
+
+      <!-- Col: Acciones -->
+      <div class="col-acciones">
+        <!-- Ver detalle -->
+        <button class="btn-accion btn-detalle" (click)="verDetalle(ticket)" pTooltip="Ver detalle" tooltipPosition="left">
+          <i class="pi pi-eye"></i>
+        </button>
+
+        <!-- Autorizar (PRODUCTO PENDIENTE) -->
+        <button
+          *ngIf="getAccionesDisponibles(ticket).includes('autorizar')"
+          class="btn-accion btn-autorizar"
+          [disabled]="procesando"
+          (click)="autorizar(ticket)"
+          pTooltip="Autorizar"
+          tooltipPosition="left"
+        >
+          <i class="pi pi-check"></i>
+        </button>
+
+        <!-- Rechazar -->
+        <button
+          *ngIf="getAccionesDisponibles(ticket).includes('rechazar')"
+          class="btn-accion btn-rechazar"
+          [disabled]="procesando"
+          (click)="abrirRechazo(ticket)"
+          pTooltip="Rechazar" tooltipPosition="left"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+
+        <!-- Iniciar cotización (REPARACION PENDIENTE) -->
+        <button
+          *ngIf="getAccionesDisponibles(ticket).includes('iniciar-cotizacion')"
+          class="btn-accion btn-cotizar"
+          [disabled]="procesando"
+          (click)="iniciarCotizacion(ticket)"
+          pTooltip="Iniciar cotización" tooltipPosition="left"
+        >
+          <i class="pi pi-search"></i>
+        </button>
+
+        <!-- Registrar cotización (EN_COTIZACION) -->
+        <button
+          *ngIf="getAccionesDisponibles(ticket).includes('registrar-cotizacion')"
+          class="btn-accion btn-cotizar"
+          [disabled]="procesando"
+          (click)="abrirRegistrarCotizacion(ticket)"
+          pTooltip="Registrar monto de cotización" tooltipPosition="left"
+        >
+          <i class="pi pi-dollar"></i>
+        </button>
+
+        <!-- Completar -->
+        <button
+          *ngIf="getAccionesDisponibles(ticket).includes('completar')"
+          class="btn-accion btn-completar"
+          [disabled]="procesando"
+          (click)="abrirCompletar(ticket)"
+          pTooltip="Marcar como completado"
+          tooltipPosition="left"
+        >
+          <i class="pi pi-check-square"></i>
+        </button>
+
+        <!-- Autorizar GASOLINA -->
+        <button
+          *ngIf="getAccionesDisponibles(ticket).includes('autorizar-gas')"
+          class="btn-accion btn-gas"
+          [disabled]="procesando"
+          (click)="abrirAutorizarGasolina(ticket)"
+          pTooltip="Autorizar gasolina"
+          tooltipPosition="left"
+        >
+          <i class="pi pi-bolt"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="cargando">
+    <p-progressSpinner ariaLabel="loading" />
+  </div>
+
+</div>
+
+<!-- Diálogo: Rechazo -->
+<p-dialog
+  header="Rechazar ticket"
+  [(visible)]="dlgRechazo"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [closable]="!procesando"
+>
+  <div class="dlg-body">
+    <p class="dlg-descripcion">
+      Escribe el motivo del rechazo para
+      <strong>{{ ticketAccion?.folio }}</strong>. El solicitante podrá leerlo en el detalle.
+    </p>
+    <label class="dlg-label">Motivo de rechazo <span class="req">*</span></label>
+    <textarea
+      pInputTextarea
+      [(ngModel)]="motivoRechazo"
+      rows="4"
+      class="dlg-textarea"
+      placeholder="Describe el motivo del rechazo..."
+    ></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <button class="btn-dlg btn-cancelar-dlg" (click)="dlgRechazo = false" [disabled]="procesando">
+      Cancelar
+    </button>
+    <button
+      class="btn-dlg btn-rechazar-dlg"
+      [disabled]="!motivoRechazo.trim() || procesando"
+      (click)="confirmarRechazo()"
+    >
+      <i class="pi pi-times"></i> Confirmar rechazo
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Diálogo: Registrar cotización -->
+<p-dialog
+  header="Registrar cotización"
+  [(visible)]="dlgCotizacion"
+  [modal]="true"
+  [style]="{ width: '560px' }"
+  [closable]="!procesando"
+>
+  <div class="dlg-body">
+    <p class="dlg-descripcion">
+      Registra la cotización para
+      <strong>{{ ticketAccion?.folio }}</strong>
+      <span *ngIf="ticketAccion?.placas"> — {{ ticketAccion?.placas }}</span>.
+    </p>
+
+    <!-- Monto -->
+    <label class="dlg-label">Monto (MXN) <span class="req">*</span></label>
+    <p-inputNumber
+      [(ngModel)]="montoCotizacion"
+      mode="currency"
+      currency="MXN"
+      locale="es-MX"
+      [minFractionDigits]="2"
+      styleClass="dlg-input-number"
+      placeholder="$0.00"
+    ></p-inputNumber>
+
+    <!-- Datos del taller -->
+    <div class="dlg-seccion-titulo">Datos del taller</div>
+
+    <label class="dlg-label">Nombre del taller</label>
+    <input pInputText [(ngModel)]="nombreTaller" class="dlg-input" placeholder="Ej. Taller Mecánico García" />
+
+    <label class="dlg-label mt">Ubicación / dirección</label>
+    <input pInputText [(ngModel)]="ubicacionTaller" class="dlg-input" placeholder="Ej. Av. Industrial 234, Col. Norte" />
+
+    <div class="dlg-row-fechas">
+      <div class="dlg-col-fecha">
+        <label class="dlg-label">Fecha de entrada</label>
+        <input type="date" [(ngModel)]="fechaEntradaTallerStr" class="dlg-input-date" />
+      </div>
+      <div class="dlg-col-fecha">
+        <label class="dlg-label">Fecha estimada de salida</label>
+        <input type="date" [(ngModel)]="fechaSalidaEstimadaStr" class="dlg-input-date" />
+      </div>
+    </div>
+
+    <!-- Documentos -->
+    <div class="dlg-seccion-titulo">Documentos de cotización</div>
+    <label class="dlg-label">Adjuntar archivos (PDF, imágenes)</label>
+    <div class="dlg-upload-area">
+      <label class="btn-upload-label" for="inputCotizacionFiles">
+        <i class="pi pi-paperclip"></i> Seleccionar archivos
+      </label>
+      <input
+        id="inputCotizacionFiles"
+        type="file"
+        multiple
+        accept=".pdf,.jpg,.jpeg,.png,.webp"
+        class="dlg-input-file-hidden"
+        (change)="onArchivosCotizacion($event)"
+      />
+    </div>
+
+    <div class="dlg-archivos-lista" *ngIf="archivosCotizacion.length > 0">
+      <div class="dlg-archivo-item" *ngFor="let f of archivosCotizacion; let i = index">
+        <i class="pi pi-file"></i>
+        <span class="dlg-archivo-nombre">{{ f.name }}</span>
+        <button class="btn-remove-archivo" (click)="removerArchivoCotizacion(i)" type="button">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <label class="dlg-label mt">Observaciones (opcional)</label>
+    <textarea
+      pInputTextarea
+      [(ngModel)]="obsCotizacion"
+      rows="3"
+      class="dlg-textarea"
+      placeholder="Notas adicionales..."
+    ></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <button class="btn-dlg btn-cancelar-dlg" (click)="dlgCotizacion = false" [disabled]="procesando">
+      Cancelar
+    </button>
+    <button
+      class="btn-dlg btn-cotizar-dlg"
+      [disabled]="!montoCotizacion || procesando"
+      (click)="confirmarCotizacion()"
+    >
+      <i class="pi pi-dollar"></i> Registrar cotización
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Diálogo: Completar -->
+<p-dialog
+  [header]="ticketAccion?.tipoTicket === 'PRODUCTO' ? 'Confirmar movimiento en ERP' : 'Autorizar gasto de reparación'"
+  [(visible)]="dlgCompletar"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [closable]="!procesando"
+>
+  <div class="dlg-body">
+    <!-- Mensaje para PRODUCTO -->
+    <ng-container *ngIf="ticketAccion?.tipoTicket === 'PRODUCTO'">
+      <p class="dlg-descripcion">
+        Al confirmar, registras que el <strong>movimiento en el ERP fue aplicado</strong>
+        para el ticket <strong>{{ ticketAccion?.folio }}</strong>.
+      </p>
+    </ng-container>
+
+    <!-- Mensaje para REPARACION -->
+    <ng-container *ngIf="ticketAccion?.tipoTicket === 'REPARACION'">
+      <p class="dlg-descripcion">
+        Al confirmar, <strong>autorizas el gasto</strong> asociado a esta reparación
+        (<strong>{{ ticketAccion?.folio }}</strong><span *ngIf="ticketAccion?.placas"> — {{ ticketAccion?.placas }}</span>).
+      </p>
+    </ng-container>
+
+    <label class="dlg-label">Observaciones (opcional)</label>
+    <textarea
+      pInputTextarea
+      [(ngModel)]="obsCompletar"
+      rows="3"
+      class="dlg-textarea"
+      placeholder="Notas o detalles del movimiento..."
+    ></textarea>
+
+    <!-- Adjuntar comprobante -->
+    <label class="dlg-label" style="margin-top:1rem;">
+      {{ ticketAccion?.tipoTicket === 'PRODUCTO' ? 'Comprobante del movimiento ERP' : 'Evidencia de autorización de pago' }}
+      <span style="font-weight:400;color:#6c757d;"> (opcional)</span>
+    </label>
+    <label class="btn-upload-label">
+      <i class="pi pi-upload"></i> Seleccionar archivos
+      <input type="file" multiple (change)="onArchivosCompletar($event)" class="dlg-input-file-hidden" />
+    </label>
+    <ul *ngIf="archivosCompletar.length > 0" class="dlg-archivos-lista">
+      <li *ngFor="let f of archivosCompletar; let i = index" class="dlg-archivo-item">
+        <i class="pi pi-file"></i> {{ f.name }}
+        <button type="button" class="btn-remove-archivo" (click)="removerArchivoCompletar(i)">
+          <i class="pi pi-times"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <ng-template pTemplate="footer">
+    <button class="btn-dlg btn-cancelar-dlg" (click)="dlgCompletar = false" [disabled]="procesando">
+      Cancelar
+    </button>
+    <button
+      class="btn-dlg btn-completar-dlg"
+      [disabled]="procesando"
+      (click)="confirmarCompletar()"
+    >
+      <i class="pi pi-check-square"></i>
+      {{ ticketAccion?.tipoTicket === 'PRODUCTO' ? 'Confirmar movimiento ERP' : 'Autorizar pago' }}
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Diálogo: Autorizar GASOLINA -->
+<p-dialog
+  header="Autorizar solicitud de gasolina"
+  [(visible)]="dlgGasolina"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [closable]="!procesando"
+>
+  <div class="dlg-body">
+    <p class="dlg-descripcion">
+      Ticket <strong>{{ ticketAccion?.folio }}</strong>
+      <span *ngIf="ticketAccion?.placas"> — <i class="pi pi-car"></i> {{ ticketAccion?.placas }}</span>.
+      El solicitante pidió <strong>{{ ticketAccion?.litrosSolicitados }} L</strong>.
+    </p>
+
+    <label class="dlg-label">Litros autorizados <span class="req">*</span></label>
+    <p-inputNumber
+      [(ngModel)]="litrosAutorizados"
+      [min]="1"
+      [showButtons]="true"
+      suffix=" L"
+      styleClass="dlg-input-number"
+    ></p-inputNumber>
+
+    <label class="dlg-label mt">Monto depositado (MXN) <span style="font-weight:400;color:#6c757d">(opcional)</span></label>
+    <p-inputNumber
+      [(ngModel)]="montoDepositado"
+      mode="currency"
+      currency="MXN"
+      locale="es-MX"
+      [minFractionDigits]="2"
+      styleClass="dlg-input-number"
+      placeholder="$0.00"
+    ></p-inputNumber>
+
+    <label class="dlg-label mt">Observaciones <span style="font-weight:400;color:#6c757d">(opcional)</span></label>
+    <textarea
+      pInputTextarea
+      [(ngModel)]="obsGasolina"
+      rows="3"
+      class="dlg-textarea"
+      placeholder="Notas de la autorización..."
+    ></textarea>
+
+    <label class="dlg-label" style="margin-top:1rem;">
+      Comprobante <span style="font-weight:400;color:#6c757d">(opcional)</span>
+    </label>
+    <label class="btn-upload-label">
+      <i class="pi pi-upload"></i> Seleccionar archivos
+      <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onArchivosGasolina($event)" class="dlg-input-file-hidden" />
+    </label>
+    <ul *ngIf="archivosGasolina.length > 0" class="dlg-archivos-lista">
+      <li *ngFor="let f of archivosGasolina; let i = index" class="dlg-archivo-item">
+        <i class="pi pi-file"></i> {{ f.name }}
+        <button type="button" class="btn-remove-archivo" (click)="removerArchivoGasolina(i)">
+          <i class="pi pi-times"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <ng-template pTemplate="footer">
+    <button class="btn-dlg btn-cancelar-dlg" (click)="dlgGasolina = false" [disabled]="procesando">
+      Cancelar
+    </button>
+    <button
+      class="btn-dlg btn-gas-dlg"
+      [disabled]="!litrosAutorizados || procesando"
+      (click)="confirmarAutorizarGasolina()"
+    >
+      <i class="pi pi-bolt"></i> Autorizar gasolina
+    </button>
+  </ng-template>
+</p-dialog>
+
+<p-toast position="top-right"></p-toast>

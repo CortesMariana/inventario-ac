@@ -1,0 +1,387 @@
+<div class="solicitudes-container">
+  
+  <!-- Header -->
+  <div class="header-container">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">
+          <i class="pi pi-file"></i>
+          Mis Solicitudes RH
+        </h1>
+        <p class="page-subtitle">Historial y seguimiento de sus solicitudes</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-refresh" (click)="refrescar()" [disabled]="cargando">
+          <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+        </button>
+        
+        <button class="btn-nueva" (click)="nuevaSolicitud()">
+          <i class="pi pi-plus"></i>
+          Nueva Solicitud
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon"><i class="pi pi-file"></i></div>
+      <div class="stat-content">
+        <span class="stat-value">{{estadisticas.total || 0}}</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-pendientes">
+      <div class="stat-icon"><i class="pi pi-hourglass"></i></div>
+      <div class="stat-content">
+        <span class="stat-value">{{estadisticas.pendientes || 0}}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-aprobadas">
+      <div class="stat-icon"><i class="pi pi-check-circle"></i></div>
+      <div class="stat-content">
+        <span class="stat-value">{{estadisticas.aprobadas || 0}}</span>
+        <span class="stat-label">Aprobadas</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-revision">
+      <div class="stat-icon"><i class="pi pi-search"></i></div>
+      <div class="stat-content">
+        <span class="stat-value">{{estadisticas.enRevision || 0}}</span>
+        <span class="stat-label">En revisión</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-container">
+    <div class="search-box">
+      <span class="p-input-icon-left w-full">
+        <i class="pi pi-search"></i>
+        <input type="text" pInputText 
+               placeholder="Buscar por folio, título o descripción..."
+               [(ngModel)]="filtroBusqueda"
+               (ngModelChange)="aplicarFiltros()"
+               class="w-full">
+      </span>
+    </div>
+    
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label>Estatus</label>
+        <p-dropdown [options]="opcionesEstatus" 
+                   [(ngModel)]="filtroEstatus"
+                   optionLabel="label" optionValue="value"
+                   (onChange)="aplicarFiltros()"
+                   placeholder="Todos"
+                   styleClass="w-full"></p-dropdown>
+      </div>
+      
+      <div class="filtro-item">
+        <label>Tipo</label>
+        <p-dropdown [options]="opcionesTipo" 
+                   [(ngModel)]="filtroTipo"
+                   optionLabel="label" optionValue="value"
+                   (onChange)="aplicarFiltros()"
+                   placeholder="Todos"
+                   styleClass="w-full"></p-dropdown>
+      </div>
+      
+      <div class="filtro-actions">
+        <button class="btn-limpiar" (click)="limpiarFiltros()">
+          <i class="pi pi-filter-slash"></i>
+          Limpiar
+        </button>
+      </div>
+    </div>
+    
+    <div class="filtros-summary" *ngIf="solicitudesFiltradas.length !== solicitudes.length">
+      <span>Mostrando {{solicitudesFiltradas.length}} de {{solicitudes.length}} solicitudes</span>
+      <button class="btn-reset" (click)="limpiarFiltros()">
+        <i class="pi pi-times"></i> Quitar filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid de solicitudes -->
+  <div class="solicitudes-grid-container">
+    
+    <!-- Loading state -->
+    <div *ngIf="cargando && solicitudes.length === 0" class="loading-state">
+      <p-progressSpinner></p-progressSpinner>
+      <p>Cargando solicitudes...</p>
+    </div>
+    
+    <!-- No results -->
+    <div *ngIf="!cargando && paginatedSolicitudes.length === 0" class="no-results">
+      <i class="pi pi-file no-results-icon"></i>
+      <h3>No se encontraron solicitudes</h3>
+      <p *ngIf="solicitudes.length === 0">Aún no ha creado ninguna solicitud</p>
+      <p *ngIf="solicitudes.length > 0">Ninguna solicitud coincide con los filtros</p>
+      <button *ngIf="solicitudes.length > 0" class="btn-limpiar-principal" (click)="limpiarFiltros()">
+        <i class="pi pi-filter-slash"></i> Limpiar filtros
+      </button>
+      <button *ngIf="solicitudes.length === 0" class="btn-nueva-principal" (click)="nuevaSolicitud()">
+        <i class="pi pi-plus"></i> Crear primera solicitud
+      </button>
+    </div>
+    
+    <!-- Grid cards -->
+    <div class="solicitudes-grid" *ngIf="paginatedSolicitudes.length > 0">
+      <div *ngFor="let solicitud of paginatedSolicitudes" 
+           class="solicitud-card"
+           [class]="getEstatusClass(solicitud.estatus)"
+           (click)="verDetalle(solicitud)">
+        
+        <div class="card-header">
+          <div class="folio-badge">
+            <i class="pi pi-tag"></i>
+            {{solicitud.folio}}
+          </div>
+          <span class="estatus-badge" [style.backgroundColor]="solicitud.estatusColor">
+            <i [class]="solicitud.estatusIcon"></i>
+            {{solicitud.estatus}}
+          </span>
+        </div>
+        
+        <div class="card-body">
+          <h3 class="titulo">{{solicitud.titulo}}</h3>
+          
+          <div class="tipo-badge">
+            <i [class]="solicitud.iconoTipo"></i>
+            {{solicitud.tipoSolicitudLabel}}
+          </div>
+          
+          <p class="descripcion">{{solicitud.descripcion | slice:0:120}}{{solicitud.descripcion.length > 120 ? '...' : ''}}</p>
+          
+          <div class="detalles-grid" *ngIf="solicitud.tieneFechas || solicitud.montoSolicitado">
+            <div class="detalle-item" *ngIf="solicitud.fechaInicio">
+              <i class="pi pi-calendar"></i>
+              <span>{{solicitud.fechaInicio}} - {{solicitud.fechaFin}}</span>
+            </div>
+            
+            <div class="detalle-item" *ngIf="solicitud.diasSolicitados">
+              <i class="pi pi-clock"></i>
+              <span>{{solicitud.diasSolicitados}} día(s)</span>
+            </div>
+            
+            <div class="detalle-item" *ngIf="solicitud.montoSolicitado">
+              <i class="pi pi-dollar"></i>
+              <span>{{getMontoFormateado(solicitud.montoSolicitado)}}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-footer">
+          <div class="fecha-info">
+            <i class="pi pi-calendar-clock"></i>
+            {{solicitud.fechaCreacionFormatted}}
+          </div>
+          
+          <div class="dias-info" [class.en-tiempo]="solicitud.enTiempo" [class.demorado]="!solicitud.enTiempo">
+            <i class="pi pi-hourglass"></i>
+            {{getDiasTranscurridosText(solicitud.diasTranscurridos)}}
+          </div>
+        </div>
+        
+        <div class="prioridad-indicator" [style.backgroundColor]="solicitud.colorPrioridad">
+          <span>{{solicitud.prioridad | uppercase}}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Paginación -->
+    <div *ngIf="totalPages > 1" class="pagination">
+      <button class="btn-pagination" [disabled]="currentPage === 1" (click)="previousPage()">
+        <i class="pi pi-chevron-left"></i>
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of pageNumbers" 
+                class="page-number" 
+                [class.active]="page === currentPage"
+                (click)="changePage(page)">
+          {{page}}
+        </button>
+      </div>
+      
+      <button class="btn-pagination" [disabled]="currentPage === totalPages" (click)="nextPage()">
+        <i class="pi pi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalle -->
+<p-dialog [(visible)]="mostrarDetalle" 
+          [modal]="true" 
+          [style]="{width: '900px'}" 
+          [maximizable]="true"
+          [draggable]="false"
+          [resizable]="false"
+          [closable]="true"
+          (onHide)="cerrarDetalle()"
+          header="Detalle de Solicitud">
+  
+  <div *ngIf="solicitudDetalle; else loadingDetalle" class="detalle-modal">
+    
+    <!-- Header del detalle -->
+    <div class="detalle-header">
+      <div>
+        <h2>{{solicitudDetalle.titulo}}</h2>
+        <div class="detalle-meta">
+          <span class="folio">Folio: {{solicitudDetalle.folio}}</span>
+          <span class="fecha">Creada: {{solicitudDetalle.fechaCreacionFormatted}}</span>
+        </div>
+      </div>
+      <span class="estatus-grande" [style.backgroundColor]="solicitudDetalle.estatusColor">
+        <i [class]="solicitudDetalle.estatusIcon"></i>
+        {{solicitudDetalle.estatus}}
+      </span>
+    </div>
+    
+    <!-- Grid de 2 columnas -->
+    <div class="detalle-grid">
+      
+      <!-- Columna izquierda -->
+      <div class="col-izquierda">
+        
+        <!-- Información del empleado -->
+        <div class="seccion">
+          <h3><i class="pi pi-user"></i> Empleado</h3>
+          <div class="info-empleado">
+            <div><strong>{{solicitudDetalle.empleado.nombre}}</strong></div>
+            <div>#{{solicitudDetalle.empleado.numeroEmpleado}} · {{solicitudDetalle.empleado.puesto}}</div>
+            <div>{{solicitudDetalle.empleado.departamento}} · {{solicitudDetalle.empleado.sucursal}}</div>
+            <div *ngIf="solicitudDetalle.empleado.fechaIngreso">
+              Ingreso: {{solicitudDetalle.empleado.fechaIngreso}}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Descripción -->
+        <div class="seccion">
+          <h3><i class="pi pi-align-left"></i> Descripción</h3>
+          <p class="descripcion-texto">{{solicitudDetalle.descripcion}}</p>
+        </div>
+        
+        <!-- Detalles específicos -->
+        <div class="seccion" *ngIf="solicitudDetalle.detalles">
+          <h3><i class="pi pi-info-circle"></i> Detalles</h3>
+          <div class="detalles-especificos">
+            
+            <div *ngIf="solicitudDetalle.detalles.fechaInicio" class="detalle-row">
+              <span>Fechas:</span>
+              {{solicitudDetalle.detalles.fechaInicio | firestoreDate:'dd/MM/yyyy'}}
+            </div>
+            
+            <div *ngIf="solicitudDetalle.diasSolicitados" class="detalle-row">
+              <span>Días:</span>
+              <strong>{{solicitudDetalle.diasSolicitados}} día(s)</strong>
+            </div>
+            
+            <div *ngIf="solicitudDetalle.detalles.montoSolicitado" class="detalle-row">
+              <span>Monto:</span>
+              <strong>{{getMontoFormateado(solicitudDetalle.detalles.montoSolicitado)}}</strong>
+            </div>
+            
+            <div *ngIf="solicitudDetalle.detalles.motivoPrestamo" class="detalle-row">
+              <span>Motivo:</span>
+              <strong>{{solicitudDetalle.detalles.motivoPrestamo}}</strong>
+            </div>
+            
+            <div *ngIf="solicitudDetalle.detalles.numeroPagos" class="detalle-row">
+              <span>Pagos:</span>
+              <strong>{{solicitudDetalle.detalles.numeroPagos}} plazos</strong>
+            </div>
+            
+            <div *ngIf="solicitudDetalle.detalles.tipoConstancia" class="detalle-row">
+              <span>Constancia:</span>
+              <strong>{{solicitudDetalle.detalles.tipoConstancia}}</strong>
+            </div>
+            
+            <div *ngIf="solicitudDetalle.detalles.datoAModificar" class="detalle-row">
+              <span>Cambio:</span>
+              <strong>{{solicitudDetalle.detalles.datoAModificar}}: {{solicitudDetalle.detalles.valorActual}} → {{solicitudDetalle.detalles.valorNuevo}}</strong>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Comentarios -->
+        <div class="seccion" *ngIf="tieneComentarios()">
+          <h3><i class="pi pi-comments"></i> Comentarios</h3>
+          <div class="comentarios-list">
+            <div *ngFor="let comentario of solicitudDetalle.comentarios" class="comentario-item">
+              <div class="comentario-header">
+                <strong>{{comentario.usuarioNombre}}</strong>
+                <small>{{comentario.fecha | firestoreDate:'dd/MM/yyyy HH:mm'}}</small>
+              </div>
+              <p>{{comentario.texto}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna derecha -->
+      <div class="col-derecha">
+        
+        <!-- Aprobación/Rechazo -->
+        <div class="seccion" *ngIf="solicitudDetalle.aprobadoPor">
+          <h3><i class="pi pi-check-circle text-green-500"></i> Aprobación</h3>
+          <div class="aprobacion-info">
+            <div><strong>{{solicitudDetalle.aprobadoPor.nombre}}</strong></div>
+            <div>{{solicitudDetalle.aprobadoPor.fecha | date:'dd/MM/yyyy HH:mm'}}</div>
+            <div *ngIf="solicitudDetalle.aprobadoPor.comentario">"{{solicitudDetalle.aprobadoPor.comentario}}"</div>
+          </div>
+        </div>
+        
+        <div class="seccion" *ngIf="solicitudDetalle.rechazadoPor">
+          <h3><i class="pi pi-times-circle text-red-500"></i> Rechazo</h3>
+          <div class="rechazo-info">
+            <div><strong>{{solicitudDetalle.rechazadoPor.nombre}}</strong></div>
+            <div>{{solicitudDetalle.rechazadoPor.fecha | date:'dd/MM/yyyy HH:mm'}}</div>
+            <div class="motivo">Motivo: {{solicitudDetalle.rechazadoPor.motivo}}</div>
+          </div>
+        </div>
+        
+        <!-- Historial de estatus -->
+        <div class="seccion">
+          <h3><i class="pi pi-history"></i> Historial</h3>
+          <div class="historial-list">
+            <div *ngFor="let item of getHistorialArray()" class="historial-item">
+              <span>{{item.key}}</span>
+              <small>{{item.value | firestoreDate:'dd/MM/yyyy HH:mm'}}</small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Documentos -->
+        <div class="seccion" *ngIf="tieneDocumentos()">
+          <h3><i class="pi pi-paperclip"></i> Documentos</h3>
+          <div class="documentos-list">
+            <div *ngFor="let doc of solicitudDetalle.documentos" class="documento-item">
+              <i class="pi pi-file-pdf text-red-500"></i>
+              <span class="doc-nombre">{{doc.nombre}}</span>
+              <a [href]="doc.url" target="_blank" class="btn-ver-doc">
+                <i class="pi pi-external-link"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <ng-template #loadingDetalle>
+    <div class="detalle-loading">
+      <p-progressSpinner></p-progressSpinner>
+      <p>Cargando detalle...</p>
+    </div>
+  </ng-template>
+</p-dialog>

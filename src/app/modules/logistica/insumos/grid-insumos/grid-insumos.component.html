@@ -1,0 +1,250 @@
+<div class="grid-insumos-container">
+    <!-- Header -->
+    <div class="header-container">
+        <div class="header-content">
+            <div>
+                <h1 class="page-title">Gestión de Insumos</h1>
+                <p class="page-subtitle">Administra el inventario de insumos</p>
+            </div>
+
+            <div class="acciones-header">
+                <button class="btn-refresh" (click)="refrescar()" [disabled]="cargando">
+                    <i class="pi pi-refresh" [class.pi-spin]="cargando"></i>
+                    <span>Refrescar</span>
+                </button>
+                <button class="btn-importar" (click)="router.navigate(['/logistica/insumos/importar'])">
+                    <i class="pi pi-file-excel"></i>
+                    <span>Importar Excel</span>
+                </button>
+                <button class="btn-crear" (click)="router.navigate(['/logistica/insumos/crear'])">
+                    <i class="pi pi-plus"></i>
+                    <span>Nuevo Insumo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-container">
+        <div class="filtros-grid">
+
+            <div class="filtro-item">
+                <label>Buscar por nombre</label>
+                <span class="p-input-icon-left w-full">
+                  <i class="pi pi-search"></i>
+                  <input type="text" pInputText
+                         placeholder="Nombre del insumo..."
+                         [(ngModel)]="filtroNombre"
+                         (ngModelChange)="aplicarFiltrosYOrdenamiento()"
+                         class="w-full">
+                </span>
+            </div>
+
+            <div class="filtro-item">
+                <label>Buscar por descripción</label>
+                <span class="p-input-icon-left w-full">
+                  <i class="pi pi-search"></i>
+                  <input type="text" pInputText
+                         placeholder="Descripción del insumo..."
+                         [(ngModel)]="filtroDescripcion"
+                         (ngModelChange)="aplicarFiltrosYOrdenamiento()"
+                         class="w-full">
+                </span>
+            </div>
+
+            <div class="filtro-item">
+                <label>Familia</label>
+                <input type="text" pInputText
+                       placeholder="Filtrar por familia..."
+                       [(ngModel)]="filtroFamilia"
+                       (ngModelChange)="aplicarFiltrosYOrdenamiento()"
+                       class="w-full">
+            </div>
+
+            <div class="filtro-item">
+                <label>Marca</label>
+                <input type="text" pInputText
+                       placeholder="Filtrar por marca..."
+                       [(ngModel)]="filtroMarca"
+                       (ngModelChange)="aplicarFiltrosYOrdenamiento()"
+                       class="w-full">
+            </div>
+
+            <div class="filtro-actions">
+                <button class="btn-limpiar" (click)="limpiarFiltros()">
+                    <i class="pi pi-filter-slash"></i>
+                    <span>Limpiar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de insumos -->
+    <div class="tabla-container">
+        <div class="tabla-controls">
+            <div class="items-per-page">
+                <label>Mostrar:</label>
+                <select [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+            <div class="pagination-info">
+                Mostrando {{getDisplayRange()}} de {{insumosFiltrados.length}} insumos
+            </div>
+        </div>
+
+        <div class="tabla-wrapper">
+            <table class="insumos-table">
+                <thead>
+                <tr class="table-header">
+                    <th class="col-nombre sortable" (click)="cambiarOrdenamientoColumna('nombre')">
+                        <div class="th-content">
+                            <span class="th-label">Insumo</span>
+                            <i [class]="getOrdenIcono('nombre')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-empaque sortable" (click)="cambiarOrdenamientoColumna('descripcion')">
+                        <div class="th-content">
+                            <span class="th-label">Descripción</span>
+                            <i [class]="getOrdenIcono('descripcion')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-cantidad sortable" (click)="cambiarOrdenamientoColumna('familia')">
+                        <div class="th-content">
+                            <span class="th-label">Familia</span>
+                            <i [class]="getOrdenIcono('familia')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-marca sortable" (click)="cambiarOrdenamientoColumna('marca')">
+                        <div class="th-content">
+                            <span class="th-label">Marca</span>
+                            <i [class]="getOrdenIcono('marca')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-estado sortable" (click)="cambiarOrdenamientoColumna('SKU')">
+                        <div class="th-content">
+                            <span class="th-label">SKU</span>
+                            <i [class]="getOrdenIcono('SKU')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-precio-unitario sortable" (click)="cambiarOrdenamientoColumna('precioUnitario')">
+                        <div class="th-content">
+                            <span class="th-label">Precio Unit.</span>
+                            <i [class]="getOrdenIcono('precioUnitario')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-fecha sortable" (click)="cambiarOrdenamientoColumna('fechaCreacion')">
+                        <div class="th-content">
+                            <span class="th-label">Fecha Creación</span>
+                            <i [class]="getOrdenIcono('fechaCreacion')" class="sort-icon"></i>
+                        </div>
+                    </th>
+                    <th class="col-acciones">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngIf="paginatedInsumos.length === 0 && !cargando" class="no-results-row">
+                    <td colspan="10" class="no-results-cell">
+                        <div class="no-results-content">
+                            <i class="pi pi-inbox"></i>
+                            <span>No se encontraron insumos</span>
+                            <button class="btn-crear-principal" (click)="router.navigate(['/logistica/insumos/crear'])">
+                                Crear nuevo insumo
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr *ngFor="let insumo of paginatedInsumos"
+                    class="table-row"
+                    [class.row-desactivado]="!insumo.activo"
+                    (click)="verDetalle(insumo)">
+
+                    <td class="col-nombre">
+                        <div class="cell-nombre">
+                            <i class="pi pi-box" [class.opaco]="!insumo.activo"></i>
+                            <span [class.texto-desactivado]="!insumo.activo">{{insumo.nombre}}</span>
+                        </div>
+                    </td>
+
+                    <td class="col-marca">
+                        <span [class.texto-desactivado]="!insumo.activo">{{insumo.descripcion}}</span>
+                    </td>
+
+                    <td class="col-marca">
+                        <span [class.texto-desactivado]="!insumo.activo">{{insumo.familia}}</span>
+                    </td>
+
+                    <td class="col-marca">
+                        <span [class.texto-desactivado]="!insumo.activo">{{insumo.marca}}</span>
+                    </td>
+
+                    <td class="col-marca">
+                        <span [class.texto-desactivado]="!insumo.activo">{{insumo.SKU}}</span>
+                    </td>
+
+                    <td class="col-precio-unitario">
+                        <span class="precio" [class.texto-desactivado]="!insumo.activo">${{insumo.precioUnitario | number:'1.2-2'}}</span>
+                    </td>
+
+                    <td class="col-fecha">
+                        <span [class.texto-desactivado]="!insumo.activo">{{ getFecha(insumo.fechaCreacion) | date:'dd/MM/yyyy' }}</span>
+                    </td>
+
+                    <td class="col-acciones">
+                        <div class="acciones-buttons">
+                            <button class="btn-editar" (click)="editarInsumo(insumo, $event)" pTooltip="Editar" [disabled]="!insumo.activo">
+                                <i class="pi pi-pencil"></i>
+                            </button>
+                            <button class="btn-eliminar"
+                                    [ngClass]="{'btn-reactivar': !insumo.activo, 'btn-desactivar': insumo.activo}"
+                                    (click)="eliminarInsumo(insumo, $event)"
+                                    [pTooltip]="insumo.activo ? 'Desactivar' : 'Reactivar'">
+                                <i [class]="insumo.activo ? 'pi pi-trash' : 'pi pi-refresh'"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div *ngIf="totalPages > 1" class="pagination">
+            <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+                <i class="pi pi-chevron-left"></i>
+                Anterior
+            </button>
+
+            <div class="page-numbers">
+                <button *ngFor="let page of pageNumbers"
+                        class="page-number"
+                        [class.active]="page === currentPage"
+                        (click)="changePage(page)">
+                    {{page}}
+                </button>
+            </div>
+
+            <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+                Siguiente
+                <i class="pi pi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Spinner de carga -->
+    @if (cargando && insumos.length === 0) {
+        <p-blockUI [blocked]="cargando">
+            <div class="loading-container">
+                <p-progressSpinner aria-label="loading" />
+                <p class="loading-text">Cargando insumos...</p>
+            </div>
+        </p-blockUI>
+    }
+</div>
+
+<p-toast position="top-right"></p-toast>
+<p-confirmDialog key="confirmInsumos"></p-confirmDialog>

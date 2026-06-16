@@ -1,0 +1,27 @@
+{
+  "projects": {
+    "default": "tickets-management-web-edb8d",
+    "prod": "tickets-management-web-edb8d",
+    "tickets-prod": "tickets-management-web-edb8d"
+  },
+  "targets": {
+    "capacitacion-enersis10": {
+      "hosting": {
+        "dev": [
+          "tickets-management-web-edb8d"
+        ]
+      }
+    },
+    "tickets-management-web-edb8d": {
+      "hosting": {
+        "tickets": [
+          "tickets-management-web-edb8d"
+        ],
+        "tickets-custom": [
+          "tickets-enersis10"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

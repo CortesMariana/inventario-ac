@@ -1,0 +1,615 @@
+<div class="detalle-vehiculo-container">
+  <div class="header-container">
+    <div class="header-content">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Vehículos</span>
+      </button>
+      
+      <div class="header-title">
+        <h1 class="page-title">Detalle del Vehículo</h1>
+        <p class="page-subtitle">{{ vehiculo?.marca }} {{ vehiculo?.modelo }} - {{ vehiculo?.placa }}</p>
+      </div>
+      
+      @if (vehiculo) {
+        <div class="header-actions">
+          <button class="btn-editar-principal" (click)="editar()" [disabled]="procesando">
+            <i class="pi pi-pencil"></i>
+            <span>Editar</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (!cargando && vehiculo) {
+    <div class="main-content">
+      <div class="grid-container">
+        <div class="col-principal">
+          <div class="card info-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-info-circle"></i>
+                Información del Vehículo
+              </h2>
+              <div class="estado-badge-large" [ngClass]="getEstadoClass(vehiculo.estadoVehiculo)">
+                <i [class]="getEstadoIcon(vehiculo.estadoVehiculo)"></i>
+                <span>{{ getEstadoLabel(vehiculo.estadoVehiculo) }}</span>
+                @if (vehiculo.estadoVehiculo === 'OTRO' && vehiculo.otroEstadoTexto) {
+                  <span class="otro-texto">: {{vehiculo.otroEstadoTexto}}</span>
+                }
+              </div>
+            </div>
+            
+            <div class="card-body">
+              <div class="info-section">
+                <div class="folio-badge-large">
+                  <i class="pi pi-hashtag"></i>
+                  <span>Folio: {{ vehiculo.folio }}</span>
+                </div>
+                <h3>{{ vehiculo.marca }} {{ vehiculo.modelo }}</h3>
+                @if (vehiculo.observaciones) {
+                  <p class="descripcion">{{ vehiculo.observaciones }}</p>
+                }
+              </div>
+              
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Tipo</label>
+                  <div class="info-value">
+                    <i class="pi pi-car"></i>
+                    <span>{{ vehiculo.tipo || 'No especificado' }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Marca</label>
+                  <div class="info-value">
+                    <i class="pi pi-tag"></i>
+                    <span>{{ vehiculo.marca || 'No especificada' }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Modelo</label>
+                  <div class="info-value">
+                    <span>{{ vehiculo.modelo || 'No especificado' }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Placa</label>
+                  <div class="info-value">
+                    <i class="pi pi-id-card"></i>
+                    <span class="placa-destacada">{{ vehiculo.placa }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Número Económico</label>
+                  <div class="info-value">
+                    <i class="pi pi-hashtag"></i>
+                    <span *ngIf="vehiculo.numeroEconomico" class="monospace">{{ vehiculo.numeroEconomico }}</span>
+                    <span *ngIf="!vehiculo.numeroEconomico" class="text-muted">No asignado</span>
+                    <button class="btn-edit-inline" (click)="abrirEditarNumeroEconomico()" pTooltip="Editar" tooltipPosition="top">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <label>Límite Gasolina Mensual</label>
+                  <div class="info-value">
+                    <i class="pi pi-bolt" style="color:#16a34a"></i>
+                    <span *ngIf="vehiculo.limiteLitrosMensual" style="font-weight:700;color:#16a34a;">
+                      {{ vehiculo.limiteLitrosMensual }} L / mes
+                    </span>
+                    <span *ngIf="!vehiculo.limiteLitrosMensual" class="text-muted">Sin límite</span>
+                    <button class="btn-edit-inline" (click)="abrirEditarLimiteLitros()" pTooltip="Configurar límite" tooltipPosition="top">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <label>Número de Serie</label>
+                  <div class="info-value">
+                    <i class="pi pi-qrcode"></i>
+                    <span class="monospace">{{ vehiculo.numeroSerie }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Color</label>
+                  <div class="info-value">
+                    <i class="pi pi-palette"></i>
+                    <span>{{ vehiculo.color || 'No especificado' }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Año</label>
+                  <div class="info-value">
+                    <i class="pi pi-calendar"></i>
+                    <span>{{ vehiculo.anio }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <label>Carga máxima</label>
+                  <div class="info-value">
+                    <i class="pi pi-weight"></i>
+                    <span>{{ vehiculo.cargaMaxKg }} kg</span>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <label>Costo</label>
+                  <div class="info-value">
+                    <i class="pi pi-money-bill"></i>
+                    <span>{{ vehiculo.costo | currency:'MXN':'symbol':'1.2-2' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="seguro-section" *ngIf="vehiculo.fechaVencimientoSeguro">
+                <div class="seguro-card" [ngClass]="{'seguro-vencido': getSeguroVencidoWarning()}">
+                  <div class="seguro-header">
+                    <i class="pi pi-shield"></i>
+                    <h4>Información del Seguro</h4>
+                  </div>
+                  <div class="seguro-info">
+                    <div class="info-line">
+                      <label>Fecha de vencimiento:</label>
+                      <span [class.text-warning]="vehiculo.fechaVencimientoSeguro && vehiculo.fechaVencimientoSeguro < fechaActual">
+                        {{ vehiculo.fechaVencimientoSeguro | date }}
+                      </span>
+                    </div>
+                    @if (getSeguroVencidoWarning()) {
+                      <div class="alerta-seguro">
+                        <i class="pi pi-exclamation-triangle"></i>
+                        <span>¡El seguro está vencido! Actualice la fecha de vencimiento.</span>
+                      </div>
+                    } @else if (getDiasParaVencimientoSeguro() !== null && getDiasParaVencimientoSeguro()! <= 30) {
+                      <div class="alerta-proximo">
+                        <i class="pi pi-clock"></i>
+                        <span>El seguro vence en {{ getDiasParaVencimientoSeguro() }} días</span>
+                      </div>
+                    }
+                  </div>
+                  <button class="btn-actualizar-seguro" (click)="toggleSeguro()">
+                    <i class="pi pi-calendar-plus"></i>
+                    <span>Actualizar seguro</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card acciones-rapidas-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-bolt"></i>
+                Acciones Rápidas
+              </h2>
+            </div>
+            
+            <div class="card-body">
+              <div class="acciones-grid">
+                <button class="btn-accion-rapida" (click)="toggleCambioEstado()">
+                  <i class="pi pi-sync"></i>
+                  <span>Cambiar Estado</span>
+                </button>
+                
+                <button class="btn-accion-rapida" 
+                        (click)="toggleAsignacion()"
+                        [disabled]="!puedeAsignar()"
+                        [class.btn-disabled]="!puedeAsignar()"
+                        pTooltip="{{ !puedeAsignar() ? 'Solo disponible para vehículos disponibles' : '' }}"
+                        tooltipPosition="top">
+                  <i class="pi pi-user-plus"></i>
+                  <span>Asignar a Usuario</span>
+                </button>
+
+                <button class="btn-accion-rapida" (click)="toggleSeguro()">
+                  <i class="pi pi-shield"></i>
+                  <span>Actualizar Seguro</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          @if (mostrarCambioEstado) {
+            <div class="card form-card">
+              <div class="card-header">
+                <h2>
+                  <i class="pi pi-sync"></i>
+                  Cambiar Estado del Vehículo
+                </h2>
+                <button class="btn-cerrar" (click)="toggleCambioEstado()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <form [formGroup]="formCambioEstado">
+                  <div class="field">
+                    <label>Nuevo Estado <span class="required">*</span></label>
+                    <p-dropdown [options]="estadosVehiculo" 
+                               formControlName="nuevoEstado"
+                               optionLabel="label" optionValue="value"
+                               placeholder="Seleccione estado"
+                               styleClass="w-full">
+                      <ng-template pTemplate="selectedItem" let-estado>
+                        @if (estado) {
+                          <div class="flex align-items-center gap-2">
+                            <i [class]="estado.icon" [style.color]="estado.color"></i>
+                            <span>{{estado.label}}</span>
+                          </div>
+                        }
+                      </ng-template>
+                      <ng-template pTemplate="item" let-estado>
+                        <div class="flex align-items-center gap-2">
+                          <i [class]="estado.icon" [style.color]="estado.color"></i>
+                          <span>{{estado.label}}</span>
+                        </div>
+                      </ng-template>
+                    </p-dropdown>
+                    @if (formCambioEstado.get('nuevoEstado')?.invalid && formCambioEstado.get('nuevoEstado')?.touched) {
+                      <small class="p-error">El estado es requerido</small>
+                    }
+                  </div>
+                  
+                  @if (mostrarCampoOtroEstado) {
+                    <div class="field">
+                      <label>Especificar estado <span class="required">*</span></label>
+                      <input type="text" pInputText formControlName="otroEstadoTexto" 
+                             placeholder="Ej: En mantenimiento, En tránsito, etc."
+                             class="w-full">
+                      <small class="form-hint">Describa el estado personalizado</small>
+                      @if (formCambioEstado.get('otroEstadoTexto')?.invalid && formCambioEstado.get('otroEstadoTexto')?.touched) {
+                        <small class="p-error">Debe especificar el estado</small>
+                      }
+                    </div>
+                  }
+                  
+                  <div class="field">
+                    <label>Observaciones</label>
+                    <textarea rows="3" pTextarea formControlName="observaciones" 
+                              placeholder="Motivo del cambio de estado..." class="w-full"></textarea>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button class="btn-cancelar-form" type="button" (click)="toggleCambioEstado()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-form" type="button" 
+                            (click)="confirmarCambioEstado()"
+                            [disabled]="formCambioEstado.invalid || procesando">
+                      <i class="pi pi-check"></i>
+                      <span>Confirmar Cambio</span>
+                      @if (procesando) {
+                        <i class="pi pi-spinner pi-spin"></i>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+
+          @if (mostrarAsignacion) {
+            <div class="card form-card">
+              <div class="card-header">
+                <h2>
+                  <i class="pi pi-user-plus"></i>
+                  Asignar Vehículo a Usuario
+                </h2>
+                <button class="btn-cerrar" (click)="toggleAsignacion()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <form [formGroup]="formAsignacion">
+                  <div class="field">
+                    <label>Usuario <span class="required">*</span></label>
+                    <p-dropdown [options]="empleadosOpciones" 
+                                formControlName="empleadoId"
+                                optionLabel="label" 
+                                optionValue="value"
+                                placeholder="Seleccione usuario"
+                                (onChange)="onEmpleadoSelect($event)"
+                                styleClass="w-full"
+                                [filter]="true"
+                                filterBy="label"
+                                [showClear]="true">
+                      <ng-template pTemplate="selectedItem" let-selectedItem>
+                        @if (selectedItem) {
+                          <div class="flex align-items-center gap-2">
+                            <i class="pi pi-user"></i>
+                            <span>{{selectedItem.label}}</span>
+                          </div>
+                        }
+                      </ng-template>
+                      <ng-template pTemplate="item" let-empleado>
+                        <div class="flex align-items-center gap-2 p-2">
+                          <i class="pi pi-user"></i>
+                          <div>
+                            <div>{{empleado.label}}</div>
+                            @if (empleado.data?.puesto?.nombre) {
+                              <small class="text-gray-500">{{empleado.data.puesto.nombre}}</small>
+                            }
+                          </div>
+                        </div>
+                      </ng-template>
+                      <ng-template pTemplate="empty">
+                        <div class="p-3 text-center text-gray-500">
+                          No hay empleados disponibles
+                        </div>
+                      </ng-template>
+                    </p-dropdown>
+                    @if (formAsignacion.get('empleadoId')?.invalid && formAsignacion.get('empleadoId')?.touched) {
+                      <small class="p-error">El usuario es requerido</small>
+                    }
+                  </div>
+                  
+                  <div class="field">
+                    <label>Observaciones</label>
+                    <textarea rows="3" pTextarea formControlName="observaciones" 
+                              placeholder="Observaciones adicionales sobre la asignación..." class="w-full"></textarea>
+                  </div>
+                  
+                  <div class="asignacion-info-box">
+                    <i class="pi pi-info-circle"></i>
+                    <div>
+                      <strong>Nota:</strong> Al asignar el vehículo, su estado cambiará automáticamente a "Asignado".
+                    </div>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button class="btn-cancelar-form" type="button" (click)="toggleAsignacion()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-form" type="button" 
+                            (click)="confirmarAsignacion()"
+                            [disabled]="formAsignacion.invalid || procesando">
+                      <i class="pi pi-check"></i>
+                      <span>Confirmar Asignación</span>
+                      @if (procesando) {
+                        <i class="pi pi-spinner pi-spin"></i>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+
+          @if (mostrarSeguro) {
+            <div class="card form-card">
+              <div class="card-header">
+                <h2>
+                  <i class="pi pi-shield"></i>
+                  Actualizar Seguro
+                </h2>
+                <button class="btn-cerrar" (click)="toggleSeguro()">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <form [formGroup]="formSeguro">
+                  <div class="field">
+                    <label>Fecha de vencimiento <span class="required">*</span></label>
+                    <p-calendar 
+                      formControlName="fechaVencimiento" 
+                      [showIcon]="true"
+                      dateFormat="dd/mm/yy"
+                      [minDate]="fechaMinimaSeguro"
+                      placeholder="Seleccione fecha"
+                      [appendTo]="'body'"
+                      styleClass="w-full"
+                      [style]="{'position': 'relative', 'z-index': '1000'}">
+                    </p-calendar>
+                    @if (formSeguro.get('fechaVencimiento')?.invalid && formSeguro.get('fechaVencimiento')?.touched) {
+                      <small class="p-error">La fecha de vencimiento es requerida</small>
+                    }
+                  </div>
+                  
+                  <div class="field">
+                    <label>Observaciones</label>
+                    <textarea rows="3" pTextarea formControlName="observaciones" 
+                              placeholder="Observaciones sobre la actualización del seguro..." class="w-full"></textarea>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button class="btn-cancelar-form" type="button" (click)="toggleSeguro()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-form" type="button" 
+                            (click)="confirmarActualizarSeguro()"
+                            [disabled]="formSeguro.invalid || procesando">
+                      <i class="pi pi-check"></i>
+                      <span>Actualizar Seguro</span>
+                      @if (procesando) {
+                        <i class="pi pi-spinner pi-spin"></i>
+                      }
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="col-secundaria">
+          <div class="card historial-card">
+            <div class="card-header">
+              <h2>
+                <i class="pi pi-history"></i>
+                Historial del Vehículo
+              </h2>
+            </div>
+            
+            <div class="card-body">
+              @if (historial.length === 0) {
+                <div class="empty-state">
+                  <i class="pi pi-history"></i>
+                  <p>No hay historial de movimientos</p>
+                </div>
+              }
+              
+              <div class="timeline">
+                @for (evento of historial; track evento.id) {
+                  <div class="timeline-item">
+                    <div class="timeline-marker" [ngClass]="getTipoEventoClass(evento.tipoEvento)">
+                      <i [class]="getTipoEventoIcon(evento.tipoEvento)"></i>
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span class="evento-tipo">{{ evento.tipoEvento }}</span>
+                        <span class="evento-fecha">{{ evento.fechaMovimientoFormatted }}</span>
+                      </div>
+                      <div class="evento-detalle">
+                        <p class="evento-observaciones">{{ evento.observaciones }}</p>
+                        @if (evento.estadoNuevo) {
+                          <div class="evento-estado">
+                            <span class="estado-badge-mini" [ngClass]="getEstadoClass(evento.estadoNuevo)">
+                              {{ getEstadoLabel(evento.estadoNuevo) }}
+                              @if (evento.otroEstadoTexto) {
+                                <span>: {{evento.otroEstadoTexto}}</span>
+                              }
+                            </span>
+                          </div>
+                        }
+                        @if (evento.asignadoANombre) {
+                          <div class="evento-info-adicional">
+                            <div class="info-linea">
+                              <i class="pi pi-user"></i>
+                              <span>Asignado a: {{ evento.asignadoANombre }}</span>
+                            </div>
+                          </div>
+                        }
+                        @if (evento.tipoEvento === 'CAMBIO_LIMITE_GASOLINA') {
+                          <div class="evento-info-adicional">
+                            <div class="info-linea">
+                              <i class="pi pi-bolt" style="color:#16a34a"></i>
+                              <span *ngIf="evento.limiteLitrosNuevo">
+                                {{ evento.limiteLitrosAnterior ? evento.limiteLitrosAnterior + ' L → ' : '' }}
+                                <strong style="color:#16a34a">{{ evento.limiteLitrosNuevo }} L/mes</strong>
+                              </span>
+                              <span *ngIf="!evento.limiteLitrosNuevo" style="color:#6c757d">Límite eliminado</span>
+                            </div>
+                          </div>
+                        }
+                        <div class="evento-usuario">
+                          <i class="pi pi-user-edit"></i>
+                          <small>por: {{ evento.usuarioMovimientoNombre }}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="loading-state">
+      <div class="loading-content">
+        <p-progressSpinner ariaLabel="loading"></p-progressSpinner>
+        <p>Cargando detalles del vehículo...</p>
+      </div>
+    </div>
+  }
+
+  @if (!cargando && !vehiculo) {
+    <div class="error-state">
+      <div class="error-content">
+        <i class="pi pi-exclamation-triangle"></i>
+        <h3>Vehículo no encontrado</h3>
+        <p>El vehículo que buscas no existe o no tienes permiso para verlo.</p>
+        <button class="btn-volver-principal" (click)="volver()">
+          Volver a Vehículos
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ── Diálogo: Límite de litros mensual ──────────────────────────────── -->
+<p-dialog
+  header="Límite de Gasolina Mensual"
+  [(visible)]="dlgLimiteLitros"
+  [modal]="true"
+  [style]="{ width: '420px' }"
+  [closable]="!procesando"
+>
+  <div style="padding: 0.5rem 0;">
+    <label style="font-size:0.8rem;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.5rem;">
+      Litros permitidos por mes
+    </label>
+    <p-inputNumber
+      [(ngModel)]="limiteLitrosEdicion"
+      [min]="0"
+      [max]="99999"
+      suffix=" L"
+      placeholder="Ej: 200"
+      [showButtons]="true"
+      [inputStyle]="{ width: '160px' }"
+    ></p-inputNumber>
+    <small style="color:#6c757d;font-size:0.78rem;margin-top:0.6rem;display:block;">
+      El reporte de gasolinas usará este valor como referencia. Deja en 0 o vacío para quitar el límite.
+    </small>
+    <div style="margin-top:0.75rem;padding:0.6rem 0.9rem;background:rgba(22,163,74,0.07);border-radius:8px;font-size:0.82rem;color:#15803d;display:flex;gap:0.5rem;align-items:center;">
+      <i class="pi pi-info-circle"></i>
+      El límite se reinicia al inicio de cada mes.
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="dlgLimiteLitros = false" [disabled]="procesando"></button>
+    <button pButton label="Guardar" icon="pi pi-check" (click)="guardarLimiteLitros()" [disabled]="procesando" [loading]="procesando"
+            style="background:#16a34a;border-color:#16a34a;"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Diálogo: Editar número económico ───────────────────────────────── -->
+<p-dialog
+  header="Número Económico"
+  [(visible)]="dlgNumeroEconomico"
+  [modal]="true"
+  [style]="{ width: '400px' }"
+  [closable]="!procesando"
+>
+  <div style="padding: 0.5rem 0;">
+    <label style="font-size:0.8rem;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.5rem;">
+      Número económico
+    </label>
+    <input
+      pInputText
+      [(ngModel)]="numeroEconomicoEdicion"
+      placeholder="Ej: ECO-042"
+      class="w-full"
+      style="font-family: monospace;"
+    />
+    <small style="color:#6c757d;font-size:0.78rem;margin-top:0.3rem;display:block;">
+      Identificador interno del vehículo. Déjalo vacío para quitar el número.
+    </small>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="dlgNumeroEconomico = false" [disabled]="procesando"></button>
+    <button pButton label="Guardar" icon="pi pi-check" (click)="guardarNumeroEconomico()" [disabled]="procesando" [loading]="procesando"></button>
+  </ng-template>
+</p-dialog>
+
+<p-toast position="top-right"></p-toast>
+<p-confirmDialog [style]="{width: '450px'}" header="Confirmación"
+                 icon="pi pi-exclamation-triangle"
+                 acceptButtonStyleClass="p-button-text"
+                 rejectButtonStyleClass="p-button-text">
+</p-confirmDialog>
