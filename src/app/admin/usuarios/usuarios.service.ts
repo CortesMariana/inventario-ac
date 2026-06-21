@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -35,46 +35,64 @@ export class UsuariosService {
 
   constructor(
     private firestore: Firestore,
-    private auth: Auth
+    private auth: Auth,
+    private injector: EnvironmentInjector
   ) {}
 
+  // Helper para no repetir runInInjectionContext en cada método
+  private runInContext<T>(fn: () => T): T {
+    return runInInjectionContext(this.injector, fn);
+  }
+
   getAll$(): Observable<Usuario[]> {
-    const ref = collection(this.firestore, this.col);
-    const q = query(ref, orderBy('nombre', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Usuario[]>;
+    return this.runInContext(() => {
+      const ref = collection(this.firestore, this.col);
+      const q = query(ref, orderBy('nombre', 'asc'));
+      return collectionData(q, { idField: 'id' }) as Observable<Usuario[]>;
+    });
   }
 
   getById$(id: string): Observable<Usuario> {
-    const ref = doc(this.firestore, `${this.col}/${id}`);
-    return docData(ref, { idField: 'id' }) as Observable<Usuario>;
+    return this.runInContext(() => {
+      const ref = doc(this.firestore, `${this.col}/${id}`);
+      return docData(ref, { idField: 'id' }) as Observable<Usuario>;
+    });
   }
 
   async create(usuario: Usuario, password: string): Promise<void> {
-    const cred = await createUserWithEmailAndPassword(
-      this.auth,
-      usuario.email,
-      password
-    );
-    const ref = doc(this.firestore, `${this.col}/${cred.user.uid}`);
-    await setDoc(ref, {
-      ...usuario,
-      id: cred.user.uid,
-      fechaCreacion: new Date()
+    return this.runInContext(async () => {
+      const cred = await createUserWithEmailAndPassword(
+        this.auth,
+        usuario.email,
+        password
+      );
+      const ref = doc(this.firestore, `${this.col}/${cred.user.uid}`);
+      await setDoc(ref, {
+        ...usuario,
+        id: cred.user.uid,
+        fechaCreacion: new Date()
+      });
     });
   }
 
   update(id: string, usuario: Partial<Usuario>): Promise<void> {
-    const ref = doc(this.firestore, `${this.col}/${id}`);
-    return updateDoc(ref, { ...usuario });
+    return this.runInContext(() => {
+      const ref = doc(this.firestore, `${this.col}/${id}`);
+      return updateDoc(ref, { ...usuario });
+    });
   }
 
   toggleActivo(id: string, activo: boolean): Promise<void> {
-    const ref = doc(this.firestore, `${this.col}/${id}`);
-    return updateDoc(ref, { activo });
+    return this.runInContext(() => {
+      const ref = doc(this.firestore, `${this.col}/${id}`);
+      return updateDoc(ref, { activo });
+    });
   }
 
   delete(id: string): Promise<void> {
-    const ref = doc(this.firestore, `${this.col}/${id}`);
-    return deleteDoc(ref);
+    return this.runInContext(() => {
+      const ref = doc(this.firestore, `${this.col}/${id}`);
+      return deleteDoc(ref);
+    });
   }
 }

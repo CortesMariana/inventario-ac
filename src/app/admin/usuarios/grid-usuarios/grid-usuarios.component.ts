@@ -46,7 +46,8 @@ export class GridUsuariosComponent implements OnInit, OnDestroy {
           this.filtrar();
           this.loading = false;
         },
-        error: () => {
+        error: (err) => {
+          console.error('Error cargando usuarios:', err);
           this.loading = false;
           this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los usuarios' });
         }
