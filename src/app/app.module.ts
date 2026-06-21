@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -14,22 +14,16 @@ import { environment } from 'src/environments/environment';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
-@NgModule({
-  declarations: [AppComponent],
-  imports: [
-    BrowserAnimationsModule,
-    HttpClientModule,
-    AppRoutingModule,
-    ToastModule
-  ],
-  providers: [
-    { provide: LocationStrategy, useClass: HashLocationStrategy },
-    MessageService,
-    ConfirmationService,
-    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
-    provideFirestore(() => getFirestore()),
-    provideAuth(() => getAuth()),
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [AppComponent],
+    bootstrap: [AppComponent], imports: [BrowserAnimationsModule,
+        AppRoutingModule,
+        ToastModule], providers: [
+        { provide: LocationStrategy, useClass: HashLocationStrategy },
+        MessageService,
+        ConfirmationService,
+        provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+        provideFirestore(() => getFirestore()),
+        provideAuth(() => getAuth()),
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule { }
