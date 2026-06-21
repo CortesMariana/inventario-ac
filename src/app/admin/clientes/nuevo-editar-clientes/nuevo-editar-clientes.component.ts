@@ -6,9 +6,10 @@ import { MessageService } from 'primeng/api';
 import { Cliente, ClientesService } from '../clientes.service';
 
 @Component({
-  selector: 'app-nuevo-editar-clientes',
-  templateUrl: './nuevo-editar-clientes.component.html',
-  styleUrls: ['./nuevo-editar-clientes.component.css']
+    selector: 'app-nuevo-editar-clientes',
+    templateUrl: './nuevo-editar-clientes.component.html',
+    styleUrls: ['./nuevo-editar-clientes.component.css'],
+    standalone: false
 })
 export class NuevoEditarClientesComponent implements OnInit, OnDestroy {
 

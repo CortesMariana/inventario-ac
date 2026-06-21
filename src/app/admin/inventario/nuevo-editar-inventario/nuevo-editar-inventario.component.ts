@@ -6,9 +6,10 @@ import { MessageService } from 'primeng/api';
 import { InventarioItem, InventarioService } from '../inventario.service';
 
 @Component({
-  selector: 'app-nuevo-editar-inventario',
-  templateUrl: './nuevo-editar-inventario.component.html',
-  styleUrls: ['./nuevo-editar-inventario.component.css']
+    selector: 'app-nuevo-editar-inventario',
+    templateUrl: './nuevo-editar-inventario.component.html',
+    styleUrls: ['./nuevo-editar-inventario.component.css'],
+    standalone: false
 })
 export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
 

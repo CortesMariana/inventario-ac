@@ -5,9 +5,10 @@ import { MessageService } from 'primeng/api';
 import { Entrega, EntregasService } from '../entregas.service';
 
 @Component({
-  selector: 'app-detalle-entregas',
-  templateUrl: './detalle-entregas.component.html',
-  styleUrls: ['./detalle-entregas.component.css']
+    selector: 'app-detalle-entregas',
+    templateUrl: './detalle-entregas.component.html',
+    styleUrls: ['./detalle-entregas.component.css'],
+    standalone: false
 })
 export class DetalleEntregasComponent implements OnInit, OnDestroy {
 

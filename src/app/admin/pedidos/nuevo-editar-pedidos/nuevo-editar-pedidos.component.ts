@@ -8,9 +8,10 @@ import { InventarioService } from '../../inventario/inventario.service';
 import { PedidosService, ProductoPedido } from '../pedidos.service';
 
 @Component({
-  selector: 'app-nuevo-editar-pedidos',
-  templateUrl: './nuevo-editar-pedidos.component.html',
-  styleUrls: ['./nuevo-editar-pedidos.component.css']
+    selector: 'app-nuevo-editar-pedidos',
+    templateUrl: './nuevo-editar-pedidos.component.html',
+    styleUrls: ['./nuevo-editar-pedidos.component.css'],
+    standalone: false
 })
 export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
 

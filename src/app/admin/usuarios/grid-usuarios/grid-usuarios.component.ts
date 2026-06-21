@@ -5,9 +5,10 @@ import { MessageService } from 'primeng/api';
 import { Usuario, UsuariosService } from '../usuarios.service';
 
 @Component({
-  selector: 'app-grid-usuarios',
-  templateUrl: './grid-usuarios.component.html',
-  styleUrls: ['./grid-usuarios.component.css']
+    selector: 'app-grid-usuarios',
+    templateUrl: './grid-usuarios.component.html',
+    styleUrls: ['./grid-usuarios.component.css'],
+    standalone: false
 })
 export class GridUsuariosComponent implements OnInit, OnDestroy {
 

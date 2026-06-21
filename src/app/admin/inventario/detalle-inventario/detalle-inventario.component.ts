@@ -4,9 +4,10 @@ import { Subject, takeUntil } from 'rxjs';
 import { InventarioItem, InventarioService } from '../inventario.service';
 
 @Component({
-  selector: 'app-detalle-inventario',
-  templateUrl: './detalle-inventario.component.html',
-  styleUrls: ['./detalle-inventario.component.css']
+    selector: 'app-detalle-inventario',
+    templateUrl: './detalle-inventario.component.html',
+    styleUrls: ['./detalle-inventario.component.css'],
+    standalone: false
 })
 export class DetalleInventarioComponent implements OnInit, OnDestroy {
 

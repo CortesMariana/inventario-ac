@@ -5,9 +5,10 @@ import { MessageService } from 'primeng/api';
 import { Pedido, PedidosService } from '../pedidos.service';
 
 @Component({
-  selector: 'app-detalle-pedidos',
-  templateUrl: './detalle-pedidos.component.html',
-  styleUrls: ['./detalle-pedidos.component.css']
+    selector: 'app-detalle-pedidos',
+    templateUrl: './detalle-pedidos.component.html',
+    styleUrls: ['./detalle-pedidos.component.css'],
+    standalone: false
 })
 export class DetallePedidosComponent implements OnInit, OnDestroy {
 

@@ -5,9 +5,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Cliente, ClientesService } from '../clientes.service';
 
 @Component({
-  selector: 'app-grid-clientes',
-  templateUrl: './grid-clientes.component.html',
-  styleUrls: ['./grid-clientes.component.css']
+    selector: 'app-grid-clientes',
+    templateUrl: './grid-clientes.component.html',
+    styleUrls: ['./grid-clientes.component.css'],
+    standalone: false
 })
 export class GridClientesComponent implements OnInit, OnDestroy {
 

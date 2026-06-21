@@ -5,9 +5,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Pedido, PedidosService } from '../pedidos.service';
 
 @Component({
-  selector: 'app-grid-pedidos',
-  templateUrl: './grid-pedidos.component.html',
-  styleUrls: ['./grid-pedidos.component.css']
+    selector: 'app-grid-pedidos',
+    templateUrl: './grid-pedidos.component.html',
+    styleUrls: ['./grid-pedidos.component.css'],
+    standalone: false
 })
 export class GridPedidosComponent implements OnInit, OnDestroy {
 

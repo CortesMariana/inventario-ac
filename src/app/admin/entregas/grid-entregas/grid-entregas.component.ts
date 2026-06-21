@@ -5,9 +5,10 @@ import { MessageService } from 'primeng/api';
 import { Entrega, EntregasService } from '../entregas.service';
 
 @Component({
-  selector: 'app-grid-entregas',
-  templateUrl: './grid-entregas.component.html',
-  styleUrls: ['./grid-entregas.component.css']
+    selector: 'app-grid-entregas',
+    templateUrl: './grid-entregas.component.html',
+    styleUrls: ['./grid-entregas.component.css'],
+    standalone: false
 })
 export class GridEntregasComponent implements OnInit, OnDestroy {
 

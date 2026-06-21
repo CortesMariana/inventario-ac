@@ -5,9 +5,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { InventarioItem, InventarioService } from '../inventario.service';
 
 @Component({
-  selector: 'app-grid-inventario',
-  templateUrl: './grid-inventario.component.html',
-  styleUrls: ['./grid-inventario.component.css']
+    selector: 'app-grid-inventario',
+    templateUrl: './grid-inventario.component.html',
+    styleUrls: ['./grid-inventario.component.css'],
+    standalone: false
 })
 export class GridInventarioComponent implements OnInit, OnDestroy {
 

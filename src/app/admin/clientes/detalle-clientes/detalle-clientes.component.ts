@@ -4,9 +4,10 @@ import { Subject, takeUntil } from 'rxjs';
 import { Cliente, ClientesService } from '../clientes.service';
 
 @Component({
-  selector: 'app-detalle-clientes',
-  templateUrl: './detalle-clientes.component.html',
-  styleUrls: ['./detalle-clientes.component.css']
+    selector: 'app-detalle-clientes',
+    templateUrl: './detalle-clientes.component.html',
+    styleUrls: ['./detalle-clientes.component.css'],
+    standalone: false
 })
 export class DetalleClientesComponent implements OnInit, OnDestroy {
 

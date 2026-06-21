@@ -6,9 +6,10 @@ import { MessageService } from 'primeng/api';
 import { RolUsuario, Usuario, UsuariosService } from '../usuarios.service';
 
 @Component({
-  selector: 'app-nuevo-editar-usuarios',
-  templateUrl: './nuevo-editar-usuarios.component.html',
-  styleUrls: ['./nuevo-editar-usuarios.component.css']
+    selector: 'app-nuevo-editar-usuarios',
+    templateUrl: './nuevo-editar-usuarios.component.html',
+    styleUrls: ['./nuevo-editar-usuarios.component.css'],
+    standalone: false
 })
 export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
 
