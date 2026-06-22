@@ -1,7 +1,6 @@
 <div class="page">
 
   <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
 
   <div class="page-header">
     <div>
@@ -11,77 +10,149 @@
     <button pButton label="Nuevo producto" icon="pi pi-plus" (click)="nuevo()"></button>
   </div>
 
-  <div class="card">
-    <p-table
-      [value]="inventario"
-      [loading]="loading"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      [globalFilterFields]="['nombreProducto', 'sucursal']"
-      dataKey="id"
-      styleClass="p-datatable-sm"
-      #dt>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-box"></i></span>
+        <span class="stat-label">Total productos</span>
+      </div>
+      <strong class="stat-value">{{ totalProductos }}</strong>
+      <span class="stat-sub">Registros disponibles en el sistema</span>
+    </div>
 
-      <ng-template pTemplate="caption">
-        <div class="table-caption">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <input
-              pInputText
-              type="text"
-              placeholder="Buscar producto o sucursal..."
-              (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
-          </span>
-        </div>
-      </ng-template>
+    <div class="stat-card stat-card-accent">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-check-circle"></i></span>
+        <span class="stat-label">Disponibles</span>
+      </div>
+      <strong class="stat-value">{{ productosDisponibles }}</strong>
+      <span class="stat-sub">{{ porcentajeDisponibles }}% del total</span>
+    </div>
 
-      <ng-template pTemplate="header">
-        <tr>
-          <th pSortableColumn="nombreProducto">Producto <p-sortIcon field="nombreProducto"></p-sortIcon></th>
-          <th pSortableColumn="sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
-          <th pSortableColumn="stock">Stock <p-sortIcon field="stock"></p-sortIcon></th>
-          <th>Stock mínimo</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </ng-template>
+    <div class="stat-card">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-exclamation-triangle"></i></span>
+        <span class="stat-label">Stock bajo</span>
+      </div>
+      <strong class="stat-value">{{ productosStockBajo }}</strong>
+      <span class="stat-sub">Productos que requieren reposición</span>
+    </div>
 
-      <ng-template pTemplate="body" let-item>
-        <tr>
-          <td>{{ item.nombreProducto }}</td>
-          <td>{{ item.sucursal }}</td>
-          <td>
-            <span class="stock-value" [class.stock-cero]="item.stock === 0">
-              {{ item.stock }}
-            </span>
-          </td>
-          <td>{{ item.stockMinimo }}</td>
-          <td>
-            <p-tag
-              [value]="getStockLabel(item)"
-              [severity]="getStockSeverity(item)">
-            </p-tag>
-          </td>
-          <td>
-            <div class="actions">
-              <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" (click)="verDetalle(item.id!)" pTooltip="Ver detalle"></button>
-              <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(item.id!)" pTooltip="Editar stock"></button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
+    <div class="stat-card">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-times-circle"></i></span>
+        <span class="stat-label">Sin stock</span>
+      </div>
+      <strong class="stat-value">{{ productosSinStock }}</strong>
+      <span class="stat-sub">Productos sin unidades disponibles</span>
+    </div>
+  </div>
 
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="6" class="empty-state">
-            <i class="pi pi-box"></i>
-            <span>No hay productos en inventario</span>
-          </td>
-        </tr>
-      </ng-template>
+  <div class="table-card">
+    <div class="table-head">
+      <div>
+        <h2 class="table-title">Listado de inventario</h2>
+        <p class="table-subtitle">Productos registrados por sucursal, stock actual y mínimo permitido.</p>
+      </div>
 
-    </p-table>
+      <div class="table-tools">
+        <span class="table-count-pill">{{ totalProductos }} productos</span>
+        <span class="p-input-icon-left search-box">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar producto o sucursal..."
+            (input)="filtrarGlobal($event)" />
+        </span>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <p-table
+        [value]="inventario"
+        [loading]="loading"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [globalFilterFields]="['nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
+        [tableStyle]="{ 'min-width': '1240px' }"
+        dataKey="id"
+        styleClass="p-datatable-sm clientes-table"
+        #dt>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="nombreProducto" class="col-producto">Producto <p-sortIcon field="nombreProducto"></p-sortIcon></th>
+            <th pSortableColumn="sucursal" class="col-sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
+            <th pSortableColumn="stock" class="col-stock">Stock <p-sortIcon field="stock"></p-sortIcon></th>
+            <th pSortableColumn="stockMinimo" class="col-stock-minimo">Stock mínimo <p-sortIcon field="stockMinimo"></p-sortIcon></th>
+            <th class="col-estado">Estado</th>
+            <th class="col-acciones">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>
+              <div class="producto-cell">
+                <div class="producto-identity">
+                  <div class="producto-avatar">{{ getIniciales(item.nombreProducto) }}</div>
+                  <div class="producto-meta">
+                    <span class="producto-nombre">{{ item.nombreProducto }}</span>
+                    <span class="producto-id">{{ item.productoId }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <div class="sucursal-cell">
+                <span class="sucursal-nombre">{{ item.sucursal }}</span>
+                <span class="sucursal-id">{{ item.sucursalId }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span
+                class="stock-value"
+                [class.stock-cero]="item.stock === 0"
+                [class.stock-bajo]="item.stock > 0 && item.stock <= item.stockMinimo">
+                {{ item.stock }}
+              </span>
+            </td>
+
+            <td>
+              <span class="stock-minimo-value">{{ item.stockMinimo }}</span>
+            </td>
+
+            <td>
+              <p-tag
+                [value]="getStockLabel(item)"
+                [severity]="getStockSeverity(item)">
+              </p-tag>
+            </td>
+
+            <td>
+              <div class="actions">
+                <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" (click)="verDetalle(item.id!)" pTooltip="Ver detalle"></button>
+                <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(item.id!)" pTooltip="Editar stock"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="pi pi-box"></i>
+              <span>No hay productos en inventario</span>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
   </div>
 
 </div>

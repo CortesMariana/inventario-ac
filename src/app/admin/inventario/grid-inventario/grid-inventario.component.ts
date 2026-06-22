@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { Table } from 'primeng/table';
 import { InventarioItem, InventarioService } from '../inventario.service';
 
 @Component({
@@ -12,14 +13,19 @@ import { InventarioItem, InventarioService } from '../inventario.service';
 })
 export class GridInventarioComponent implements OnInit, OnDestroy {
 
+  @ViewChild('dt') dt!: Table;
+
   inventario: InventarioItem[] = [];
   loading = true;
+  totalProductos = 0;
+  productosDisponibles = 0;
+  productosStockBajo = 0;
+  productosSinStock = 0;
   private destroy$ = new Subject<void>();
 
   constructor(
     private inventarioSrv: InventarioService,
     private router: Router,
-    private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
   ) {}
 
@@ -29,6 +35,10 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.inventario = data;
+          this.totalProductos = data.length;
+          this.productosDisponibles = data.filter(item => item.stock > item.stockMinimo).length;
+          this.productosStockBajo = data.filter(item => item.stock > 0 && item.stock <= item.stockMinimo).length;
+          this.productosSinStock = data.filter(item => item.stock === 0).length;
           this.loading = false;
         },
         error: () => {
@@ -53,6 +63,35 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
 
   editar(id: string): void {
     this.router.navigate(['/admin/inventario', id, 'editar']);
+  }
+
+  filtrarGlobal(event: Event): void {
+    const valor = (event.target as HTMLInputElement).value;
+    this.dt?.filterGlobal(valor, 'contains');
+  }
+
+  get porcentajeDisponibles(): number {
+    if (!this.totalProductos) {
+      return 0;
+    }
+
+    return Math.round((this.productosDisponibles / this.totalProductos) * 100);
+  }
+
+  getIniciales(nombre?: string): string {
+    const tokens = String(nombre ?? '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (tokens.length === 0) {
+      return 'I';
+    }
+
+    return tokens
+      .slice(0, 2)
+      .map(token => token.charAt(0).toUpperCase())
+      .join('');
   }
 
   getStockSeverity(item: InventarioItem): string {
