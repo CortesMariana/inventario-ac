@@ -10,6 +10,7 @@ import { NuevoEditarClientesComponent } from './nuevo-editar-clientes/nuevo-edit
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
@@ -29,6 +30,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     TableModule,
     ButtonModule,
     InputTextModule,
+    CheckboxModule,
     TagModule,
     ConfirmDialogModule,
     ToastModule

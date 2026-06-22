@@ -10,52 +10,223 @@
     <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
   </div>
 
-  <div class="card">
-    <form [formGroup]="form" (ngSubmit)="guardar()">
+  <div class="client-layout">
+    <div class="form-column">
+      <div class="card form-card">
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="client-form">
 
-      <div class="form-grid">
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Datos generales</h2>
+                <p class="section-sub">Identificación del cliente y datos comerciales básicos</p>
+              </div>
+            </div>
 
-        <div class="field">
-          <label>Nombre completo *</label>
-          <input pInputText formControlName="nombre" placeholder="Ej. Simón Química S.A." />
-          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
-          <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+            <div class="form-grid">
+              <div class="field field-full">
+                <label>Nombre completo *</label>
+                <input pInputText formControlName="nombre" placeholder="Ej. Simón Química S.A." />
+                <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+              </div>
+
+              <div class="field">
+                <label>RFC *</label>
+                <input pInputText formControlName="rfc" placeholder="Ej. XAXX010101000" />
+                <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('pattern')">RFC inválido</small>
+              </div>
+
+              <div class="field">
+                <label>Teléfono principal *</label>
+                <input pInputText formControlName="telefono" placeholder="10 dígitos" maxlength="10" inputmode="numeric" />
+                <small class="error" *ngIf="f['telefono'].touched && f['telefono'].hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="f['telefono'].touched && f['telefono'].hasError('pattern')">Debe tener 10 dígitos</small>
+              </div>
+
+              <div class="field">
+                <label>Descuento (%)</label>
+                <input pInputText type="number" formControlName="descuento" placeholder="0" min="0" max="100" />
+                <small class="error" *ngIf="f['descuento'].touched && f['descuento'].hasError('min')">Mínimo 0%</small>
+                <small class="error" *ngIf="f['descuento'].touched && f['descuento'].hasError('max')">Máximo 100%</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Persona a cargo</h2>
+                <p class="section-sub">Contacto principal dentro de la empresa</p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Nombre de contacto</label>
+                <input pInputText formControlName="personaCargo" placeholder="Ej. Juan Pérez" />
+              </div>
+
+              <div class="field">
+                <label>Teléfono de contacto</label>
+                <input pInputText formControlName="telefonoContacto" placeholder="10 dígitos" maxlength="10" inputmode="numeric" />
+                <small class="error" *ngIf="f['telefonoContacto'].touched && f['telefonoContacto'].hasError('pattern')">Debe tener 10 dígitos</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" formGroupName="direccionFisica">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Dirección física</h2>
+                <p class="section-sub">Dirección principal capturada para el cliente</p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field field-full">
+                <label>Calle *</label>
+                <input pInputText formControlName="calle" placeholder="Ej. Av. Industria" />
+                <small class="error" *ngIf="direccionFisicaGroup.get('calle')?.touched && direccionFisicaGroup.get('calle')?.hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field">
+                <label>Número exterior *</label>
+                <input pInputText formControlName="numeroExterior" placeholder="Ej. 120" />
+                <small class="error" *ngIf="direccionFisicaGroup.get('numeroExterior')?.touched && direccionFisicaGroup.get('numeroExterior')?.hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field">
+                <label>Código postal *</label>
+                <input pInputText formControlName="codigoPostal" placeholder="Ej. 44100" maxlength="5" inputmode="numeric" />
+                <small class="error" *ngIf="direccionFisicaGroup.get('codigoPostal')?.touched && direccionFisicaGroup.get('codigoPostal')?.hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="direccionFisicaGroup.get('codigoPostal')?.touched && direccionFisicaGroup.get('codigoPostal')?.hasError('pattern')">Debe tener 5 dígitos</small>
+              </div>
+
+              <div class="field field-full">
+                <label>Colonia *</label>
+                <input pInputText formControlName="colonia" placeholder="Ej. Centro" />
+                <small class="error" *ngIf="direccionFisicaGroup.get('colonia')?.touched && direccionFisicaGroup.get('colonia')?.hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field field-full">
+                <label>Ciudad *</label>
+                <input pInputText formControlName="ciudad" placeholder="Ej. Guadalajara" />
+                <small class="error" *ngIf="direccionFisicaGroup.get('ciudad')?.touched && direccionFisicaGroup.get('ciudad')?.hasError('required')">Campo requerido</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header fiscal-header">
+              <div>
+                <h2 class="section-title">Domicilio fiscal</h2>
+                <p class="section-sub">Se puede copiar automáticamente desde la dirección física</p>
+              </div>
+
+              <div class="checkbox-row">
+                <p-checkbox
+                  inputId="domicilioFiscalIgualFisica"
+                  formControlName="domicilioFiscalIgualFisica"
+                  [binary]="true">
+                </p-checkbox>
+                <label for="domicilioFiscalIgualFisica">Usar la misma dirección física</label>
+              </div>
+            </div>
+
+            <div class="form-grid" formGroupName="domicilioFiscal">
+              <div class="field field-full">
+                <label>Calle *</label>
+                <input pInputText formControlName="calle" placeholder="Ej. Av. Industria" />
+                <small class="error" *ngIf="domicilioFiscalGroup.get('calle')?.touched && domicilioFiscalGroup.get('calle')?.hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field">
+                <label>Número exterior *</label>
+                <input pInputText formControlName="numeroExterior" placeholder="Ej. 120" />
+                <small class="error" *ngIf="domicilioFiscalGroup.get('numeroExterior')?.touched && domicilioFiscalGroup.get('numeroExterior')?.hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field">
+                <label>Código postal *</label>
+                <input pInputText formControlName="codigoPostal" placeholder="Ej. 44100" maxlength="5" inputmode="numeric" />
+                <small class="error" *ngIf="domicilioFiscalGroup.get('codigoPostal')?.touched && domicilioFiscalGroup.get('codigoPostal')?.hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="domicilioFiscalGroup.get('codigoPostal')?.touched && domicilioFiscalGroup.get('codigoPostal')?.hasError('pattern')">Debe tener 5 dígitos</small>
+              </div>
+
+              <div class="field field-full">
+                <label>Colonia *</label>
+                <input pInputText formControlName="colonia" placeholder="Ej. Centro" />
+                <small class="error" *ngIf="domicilioFiscalGroup.get('colonia')?.touched && domicilioFiscalGroup.get('colonia')?.hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field field-full">
+                <label>Ciudad *</label>
+                <input pInputText formControlName="ciudad" placeholder="Ej. Guadalajara" />
+                <small class="error" *ngIf="domicilioFiscalGroup.get('ciudad')?.touched && domicilioFiscalGroup.get('ciudad')?.hasError('required')">Campo requerido</small>
+              </div>
+            </div>
+          </section>
+
+          <div class="form-footer">
+            <button pButton type="submit" [label]="editMode ? 'Guardar cambios' : 'Crear cliente'" icon="pi pi-check" [loading]="loading"></button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <aside class="summary-column">
+      <div class="summary-card summary-hero-card">
+        <div class="summary-hero">
+          <div class="summary-avatar">{{ resumenInicial }}</div>
+          <div class="summary-hero-copy">
+            <div class="summary-name">{{ resumenNombre }}</div>
+            <div class="summary-sub">{{ resumenRfc }}</div>
+          </div>
         </div>
 
-        <div class="field">
-          <label>RFC *</label>
-          <input pInputText formControlName="rfc" placeholder="Ej. XAXX010101000" />
-          <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('required')">Campo requerido</small>
-          <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('pattern')">RFC inválido</small>
+        <div class="summary-tags">
+          <p-tag [value]="resumenEstado" [severity]="form.get('activo')?.value ? 'success' : 'danger'"></p-tag>
+          <p-tag [value]="resumenDomicilioFiscalEstado" [severity]="form.get('domicilioFiscalIgualFisica')?.value ? 'info' : 'warning'"></p-tag>
         </div>
-
-        <div class="field field-full">
-          <label>Dirección *</label>
-          <input pInputText formControlName="direccion" placeholder="Calle, número, colonia, ciudad" />
-          <small class="error" *ngIf="f['direccion'].touched && f['direccion'].hasError('required')">Campo requerido</small>
-        </div>
-
-        <div class="field">
-          <label>Teléfono *</label>
-          <input pInputText formControlName="telefono" placeholder="10 dígitos" maxlength="10" />
-          <small class="error" *ngIf="f['telefono'].touched && f['telefono'].hasError('required')">Campo requerido</small>
-          <small class="error" *ngIf="f['telefono'].touched && f['telefono'].hasError('pattern')">Debe tener 10 dígitos</small>
-        </div>
-
-        <div class="field">
-          <label>Descuento (%)</label>
-          <input pInputText type="number" formControlName="descuento" placeholder="0" min="0" max="100" />
-          <small class="error" *ngIf="f['descuento'].touched && f['descuento'].hasError('min')">Mínimo 0%</small>
-          <small class="error" *ngIf="f['descuento'].touched && f['descuento'].hasError('max')">Máximo 100%</small>
-        </div>
-
       </div>
 
-      <div class="form-footer">
-        <button pButton type="submit" [label]="editMode ? 'Guardar cambios' : 'Crear cliente'" icon="pi pi-check" [loading]="loading"></button>
+      <div class="summary-card">
+        <div class="summary-card-title">Contacto</div>
+        <div class="summary-list">
+          <div class="summary-row">
+            <span>Teléfono principal</span>
+            <strong>{{ resumenTelefono }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Persona a cargo</span>
+            <strong>{{ resumenContacto }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Teléfono de contacto</span>
+            <strong>{{ resumenTelefonoContacto }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Descuento</span>
+            <strong>{{ resumenDescuento }}</strong>
+          </div>
+        </div>
       </div>
 
-    </form>
+      <div class="summary-card">
+        <div class="summary-card-title">Direcciones</div>
+        <div class="summary-block">
+          <span class="summary-block-label">Física</span>
+          <div class="summary-block-value">{{ resumenDireccionFisica }}</div>
+        </div>
+        <div class="summary-block">
+          <span class="summary-block-label">Fiscal</span>
+          <div class="summary-block-value">{{ resumenDomicilioFiscal }}</div>
+        </div>
+      </div>
+    </aside>
   </div>
 
 </div>

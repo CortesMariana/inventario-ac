@@ -11,6 +11,20 @@ interface SidebarTheme {
   bg: string;
 }
 
+function hexToRgb(hex: string): string {
+  const normalized = hex.replace('#', '');
+  const value = normalized.length === 3
+    ? normalized.split('').map(char => char + char).join('')
+    : normalized;
+
+  const int = Number.parseInt(value, 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+
+  return `${r}, ${g}, ${b}`;
+}
+
 @Component({
     selector: 'app-navbar',
     templateUrl: './navbar.component.html',
@@ -59,6 +73,9 @@ export class NavbarComponent {
     document.documentElement.style.setProperty('--accent', accent.accent);
     document.documentElement.style.setProperty('--accent-light', accent.accentLight);
     document.documentElement.style.setProperty('--accent-light-text', accent.accentLightText);
+    document.documentElement.style.setProperty('--accent-rgb', hexToRgb(accent.accent));
+    document.documentElement.style.setProperty('--accent-light-rgb', hexToRgb(accent.accentLight));
+    document.documentElement.style.setProperty('--accent-light-text-rgb', hexToRgb(accent.accentLightText));
     this.saveTheme();
   }
 
