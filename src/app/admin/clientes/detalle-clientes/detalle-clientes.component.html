@@ -25,27 +25,116 @@
     </div>
 
     <div class="info-grid">
-
       <div class="info-item">
         <span class="info-label"><i class="pi pi-id-card"></i> RFC</span>
         <span class="info-value">{{ cliente.rfc }}</span>
       </div>
 
       <div class="info-item">
-        <span class="info-label"><i class="pi pi-phone"></i> Teléfono</span>
+        <span class="info-label"><i class="pi pi-phone"></i> Teléfono principal</span>
         <span class="info-value">{{ cliente.telefono }}</span>
       </div>
 
-      <div class="info-item info-full">
-        <span class="info-label"><i class="pi pi-map-marker"></i> Dirección</span>
-        <span class="info-value">{{ cliente.direccion }}</span>
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-user"></i> Persona a cargo</span>
+        <span class="info-value">{{ cliente.personaCargo || 'Sin información' }}</span>
+      </div>
+
+      <div class="info-item">
+        <span class="info-label"><i class="pi pi-mobile"></i> Teléfono de contacto</span>
+        <span class="info-value">{{ cliente.telefonoContacto || 'Sin información' }}</span>
       </div>
 
       <div class="info-item">
         <span class="info-label"><i class="pi pi-percentage"></i> Descuento</span>
         <span class="info-value">{{ cliente.descuento }}%</span>
       </div>
+    </div>
 
+    <div class="details-section">
+      <div class="details-section-header">
+        <div>
+          <h3 class="details-section-title">Dirección física</h3>
+          <p class="details-section-sub">Dirección principal capturada para el cliente</p>
+        </div>
+      </div>
+
+      <div class="info-grid info-grid-address">
+        <div class="info-item info-full">
+          <span class="info-label"><i class="pi pi-map-marker"></i> Dirección completa</span>
+          <span class="info-value">{{ formatDireccion(cliente.direccionFisica) || cliente.direccion || 'Sin información' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Calle</span>
+          <span class="info-value">{{ cliente.direccionFisica?.calle || 'Sin información' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Número exterior</span>
+          <span class="info-value">{{ cliente.direccionFisica?.numeroExterior || 'Sin información' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Colonia</span>
+          <span class="info-value">{{ cliente.direccionFisica?.colonia || 'Sin información' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Ciudad</span>
+          <span class="info-value">{{ cliente.direccionFisica?.ciudad || 'Sin información' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Código postal</span>
+          <span class="info-value">{{ cliente.direccionFisica?.codigoPostal || 'Sin información' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <div class="details-section-header">
+        <div>
+          <h3 class="details-section-title">Domicilio fiscal</h3>
+          <p class="details-section-sub">Puede ser el mismo que la dirección física o uno distinto</p>
+        </div>
+        <p-tag
+          [value]="cliente.domicilioFiscalIgualFisica ? 'Usa la misma dirección física' : 'Domicilio independiente'"
+          [severity]="cliente.domicilioFiscalIgualFisica ? 'info' : 'warning'">
+        </p-tag>
+      </div>
+
+      <div class="info-grid info-grid-address">
+        <div class="info-item info-full">
+          <span class="info-label"><i class="pi pi-file"></i> Dirección completa</span>
+          <span class="info-value">{{ formatDireccion(cliente.domicilioFiscal) || (cliente.domicilioFiscalIgualFisica ? formatDireccion(cliente.direccionFisica) : 'Sin información') }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Calle</span>
+          <span class="info-value">{{ cliente.domicilioFiscal?.calle || (cliente.domicilioFiscalIgualFisica ? cliente.direccionFisica?.calle : 'Sin información') }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Número exterior</span>
+          <span class="info-value">{{ cliente.domicilioFiscal?.numeroExterior || (cliente.domicilioFiscalIgualFisica ? cliente.direccionFisica?.numeroExterior : 'Sin información') }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Colonia</span>
+          <span class="info-value">{{ cliente.domicilioFiscal?.colonia || (cliente.domicilioFiscalIgualFisica ? cliente.direccionFisica?.colonia : 'Sin información') }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Ciudad</span>
+          <span class="info-value">{{ cliente.domicilioFiscal?.ciudad || (cliente.domicilioFiscalIgualFisica ? cliente.direccionFisica?.ciudad : 'Sin información') }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Código postal</span>
+          <span class="info-value">{{ cliente.domicilioFiscal?.codigoPostal || (cliente.domicilioFiscalIgualFisica ? cliente.direccionFisica?.codigoPostal : 'Sin información') }}</span>
+        </div>
+      </div>
     </div>
 
   </div>

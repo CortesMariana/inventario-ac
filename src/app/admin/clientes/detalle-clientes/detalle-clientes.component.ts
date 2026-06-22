@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { Cliente, ClientesService } from '../clientes.service';
+import { Cliente, ClientesService, formatDireccion } from '../clientes.service';
 
 @Component({
     selector: 'app-detalle-clientes',
@@ -13,6 +13,7 @@ export class DetalleClientesComponent implements OnInit, OnDestroy {
 
   cliente: Cliente | null = null;
   loading = true;
+  readonly formatDireccion = formatDireccion;
   private destroy$ = new Subject<void>();
 
   constructor(
