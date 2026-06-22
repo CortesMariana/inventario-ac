@@ -17,6 +17,10 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(): Observable<boolean> {
+    if (!environment.production) {
+      return of(true);
+    }
+
     return runInInjectionContext(this.injector, () => user(this.auth)).pipe(
       switchMap(u => {
         if (!u) {

@@ -80,6 +80,11 @@ export class InventarioService {
     return collectionData(q as any, { idField: 'id' }) as Observable<InventarioItem[]>;
   }
 
+  getInventarioById$(id: string): Observable<InventarioItem> {
+    const ref = doc(this.firestore, `${this.colInventario}/${id}`);
+    return docData(ref as any, { idField: 'id' }) as Observable<InventarioItem>;
+  }
+
   getInventarioBySucursal$(sucursalId: string): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
     const q = query(ref, where('sucursalId', '==', sucursalId), orderBy('nombreProducto', 'asc'));
@@ -100,5 +105,10 @@ export class InventarioService {
   createInventarioItem(item: InventarioItem): Promise<any> {
     const ref = collection(this.firestore, this.colInventario);
     return addDoc(ref, { ...item, fechaActualizacion: new Date() });
+  }
+
+  updateInventarioItem(id: string, item: Partial<InventarioItem>): Promise<void> {
+    const ref = doc(this.firestore, `${this.colInventario}/${id}`);
+    return updateDoc(ref, { ...item, fechaActualizacion: new Date() });
   }
 }
