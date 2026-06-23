@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { InventarioItem, InventarioService } from '../inventario.service';
 
@@ -26,6 +26,7 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   constructor(
     private inventarioSrv: InventarioService,
     private router: Router,
+    private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
   ) {}
 
@@ -63,6 +64,16 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
 
   editar(id: string): void {
     this.router.navigate(['/admin/inventario', id, 'editar']);
+  }
+
+  confirmarEliminar(item: InventarioItem): void {
+    const nombre = item.nombreProducto || item.productoId || 'este producto';
+    this.confirmSrv.confirm({
+      message: `¿Deseas eliminar ${nombre}?`,
+      header: 'Confirmar eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => this.eliminar(item.id!)
+    });
   }
 
   filtrarGlobal(event: Event): void {
@@ -104,5 +115,13 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
     if (item.stock === 0) return 'Sin stock';
     if (item.stock <= item.stockMinimo) return 'Stock bajo';
     return 'Disponible';
+  }
+
+  private eliminar(id: string): void {
+    this.inventarioSrv.deleteInventarioItem(id).then(() => {
+      this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Producto eliminado del inventario' });
+    }).catch(() => {
+      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar' });
+    });
   }
 }

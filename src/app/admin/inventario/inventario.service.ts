@@ -111,4 +111,9 @@ export class InventarioService {
     const ref = doc(this.firestore, `${this.colInventario}/${id}`);
     return updateDoc(ref, { ...item, fechaActualizacion: new Date() });
   }
+
+  deleteInventarioItem(id: string): Promise<void> {
+    const ref = doc(this.firestore, `${this.colInventario}/${id}`);
+    return deleteDoc(ref);
+  }
 }
