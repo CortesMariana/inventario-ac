@@ -24,16 +24,94 @@
             </div>
 
             <div class="form-grid">
-              <div class="field field-full">
-                <label>Nombre del producto *</label>
-                <input pInputText formControlName="nombreProducto" placeholder="Ej. Ácido sulfúrico 98%" />
-                <small class="error" *ngIf="f['nombreProducto'].touched && f['nombreProducto'].hasError('required')">Campo requerido</small>
+              <div class="field">
+                <label>C&oacute;digo Del Producto</label>
+                <input pInputText formControlName="codigoProducto" placeholder="C&oacute;digo interno" />
               </div>
 
               <div class="field">
-                <label>ID del producto *</label>
-                <input pInputText formControlName="productoId" placeholder="ID de Firestore" />
-                <small class="error" *ngIf="f['productoId'].touched && f['productoId'].hasError('required')">Campo requerido</small>
+                <label>Clave SAT</label>
+                <input pInputText formControlName="claveSat" placeholder="Ej. XCA Lata Rectangular" />
+              </div>
+
+              <div class="field">
+                <label>Fecha De Elaboraci&oacute;n</label>
+                <input pInputText type="date" formControlName="fechaElaboracion" />
+              </div>
+
+              <div class="field">
+                <label>Fecha De Caducidad</label>
+                <input pInputText type="date" formControlName="fechaCaducidad" />
+              </div>
+
+              <div class="field">
+                <label>N&uacute;mero De Lote</label>
+                <input pInputText formControlName="numeroLote" placeholder="N&uacute;mero de lote" />
+              </div>
+
+              <div class="field">
+                <label>N&uacute;mero De Serie</label>
+                <input pInputText formControlName="numeroSerie" placeholder="N&uacute;mero de serie" />
+              </div>
+
+              <div class="field">
+                <label>Clasificaci&oacute;n De Producto</label>
+                <input pInputText formControlName="clasificacionProducto" placeholder="Ej. Colorantes, Lacas, Limpiadores" />
+              </div>
+
+              <div class="field">
+                <label>Cantidad</label>
+                <input pInputText type="number" formControlName="cantidad" placeholder="0" min="0" inputmode="numeric" />
+              </div>
+
+              <div class="field">
+                <label>Unidad</label>
+                <input pInputText formControlName="unidad" placeholder="Ej. Lata, Bote, Bidon, Lata21k" />
+              </div>
+
+              <div class="field">
+                <label>Clave Producto/Servicio</label>
+                <input pInputText formControlName="claveProductoServicio" placeholder="Ej. 31291635 - Adhesivo De Poliurietano" />
+              </div>
+
+              <div class="field field-full">
+                <label>Descripci&oacute;n</label>
+                <input pInputText formControlName="descripcion" placeholder="Ej. PEGAMENTO CERO 3000 LATA C/18L" />
+              </div>
+
+              <div class="field">
+                <label>Valor Unitario</label>
+                <input pInputText type="number" formControlName="valorUnitario" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+              </div>
+
+              <div class="field">
+                <label>Precio 1</label>
+                <input pInputText type="number" formControlName="precio1" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+              </div>
+
+              <div class="field">
+                <label>Precio 2</label>
+                <input pInputText type="number" formControlName="precio2" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+              </div>
+
+              <div class="field">
+                <label>Tipo De Producto</label>
+                <input pInputText formControlName="tipoProducto" placeholder="Tipo de producto" />
+              </div>
+
+              <div class="field">
+                <label>Abreviatura Clave</label>
+                <input pInputText formControlName="abreviaturaClave" placeholder="Abreviatura" />
+              </div>
+
+              <div class="field">
+                <label>Descuento</label>
+                <input pInputText type="number" formControlName="descuento" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+              </div>
+
+              <div class="field">
+                <label>Impuestos</label>
+                <input pInputText type="number" formControlName="impuestos" placeholder="Calculado autom&aacute;ticamente" />
               </div>
             </div>
           </section>
@@ -117,7 +195,7 @@
       <div class="summary-card">
         <div class="summary-card-title">Asignación</div>
         <div class="summary-block">
-          <span class="summary-block-label">Producto ID</span>
+          <span class="summary-block-label">C&oacute;digo Del Producto</span>
           <div class="summary-block-value">{{ resumenProductoId }}</div>
         </div>
         <div class="summary-block">

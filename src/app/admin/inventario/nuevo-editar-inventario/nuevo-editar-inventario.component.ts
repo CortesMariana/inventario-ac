@@ -36,6 +36,8 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.buildForm();
+    this.setupImpuestosCalculation();
+    this.setupProductIdentitySync();
     this.itemId = this.route.snapshot.paramMap.get('id');
     if (this.itemId) {
       this.editMode = true;
@@ -50,13 +52,63 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
 
   private buildForm(): void {
     this.form = this.fb.group({
-      nombreProducto: ['', Validators.required],
-      productoId:     ['', Validators.required],
+      nombreProducto: [''],
+      productoId:     [''],
+      codigoProducto: [''],
+      claveSat:       [''],
+      fechaElaboracion: [''],
+      fechaCaducidad: [''],
+      numeroLote:     [''],
+      numeroSerie:    [''],
+      clasificacionProducto: [''],
+      cantidad:       [0, [Validators.min(0)]],
+      unidad:         [''],
+      claveProductoServicio: [''],
+      descripcion:    [''],
+      valorUnitario:  [0, [Validators.min(0)]],
+      precio1:        [0, [Validators.min(0)]],
+      precio2:        [0, [Validators.min(0)]],
+      tipoProducto:   [''],
+      abreviaturaClave: [''],
+      descuento:      [0, [Validators.min(0)]],
+      impuestos:      [{ value: 0, disabled: true }],
       sucursalId:     ['', Validators.required],
       sucursal:       ['', Validators.required],
       stock:          [0, [Validators.required, Validators.min(0)]],
       stockMinimo:    [5, [Validators.required, Validators.min(0)]]
     });
+  }
+
+  private setupImpuestosCalculation(): void {
+    this.form.get('valorUnitario')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.calcularImpuestos());
+  }
+
+  private setupProductIdentitySync(): void {
+    this.form.get('codigoProducto')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.syncProductIdentity());
+
+    this.form.get('descripcion')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.syncProductIdentity());
+  }
+
+  private syncProductIdentity(): void {
+    const codigoProducto = String(this.form.get('codigoProducto')?.value ?? '').trim();
+    const descripcion = String(this.form.get('descripcion')?.value ?? '').trim();
+
+    this.form.patchValue({
+      productoId: codigoProducto,
+      nombreProducto: descripcion || codigoProducto
+    }, { emitEvent: false });
+  }
+
+  private calcularImpuestos(): void {
+    const valorUnitario = Number(this.form.get('valorUnitario')?.value ?? 0);
+    const impuestos = Number((valorUnitario * 0.16).toFixed(2));
+    this.form.patchValue({ impuestos }, { emitEvent: false });
   }
 
   private loadInventario(id: string): void {
@@ -73,12 +125,32 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
           this.form.patchValue({
             nombreProducto: item.nombreProducto ?? '',
             productoId: item.productoId ?? '',
+            codigoProducto: item.codigoProducto ?? item.productoId ?? '',
+            claveSat: item.claveSat ?? '',
+            fechaElaboracion: item.fechaElaboracion ?? '',
+            fechaCaducidad: item.fechaCaducidad ?? '',
+            numeroLote: item.numeroLote ?? '',
+            numeroSerie: item.numeroSerie ?? '',
+            clasificacionProducto: item.clasificacionProducto ?? '',
+            cantidad: item.cantidad ?? 0,
+            unidad: item.unidad ?? '',
+            claveProductoServicio: item.claveProductoServicio ?? '',
+            descripcion: item.descripcion ?? item.nombreProducto ?? '',
+            valorUnitario: item.valorUnitario ?? 0,
+            precio1: item.precio1 ?? 0,
+            precio2: item.precio2 ?? 0,
+            tipoProducto: item.tipoProducto ?? '',
+            abreviaturaClave: item.abreviaturaClave ?? '',
+            descuento: item.descuento ?? 0,
+            impuestos: item.impuestos ?? 0,
             sucursalId: item.sucursalId ?? '',
             sucursal: item.sucursal ?? '',
             stock: item.stock ?? 0,
             stockMinimo: item.stockMinimo ?? 5
           }, { emitEvent: false });
 
+          this.calcularImpuestos();
+          this.syncProductIdentity();
           this.syncSucursalLabel(item.sucursalId, item.sucursal ?? '');
         },
         error: () => {
@@ -100,16 +172,16 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
   }
 
   get resumenInicial(): string {
-    const nombre = String(this.form?.get('nombreProducto')?.value ?? '').trim();
+    const nombre = String(this.form?.get('descripcion')?.value ?? this.form?.get('codigoProducto')?.value ?? '').trim();
     return nombre ? nombre.charAt(0).toUpperCase() : 'I';
   }
 
   get resumenProducto(): string {
-    return String(this.form?.get('nombreProducto')?.value ?? '').trim() || 'Sin nombre';
+    return String(this.form?.get('descripcion')?.value ?? '').trim() || 'Sin descripcion';
   }
 
   get resumenProductoId(): string {
-    return String(this.form?.get('productoId')?.value ?? '').trim() || 'Pendiente';
+    return String(this.form?.get('codigoProducto')?.value ?? '').trim() || 'Pendiente';
   }
 
   get resumenSucursal(): string {
@@ -165,6 +237,9 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
   }
 
   async guardar(): Promise<void> {
+    this.syncProductIdentity();
+    this.calcularImpuestos();
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
