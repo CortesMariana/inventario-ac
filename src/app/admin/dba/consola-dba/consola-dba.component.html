@@ -1,0 +1,238 @@
+<div class="dba-console">
+
+  <p-toast></p-toast>
+  <app-confirm-dialog
+    [visible]="confirmVisible"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [type]="confirmType"
+    confirmLabel="Aceptar"
+    cancelLabel="Cancelar"
+    (confirm)="onConfirm()"
+    (cancel)="onCancel()">
+  </app-confirm-dialog>
+
+  <section class="page-head">
+    <div>
+      <h1 class="page-title">Consola DBA</h1>
+      <p class="page-sub">Consulta, edita e importa documentos de Firestore desde la app</p>
+    </div>
+
+    <div class="head-tags">
+      <p-tag [value]="currentCollection.label" severity="info"></p-tag>
+      <p-tag [value]="viewLabel" severity="success"></p-tag>
+      <p-tag [value]="filteredRows.length + ' visibles'" severity="secondary"></p-tag>
+    </div>
+  </section>
+
+  <section class="toolbar">
+    <div class="field">
+      <label>Colección</label>
+      <p-dropdown
+        [options]="collections"
+        optionLabel="label"
+        optionValue="key"
+        [(ngModel)]="selectedCollectionKey"
+        (onChange)="onCollectionChange()"
+        placeholder="Selecciona una colección">
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label>Límite</label>
+      <input
+        pInputText
+        type="number"
+        min="1"
+        max="500"
+        [(ngModel)]="limitCount"
+        (change)="refreshVisibleData()"
+        placeholder="100" />
+    </div>
+
+    <div class="field grow">
+      <label>Búsqueda local</label>
+      <input
+        pInputText
+        [(ngModel)]="searchText"
+        (input)="onSearchChange()"
+        placeholder="Filtra por id o por contenido" />
+    </div>
+
+    <div class="actions">
+      <button pButton type="button" icon="pi pi-refresh" label="Refrescar" class="p-button-outlined" (click)="reloadList()"></button>
+      <button pButton type="button" icon="pi pi-search" label="Ejecutar consulta" (click)="executeQuery()"></button>
+    </div>
+  </section>
+
+  <section class="query-panel">
+    <div class="field">
+      <label>Campo</label>
+      <p-dropdown
+        [options]="queryFieldOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="queryField"
+        placeholder="Campo a consultar">
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label>Operador</label>
+      <p-dropdown
+        [options]="queryOperators"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="queryOperator">
+      </p-dropdown>
+    </div>
+
+    <div class="field grow">
+      <label>Valor</label>
+      <input
+        pInputText
+        [(ngModel)]="queryValue"
+        placeholder="Valor exacto o numérico" />
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="panel list-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Documentos</h2>
+          <p>{{ currentCollection.description }}</p>
+        </div>
+        <button pButton type="button" icon="pi pi-plus" label="Nuevo documento" class="p-button-outlined" (click)="startNewDocument()"></button>
+      </div>
+
+      <div class="table-wrap" *ngIf="!loading && hasRows; else emptyState">
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th *ngFor="let field of previewFields">{{ field }}</th>
+              <th class="col-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of filteredRows; trackBy: trackById"
+              [class.selected]="selectedDocument?.id === row.id"
+              (click)="openDocument(row)">
+              <td class="col-id">{{ row.id }}</td>
+              <td *ngFor="let field of previewFields">{{ renderCell(row.data[field]) }}</td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="openDocument(row)"></button>
+                <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-sm danger" (click)="confirmDelete(row)"></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <i class="pi pi-database"></i>
+          <div>
+            <strong>{{ loading ? 'Cargando documentos' : 'Sin documentos visibles' }}</strong>
+            <p>{{ loading ? 'Espera un momento' : 'Usa una consulta o importa datos para poblar la colección' }}</p>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="panel editor-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Editor</h2>
+          <p>{{ editorMode === 'edit' ? 'Documento seleccionado' : 'Nuevo documento' }}</p>
+        </div>
+        <div class="editor-status">
+          <p-tag [value]="editorMode === 'edit' ? 'Edición' : 'Alta'" [severity]="editorMode === 'edit' ? 'warning' : 'success'"></p-tag>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Documento ID</label>
+        <input
+          pInputText
+          [(ngModel)]="editorDocId"
+          [readonly]="editorMode === 'edit'"
+          placeholder="Auto generado si queda vacío" />
+      </div>
+
+      <div class="field grow">
+        <label>JSON</label>
+        <textarea
+          [(ngModel)]="editorJson"
+          spellcheck="false"
+          rows="18"
+          placeholder="{ }"></textarea>
+      </div>
+
+      <div class="editor-actions">
+        <button pButton type="button" icon="pi pi-file" label="Nuevo" class="p-button-outlined" (click)="startNewDocument()"></button>
+        <button pButton type="button" icon="pi pi-save" label="Guardar" (click)="saveDocument()"></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel import-panel">
+    <div class="panel-head">
+      <div>
+        <h2>Importación</h2>
+        <p>CSV, XLSX o JSON con una columna clave para construir el ID del documento.</p>
+      </div>
+      <div class="import-actions">
+        <button pButton type="button" icon="pi pi-times" label="Limpiar" class="p-button-outlined" (click)="clearImport()"></button>
+        <button pButton type="button" icon="pi pi-upload" label="Importar" [disabled]="!importReady || !importKeyField || importLoading" (click)="confirmImport()"></button>
+      </div>
+    </div>
+
+    <div class="import-controls">
+      <div class="field grow">
+        <label>Archivo</label>
+        <input type="file" accept=".csv,.xls,.xlsx,.json" (change)="onImportFileSelected($event)" />
+      </div>
+
+      <div class="field">
+        <label>Columna clave</label>
+        <p-dropdown
+          [options]="importHeaders"
+          [(ngModel)]="importKeyField"
+          placeholder="Selecciona la columna">
+        </p-dropdown>
+      </div>
+
+      <div class="field">
+        <label>Archivo cargado</label>
+        <input pInputText [value]="importFileName || 'Ninguno'" readonly />
+      </div>
+    </div>
+
+    <div class="import-preview" *ngIf="importRows.length > 0">
+      <div class="import-summary">
+        <span>{{ importRows.length }} filas detectadas</span>
+        <span *ngIf="importHeaders.length > 0">{{ importHeaders.length }} columnas</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="docs-table import-table">
+          <thead>
+            <tr>
+              <th *ngFor="let header of importHeaders">{{ header }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of importRows.slice(0, importPreviewRows)">
+              <td *ngFor="let header of importHeaders">{{ renderCell(row[header]) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
