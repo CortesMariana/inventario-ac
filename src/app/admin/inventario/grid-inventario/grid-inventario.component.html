@@ -1,6 +1,7 @@
 <div class="page">
 
   <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
 
   <div class="page-header">
     <div>
@@ -62,7 +63,7 @@
           <input
             pInputText
             type="text"
-            placeholder="Buscar producto o sucursal..."
+            placeholder="Buscar producto, c&oacute;digo, SAT o sucursal..."
             (input)="filtrarGlobal($event)" />
         </span>
       </div>
@@ -75,15 +76,26 @@
         [paginator]="true"
         [rows]="10"
         [rowsPerPageOptions]="[10, 25, 50]"
-        [globalFilterFields]="['nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
-        [tableStyle]="{ 'min-width': '1240px' }"
+        [globalFilterFields]="['descripcion', 'codigoProducto', 'claveSat', 'numeroLote', 'numeroSerie', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
+        [tableStyle]="{ 'min-width': '2280px' }"
         dataKey="id"
         styleClass="p-datatable-sm clientes-table"
         #dt>
 
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="nombreProducto" class="col-producto">Producto <p-sortIcon field="nombreProducto"></p-sortIcon></th>
+            <th pSortableColumn="descripcion" class="col-producto">Producto <p-sortIcon field="descripcion"></p-sortIcon></th>
+            <th pSortableColumn="claveSat">Clave SAT <p-sortIcon field="claveSat"></p-sortIcon></th>
+            <th pSortableColumn="fechaElaboracion">Fechas <p-sortIcon field="fechaElaboracion"></p-sortIcon></th>
+            <th pSortableColumn="numeroLote">Lote / Serie <p-sortIcon field="numeroLote"></p-sortIcon></th>
+            <th pSortableColumn="clasificacionProducto">Clasificaci&oacute;n <p-sortIcon field="clasificacionProducto"></p-sortIcon></th>
+            <th pSortableColumn="cantidad">Cantidad / Unidad <p-sortIcon field="cantidad"></p-sortIcon></th>
+            <th pSortableColumn="claveProductoServicio">Clave Producto/Servicio <p-sortIcon field="claveProductoServicio"></p-sortIcon></th>
+            <th pSortableColumn="valorUnitario">Valor unitario <p-sortIcon field="valorUnitario"></p-sortIcon></th>
+            <th pSortableColumn="precio1">Precios <p-sortIcon field="precio1"></p-sortIcon></th>
+            <th pSortableColumn="tipoProducto">Tipo / Abrev. <p-sortIcon field="tipoProducto"></p-sortIcon></th>
+            <th pSortableColumn="descuento">Descuento <p-sortIcon field="descuento"></p-sortIcon></th>
+            <th pSortableColumn="impuestos">Impuestos <p-sortIcon field="impuestos"></p-sortIcon></th>
             <th pSortableColumn="sucursal" class="col-sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
             <th pSortableColumn="stock" class="col-stock">Stock <p-sortIcon field="stock"></p-sortIcon></th>
             <th pSortableColumn="stockMinimo" class="col-stock-minimo">Stock mínimo <p-sortIcon field="stockMinimo"></p-sortIcon></th>
@@ -97,13 +109,72 @@
             <td>
               <div class="producto-cell">
                 <div class="producto-identity">
-                  <div class="producto-avatar">{{ getIniciales(item.nombreProducto) }}</div>
+                  <div class="producto-avatar">{{ getIniciales(item.descripcion || item.codigoProducto || item.nombreProducto) }}</div>
                   <div class="producto-meta">
-                    <span class="producto-nombre">{{ item.nombreProducto }}</span>
-                    <span class="producto-id">{{ item.productoId }}</span>
+                    <span class="producto-nombre">{{ item.descripcion || item.nombreProducto || 'Sin descripcion' }}</span>
+                    <span class="producto-id">{{ item.codigoProducto || item.productoId || 'Sin codigo' }}</span>
                   </div>
                 </div>
               </div>
+            </td>
+
+            <td>
+              <span class="text-value">{{ item.claveSat || 'Sin clave SAT' }}</span>
+            </td>
+
+            <td>
+              <div class="detail-stack">
+                <span><strong>Elab.</strong> {{ item.fechaElaboracion || 'Sin fecha' }}</span>
+                <span><strong>Cad.</strong> {{ item.fechaCaducidad || 'Sin fecha' }}</span>
+              </div>
+            </td>
+
+            <td>
+              <div class="detail-stack">
+                <span><strong>Lote</strong> {{ item.numeroLote || 'Sin lote' }}</span>
+                <span><strong>Serie</strong> {{ item.numeroSerie || 'Sin serie' }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="text-value">{{ item.clasificacionProducto || 'Sin clasificacion' }}</span>
+            </td>
+
+            <td>
+              <div class="detail-stack">
+                <span class="quantity-value">{{ item.cantidad ?? 0 }}</span>
+                <span>{{ item.unidad || 'Sin unidad' }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="text-value">{{ item.claveProductoServicio || 'Sin clave' }}</span>
+            </td>
+
+            <td>
+              <span class="money-value">{{ item.valorUnitario ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+            </td>
+
+            <td>
+              <div class="detail-stack">
+                <span><strong>P1</strong> {{ item.precio1 ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+                <span><strong>P2</strong> {{ item.precio2 ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+              </div>
+            </td>
+
+            <td>
+              <div class="detail-stack">
+                <span>{{ item.tipoProducto || 'Sin tipo' }}</span>
+                <span>{{ item.abreviaturaClave || 'Sin abrev.' }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="money-value">{{ item.descuento ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+            </td>
+
+            <td>
+              <span class="money-value">{{ item.impuestos ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
             </td>
 
             <td>
@@ -137,6 +208,7 @@
               <div class="actions">
                 <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" (click)="verDetalle(item.id!)" pTooltip="Ver detalle"></button>
                 <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(item.id!)" pTooltip="Editar stock"></button>
+                <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="confirmarEliminar(item)" pTooltip="Eliminar"></button>
               </div>
             </td>
           </tr>
@@ -144,7 +216,7 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="6" class="empty-state">
+            <td colspan="17" class="empty-state">
               <i class="pi pi-box"></i>
               <span>No hay productos en inventario</span>
             </td>
