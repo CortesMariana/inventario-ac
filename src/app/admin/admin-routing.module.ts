@@ -28,6 +28,10 @@ const routes: Routes = [
         loadChildren: () => import('./reportes/reportes.module').then(m => m.ReportesModule)
       },
       {
+        path: 'dba',
+        loadChildren: () => import('./dba/dba.module').then(m => m.DbaModule)
+      },
+      {
         path: 'usuarios',
         loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule)
       },

@@ -48,6 +48,7 @@ export class SidebarComponent {
     {
       label: 'Sistema',
       items: [
+        { label: 'DBA', icon: 'pi pi-database', route: '/admin/dba' },
         { label: 'Usuarios', icon: 'pi pi-user-edit', route: '/admin/usuarios' }
       ]
     }
