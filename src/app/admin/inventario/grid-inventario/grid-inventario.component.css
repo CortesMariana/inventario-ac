@@ -63,6 +63,30 @@
   background: linear-gradient(180deg, rgba(var(--accent-light-rgb, 238, 244, 255), 0.82) 0%, #ffffff 100%);
 }
 
+.stat-filter {
+  cursor: pointer;
+  user-select: none;
+}
+
+.stat-filter:focus-visible {
+  outline: 0;
+  border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.42);
+  box-shadow:
+    0 0 0 3px rgba(var(--accent-light-rgb, 238, 244, 255), 0.95),
+    0 20px 40px rgba(15, 23, 42, 0.08);
+}
+
+.stat-card-active {
+  border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.42);
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.09),
+    0 0 0 1px rgba(var(--accent-rgb, 59, 130, 246), 0.18);
+}
+
+.stat-card-active::before {
+  background: var(--accent);
+}
+
 .stat-head {
   display: flex;
   align-items: center;
@@ -314,6 +338,27 @@
   font-size: 13px;
   font-weight: 600;
   color: #374151;
+}
+
+.col-estado,
+.estado-cell {
+  min-width: 120px;
+  width: 120px;
+}
+
+.estado-cell {
+  white-space: nowrap;
+}
+
+:host ::ng-deep .estado-tag {
+  display: inline-flex;
+  min-width: 88px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .estado-tag .p-tag-value {
+  white-space: nowrap;
 }
 
 .actions {
