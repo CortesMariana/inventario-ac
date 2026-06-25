@@ -32,6 +32,7 @@ export interface InventarioItem {
   productoId: string;
   nombreProducto: string;
   codigoProducto?: string;
+  codigoBarras?: string;
   claveSat?: string;
   fechaElaboracion?: string;
   fechaCaducidad?: string;

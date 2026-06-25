@@ -104,8 +104,8 @@
         [paginator]="true"
         [rows]="10"
         [rowsPerPageOptions]="[10, 25, 50]"
-        [globalFilterFields]="['descripcion', 'codigoProducto', 'claveSat', 'numeroLote', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
-        [tableStyle]="{ 'min-width': '2120px' }"
+        [globalFilterFields]="['descripcion', 'codigoProducto', 'codigoBarras', 'claveSat', 'numeroLote', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
+        [tableStyle]="{ 'min-width': '2160px' }"
         dataKey="id"
         styleClass="p-datatable-sm clientes-table"
         #dt>
@@ -226,6 +226,7 @@
 
             <td>
               <div class="actions">
+                <button pButton icon="pi pi-print" class="p-button-text p-button-sm" (click)="reimprimirEtiquetas(item)" pTooltip="Reimprimir etiquetas"></button>
                 <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" (click)="verDetalle(item.id!)" pTooltip="Ver detalle"></button>
                 <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(item.id!)" pTooltip="Editar stock"></button>
                 <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="confirmarEliminar(item)" pTooltip="Eliminar"></button>
