@@ -15,6 +15,7 @@ import { BadgeModule } from 'primeng/badge';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 @NgModule({
@@ -35,7 +36,8 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     BadgeModule,
     ConfirmDialogModule,
     ToastModule,
-    DropdownModule
+    DropdownModule,
+    InputNumberModule
   ],
   providers: [
     ConfirmationService,

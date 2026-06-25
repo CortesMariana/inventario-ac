@@ -81,17 +81,47 @@
 
               <div class="field">
                 <label>Valor Unitario</label>
-                <input pInputText type="number" formControlName="valorUnitario" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+                <p-inputNumber
+                  formControlName="valorUnitario"
+                  mode="currency"
+                  currency="MXN"
+                  locale="es-MX"
+                  placeholder="$0.00"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [useGrouping]="true">
+                </p-inputNumber>
               </div>
 
               <div class="field">
                 <label>Precio 1</label>
-                <input pInputText type="number" formControlName="precio1" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+                <p-inputNumber
+                  formControlName="precio1"
+                  mode="currency"
+                  currency="MXN"
+                  locale="es-MX"
+                  placeholder="$0.00"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [useGrouping]="true">
+                </p-inputNumber>
               </div>
 
               <div class="field">
                 <label>Precio 2</label>
-                <input pInputText type="number" formControlName="precio2" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+                <p-inputNumber
+                  formControlName="precio2"
+                  mode="currency"
+                  currency="MXN"
+                  locale="es-MX"
+                  placeholder="$0.00"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [useGrouping]="true">
+                </p-inputNumber>
               </div>
 
               <div class="field">
@@ -106,12 +136,32 @@
 
               <div class="field">
                 <label>Descuento</label>
-                <input pInputText type="number" formControlName="descuento" placeholder="0.00" min="0" step="0.01" inputmode="decimal" />
+                <p-inputNumber
+                  formControlName="descuento"
+                  suffix="%"
+                  locale="es-MX"
+                  placeholder="0.00%"
+                  [min]="0"
+                  [max]="100"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [useGrouping]="true">
+                </p-inputNumber>
               </div>
 
               <div class="field">
                 <label>Impuestos</label>
-                <input pInputText type="number" formControlName="impuestos" placeholder="Calculado autom&aacute;ticamente" />
+                <p-inputNumber
+                  formControlName="impuestos"
+                  mode="currency"
+                  currency="MXN"
+                  locale="es-MX"
+                  placeholder="$0.00"
+                  [min]="0"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [useGrouping]="true">
+                </p-inputNumber>
               </div>
             </div>
           </section>
