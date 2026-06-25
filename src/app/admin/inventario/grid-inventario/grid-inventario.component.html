@@ -76,8 +76,8 @@
         [paginator]="true"
         [rows]="10"
         [rowsPerPageOptions]="[10, 25, 50]"
-        [globalFilterFields]="['descripcion', 'codigoProducto', 'claveSat', 'numeroLote', 'numeroSerie', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
-        [tableStyle]="{ 'min-width': '2280px' }"
+        [globalFilterFields]="['descripcion', 'codigoProducto', 'claveSat', 'numeroLote', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
+        [tableStyle]="{ 'min-width': '2120px' }"
         dataKey="id"
         styleClass="p-datatable-sm clientes-table"
         #dt>
@@ -87,12 +87,11 @@
             <th pSortableColumn="descripcion" class="col-producto">Producto <p-sortIcon field="descripcion"></p-sortIcon></th>
             <th pSortableColumn="claveSat">Clave SAT <p-sortIcon field="claveSat"></p-sortIcon></th>
             <th pSortableColumn="fechaElaboracion">Fechas <p-sortIcon field="fechaElaboracion"></p-sortIcon></th>
-            <th pSortableColumn="numeroLote">Lote / Serie <p-sortIcon field="numeroLote"></p-sortIcon></th>
+            <th pSortableColumn="numeroLote">Lote <p-sortIcon field="numeroLote"></p-sortIcon></th>
             <th pSortableColumn="clasificacionProducto">Clasificaci&oacute;n <p-sortIcon field="clasificacionProducto"></p-sortIcon></th>
             <th pSortableColumn="cantidad">Cantidad / Unidad <p-sortIcon field="cantidad"></p-sortIcon></th>
             <th pSortableColumn="claveProductoServicio">Clave Producto/Servicio <p-sortIcon field="claveProductoServicio"></p-sortIcon></th>
             <th pSortableColumn="valorUnitario">Valor unitario <p-sortIcon field="valorUnitario"></p-sortIcon></th>
-            <th pSortableColumn="precio1">Precios <p-sortIcon field="precio1"></p-sortIcon></th>
             <th pSortableColumn="tipoProducto">Tipo / Abrev. <p-sortIcon field="tipoProducto"></p-sortIcon></th>
             <th pSortableColumn="descuento">Descuento <p-sortIcon field="descuento"></p-sortIcon></th>
             <th pSortableColumn="impuestos">Impuestos <p-sortIcon field="impuestos"></p-sortIcon></th>
@@ -132,7 +131,6 @@
             <td>
               <div class="detail-stack">
                 <span><strong>Lote</strong> {{ item.numeroLote || 'Sin lote' }}</span>
-                <span><strong>Serie</strong> {{ item.numeroSerie || 'Sin serie' }}</span>
               </div>
             </td>
 
@@ -153,13 +151,6 @@
 
             <td>
               <span class="money-value">{{ formatMoney(item.valorUnitario) }}</span>
-            </td>
-
-            <td>
-              <div class="detail-stack">
-                <span><strong>P1</strong> {{ formatMoney(item.precio1) }}</span>
-                <span><strong>P2</strong> {{ formatMoney(item.precio2) }}</span>
-              </div>
             </td>
 
             <td>
@@ -216,7 +207,7 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="17" class="empty-state">
+            <td colspan="16" class="empty-state">
               <i class="pi pi-box"></i>
               <span>No hay productos en inventario</span>
             </td>

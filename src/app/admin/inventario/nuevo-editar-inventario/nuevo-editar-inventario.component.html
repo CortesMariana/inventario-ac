@@ -50,11 +50,6 @@
               </div>
 
               <div class="field">
-                <label>N&uacute;mero De Serie</label>
-                <input pInputText formControlName="numeroSerie" placeholder="N&uacute;mero de serie" />
-              </div>
-
-              <div class="field">
                 <label>Clasificaci&oacute;n De Producto</label>
                 <input pInputText formControlName="clasificacionProducto" placeholder="Ej. Colorantes, Lacas, Limpiadores" />
               </div>
@@ -83,36 +78,6 @@
                 <label>Valor Unitario</label>
                 <p-inputNumber
                   formControlName="valorUnitario"
-                  mode="currency"
-                  currency="MXN"
-                  locale="es-MX"
-                  placeholder="$0.00"
-                  [min]="0"
-                  [minFractionDigits]="2"
-                  [maxFractionDigits]="2"
-                  [useGrouping]="true">
-                </p-inputNumber>
-              </div>
-
-              <div class="field">
-                <label>Precio 1</label>
-                <p-inputNumber
-                  formControlName="precio1"
-                  mode="currency"
-                  currency="MXN"
-                  locale="es-MX"
-                  placeholder="$0.00"
-                  [min]="0"
-                  [minFractionDigits]="2"
-                  [maxFractionDigits]="2"
-                  [useGrouping]="true">
-                </p-inputNumber>
-              </div>
-
-              <div class="field">
-                <label>Precio 2</label>
-                <p-inputNumber
-                  formControlName="precio2"
                   mode="currency"
                   currency="MXN"
                   locale="es-MX"
