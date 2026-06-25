@@ -36,15 +36,12 @@ export interface InventarioItem {
   fechaElaboracion?: string;
   fechaCaducidad?: string;
   numeroLote?: string;
-  numeroSerie?: string;
   clasificacionProducto?: string;
   cantidad?: number;
   unidad?: string;
   claveProductoServicio?: string;
   descripcion?: string;
   valorUnitario?: number;
-  precio1?: number;
-  precio2?: number;
   tipoProducto?: string;
   abreviaturaClave?: string;
   descuento?: number;
