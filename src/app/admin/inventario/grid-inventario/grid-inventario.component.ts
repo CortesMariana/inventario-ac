@@ -21,6 +21,16 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   productosDisponibles = 0;
   productosStockBajo = 0;
   productosSinStock = 0;
+  private readonly moneyFormatter = new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  private readonly percentFormatter = new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -103,6 +113,16 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
       .slice(0, 2)
       .map(token => token.charAt(0).toUpperCase())
       .join('');
+  }
+
+  formatMoney(value: number | null | undefined): string {
+    const amount = Number(value ?? 0);
+    return this.moneyFormatter.format(Number.isFinite(amount) ? amount : 0);
+  }
+
+  formatPercent(value: number | null | undefined): string {
+    const amount = Number(value ?? 0);
+    return `${this.percentFormatter.format(Number.isFinite(amount) ? amount : 0)}%`;
   }
 
   getStockSeverity(item: InventarioItem): string {

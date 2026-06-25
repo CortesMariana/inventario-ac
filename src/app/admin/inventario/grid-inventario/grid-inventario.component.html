@@ -152,13 +152,13 @@
             </td>
 
             <td>
-              <span class="money-value">{{ item.valorUnitario ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+              <span class="money-value">{{ formatMoney(item.valorUnitario) }}</span>
             </td>
 
             <td>
               <div class="detail-stack">
-                <span><strong>P1</strong> {{ item.precio1 ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
-                <span><strong>P2</strong> {{ item.precio2 ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+                <span><strong>P1</strong> {{ formatMoney(item.precio1) }}</span>
+                <span><strong>P2</strong> {{ formatMoney(item.precio2) }}</span>
               </div>
             </td>
 
@@ -170,11 +170,11 @@
             </td>
 
             <td>
-              <span class="money-value">{{ item.descuento ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+              <span class="percent-value">{{ formatPercent(item.descuento) }}</span>
             </td>
 
             <td>
-              <span class="money-value">{{ item.impuestos ?? 0 | currency:'MXN':'symbol':'1.2-2' }}</span>
+              <span class="money-value">{{ formatMoney(item.impuestos) }}</span>
             </td>
 
             <td>

@@ -149,12 +149,19 @@
 }
 
 .field input,
-.field p-dropdown {
+.field p-dropdown,
+.field p-inputNumber {
   width: 100%;
 }
 
-.field p-dropdown {
+.field p-dropdown,
+.field p-inputNumber {
   display: block;
+}
+
+:host ::ng-deep .field .p-inputnumber,
+:host ::ng-deep .field .p-inputnumber-input {
+  width: 100%;
 }
 
 .field:hover {
