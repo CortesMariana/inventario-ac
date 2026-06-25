@@ -5,6 +5,8 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { InventarioItem, InventarioService } from '../inventario.service';
 
+type StockFilter = 'todos' | 'disponibles' | 'stockBajo' | 'sinStock';
+
 @Component({
     selector: 'app-grid-inventario',
     templateUrl: './grid-inventario.component.html',
@@ -16,6 +18,8 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   @ViewChild('dt') dt!: Table;
 
   inventario: InventarioItem[] = [];
+  inventarioFiltrado: InventarioItem[] = [];
+  filtroStockActivo: StockFilter = 'todos';
   loading = true;
   totalProductos = 0;
   productosDisponibles = 0;
@@ -46,10 +50,8 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.inventario = data;
-          this.totalProductos = data.length;
-          this.productosDisponibles = data.filter(item => item.stock > item.stockMinimo).length;
-          this.productosStockBajo = data.filter(item => item.stock > 0 && item.stock <= item.stockMinimo).length;
-          this.productosSinStock = data.filter(item => item.stock === 0).length;
+          this.actualizarConteos(data);
+          this.aplicarFiltroStock(false);
           this.loading = false;
         },
         error: () => {
@@ -89,6 +91,15 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   filtrarGlobal(event: Event): void {
     const valor = (event.target as HTMLInputElement).value;
     this.dt?.filterGlobal(valor, 'contains');
+  }
+
+  seleccionarFiltroStock(filtro: StockFilter): void {
+    this.filtroStockActivo = filtro;
+    this.aplicarFiltroStock();
+  }
+
+  get productosFiltrados(): number {
+    return this.inventarioFiltrado.length;
   }
 
   get porcentajeDisponibles(): number {
@@ -135,6 +146,44 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
     if (item.stock === 0) return 'Sin stock';
     if (item.stock <= item.stockMinimo) return 'Stock bajo';
     return 'Disponible';
+  }
+
+  private actualizarConteos(data: InventarioItem[]): void {
+    this.totalProductos = data.length;
+    this.productosDisponibles = data.filter(item => this.esDisponible(item)).length;
+    this.productosStockBajo = data.filter(item => this.esStockBajo(item)).length;
+    this.productosSinStock = data.filter(item => this.esSinStock(item)).length;
+  }
+
+  private aplicarFiltroStock(resetPagina = true): void {
+    this.inventarioFiltrado = this.inventario.filter(item => {
+      switch (this.filtroStockActivo) {
+        case 'disponibles':
+          return this.esDisponible(item);
+        case 'stockBajo':
+          return this.esStockBajo(item);
+        case 'sinStock':
+          return this.esSinStock(item);
+        default:
+          return true;
+      }
+    });
+
+    if (resetPagina && this.dt) {
+      this.dt.first = 0;
+    }
+  }
+
+  private esDisponible(item: InventarioItem): boolean {
+    return item.stock > item.stockMinimo;
+  }
+
+  private esStockBajo(item: InventarioItem): boolean {
+    return item.stock > 0 && item.stock <= item.stockMinimo;
+  }
+
+  private esSinStock(item: InventarioItem): boolean {
+    return item.stock === 0;
   }
 
   private eliminar(id: string): void {

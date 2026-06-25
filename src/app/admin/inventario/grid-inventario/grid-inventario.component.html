@@ -12,7 +12,14 @@
   </div>
 
   <div class="stats-grid">
-    <div class="stat-card">
+    <div
+      class="stat-card stat-filter"
+      role="button"
+      tabindex="0"
+      [class.stat-card-active]="filtroStockActivo === 'todos'"
+      (click)="seleccionarFiltroStock('todos')"
+      (keydown.enter)="seleccionarFiltroStock('todos')"
+      (keydown.space)="seleccionarFiltroStock('todos')">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-box"></i></span>
         <span class="stat-label">Total productos</span>
@@ -21,7 +28,14 @@
       <span class="stat-sub">Registros disponibles en el sistema</span>
     </div>
 
-    <div class="stat-card stat-card-accent">
+    <div
+      class="stat-card stat-card-accent stat-filter"
+      role="button"
+      tabindex="0"
+      [class.stat-card-active]="filtroStockActivo === 'disponibles'"
+      (click)="seleccionarFiltroStock('disponibles')"
+      (keydown.enter)="seleccionarFiltroStock('disponibles')"
+      (keydown.space)="seleccionarFiltroStock('disponibles')">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-check-circle"></i></span>
         <span class="stat-label">Disponibles</span>
@@ -30,7 +44,14 @@
       <span class="stat-sub">{{ porcentajeDisponibles }}% del total</span>
     </div>
 
-    <div class="stat-card">
+    <div
+      class="stat-card stat-filter"
+      role="button"
+      tabindex="0"
+      [class.stat-card-active]="filtroStockActivo === 'stockBajo'"
+      (click)="seleccionarFiltroStock('stockBajo')"
+      (keydown.enter)="seleccionarFiltroStock('stockBajo')"
+      (keydown.space)="seleccionarFiltroStock('stockBajo')">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-exclamation-triangle"></i></span>
         <span class="stat-label">Stock bajo</span>
@@ -39,7 +60,14 @@
       <span class="stat-sub">Productos que requieren reposición</span>
     </div>
 
-    <div class="stat-card">
+    <div
+      class="stat-card stat-filter"
+      role="button"
+      tabindex="0"
+      [class.stat-card-active]="filtroStockActivo === 'sinStock'"
+      (click)="seleccionarFiltroStock('sinStock')"
+      (keydown.enter)="seleccionarFiltroStock('sinStock')"
+      (keydown.space)="seleccionarFiltroStock('sinStock')">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-times-circle"></i></span>
         <span class="stat-label">Sin stock</span>
@@ -57,7 +85,7 @@
       </div>
 
       <div class="table-tools">
-        <span class="table-count-pill">{{ totalProductos }} productos</span>
+        <span class="table-count-pill">{{ productosFiltrados }} productos</span>
         <span class="p-input-icon-left search-box">
           <i class="pi pi-search"></i>
           <input
@@ -71,7 +99,7 @@
 
     <div class="table-scroll">
       <p-table
-        [value]="inventario"
+        [value]="inventarioFiltrado"
         [loading]="loading"
         [paginator]="true"
         [rows]="10"
@@ -188,8 +216,9 @@
               <span class="stock-minimo-value">{{ item.stockMinimo }}</span>
             </td>
 
-            <td>
+            <td class="estado-cell">
               <p-tag
+                styleClass="estado-tag"
                 [value]="getStockLabel(item)"
                 [severity]="getStockSeverity(item)">
               </p-tag>
