@@ -22,33 +22,32 @@
   </div>
 
   <!-- KPIs -->
-  <div class="stats-row">
+  <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon icon-blue">
-        <i class="pi pi-users"></i>
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-users"></i></span>
+        <span class="stat-label">Total usuarios</span>
       </div>
-      <div>
-        <div class="stat-label">Total usuarios</div>
-        <div class="stat-value">{{ usuarios.length }}</div>
-      </div>
+      <strong class="stat-value">{{ usuarios.length }}</strong>
+      <span class="stat-sub">Registros en el sistema</span>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon icon-green">
-        <i class="pi pi-user-plus"></i>
+
+    <div class="stat-card stat-card-accent">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-user-plus"></i></span>
+        <span class="stat-label">Activos</span>
       </div>
-      <div>
-        <div class="stat-label">Activos</div>
-        <div class="stat-value">{{ totalActivos }}</div>
-      </div>
+      <strong class="stat-value">{{ totalActivos }}</strong>
+      <span class="stat-sub">{{ usuarios.length ? ((totalActivos / usuarios.length * 100) | number:'1.0-0') : 0 }}% del total</span>
     </div>
+
     <div class="stat-card">
-      <div class="stat-icon icon-amber">
-        <i class="pi pi-shield"></i>
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-shield"></i></span>
+        <span class="stat-label">Roles asignados</span>
       </div>
-      <div>
-        <div class="stat-label">Roles asignados</div>
-        <div class="stat-value">{{ rolesUnicos }}</div>
-      </div>
+      <strong class="stat-value">{{ rolesUnicos }}</strong>
+      <span class="stat-sub">Roles distintos en uso</span>
     </div>
   </div>
 
@@ -57,115 +56,101 @@
 
     <!-- Tabs -->
     <div class="tab-row">
-      <div
-        class="tab"
-        [class.active]="tabActivo === 'todos'"
-        (click)="setTab('todos')">Todos</div>
-      <div
-        class="tab"
-        [class.active]="tabActivo === 'admin'"
-        (click)="setTab('admin')">Administradores</div>
-      <div
-        class="tab"
-        [class.active]="tabActivo === 'gerente'"
-        (click)="setTab('gerente')">Gerentes</div>
-      <div
-        class="tab"
-        [class.active]="tabActivo === 'cajero'"
-        (click)="setTab('cajero')">Cajeros</div>
-      <div
-        class="tab"
-        [class.active]="tabActivo === 'repartidor'"
-        (click)="setTab('repartidor')">Repartidores</div>
+      <div class="tab" [class.active]="tabActivo === 'todos'" (click)="setTab('todos')">Todos</div>
+      <div class="tab" [class.active]="tabActivo === 'admin'" (click)="setTab('admin')">Administradores</div>
+      <div class="tab" [class.active]="tabActivo === 'gerente'" (click)="setTab('gerente')">Gerentes</div>
+      <div class="tab" [class.active]="tabActivo === 'cajero'" (click)="setTab('cajero')">Cajeros</div>
+      <div class="tab" [class.active]="tabActivo === 'repartidor'" (click)="setTab('repartidor')">Repartidores</div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="table-toolbar">
-      <div class="search-wrap">
-        <i class="pi pi-search"></i>
-        <input
-          type="text"
-          placeholder="Buscar usuario..."
-          [(ngModel)]="searchTerm"
-          (input)="filtrar()" />
+    <!-- Table head -->
+    <div class="table-head">
+      <div>
+        <h2 class="table-title">Listado de usuarios</h2>
+        <p class="table-subtitle">Usuarios registrados con sus roles y estado de acceso.</p>
+      </div>
+      <div class="table-tools">
+        <span class="table-count-pill">{{ usuariosFiltrados.length }} usuarios</span>
+        <span class="p-input-icon-left search-box">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar usuario..."
+            [(ngModel)]="searchTerm"
+            (input)="filtrar()" />
+        </span>
       </div>
     </div>
 
-    <!-- Loading -->
-    <div class="loading-state" *ngIf="loading">
-      <i class="pi pi-spin pi-spinner"></i>
-      <span>Cargando usuarios...</span>
-    </div>
+    <div class="table-scroll">
+      <p-table
+        [value]="usuariosFiltrados"
+        [loading]="loading"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [tableStyle]="{ 'min-width': '700px' }"
+        dataKey="id"
+        styleClass="p-datatable-sm clientes-table">
 
-    <!-- Tabla -->
-    <table *ngIf="!loading">
-      <thead>
-        <tr>
-          <th>Usuario</th>
-          <th>Rol</th>
-          <th>Sucursal</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let usuario of usuariosFiltrados">
-          <td>
-            <div class="user-cell">
-              <div class="avatar" [ngClass]="getAvatarClass(usuario.rol)">
-                {{ getIniciales(usuario.nombre) }}
-              </div>
-              <div>
-                <div class="user-name">{{ usuario.nombre }}</div>
-                <div class="user-email">{{ usuario.email }}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getRolBadgeClass(usuario.rol)">
-              {{ roles[usuario.rol] }}
-            </span>
-          </td>
-          <td>{{ usuario.sucursal ?? '—' }}</td>
-          <td>
-            <span class="badge" [ngClass]="usuario.activo ? 'badge-activo' : 'badge-inactivo'">
-              {{ usuario.activo ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td>
-            <div class="actions">
-              <button
-                class="icon-btn"
-                (click)="editar(usuario.id!)"
-                title="Editar">
-                <i class="pi pi-pencil"></i>
-              </button>
-              <button
-                class="icon-btn"
-                (click)="toggleActivo(usuario)"
-                [title]="usuario.activo ? 'Desactivar' : 'Activar'">
-                <i [class]="usuario.activo ? 'pi pi-ban' : 'pi pi-check-circle'"></i>
-              </button>
-              <button
-                class="icon-btn danger"
-                (click)="confirmarEliminar(usuario)"
-                title="Eliminar">
-                <i class="pi pi-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="nombre" class="col-usuario">Usuario <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="rol">Rol <p-sortIcon field="rol"></p-sortIcon></th>
+            <th pSortableColumn="sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
+            <th pSortableColumn="activo">Estado <p-sortIcon field="activo"></p-sortIcon></th>
+            <th class="col-acciones">Acciones</th>
+          </tr>
+        </ng-template>
 
-        <tr *ngIf="usuariosFiltrados.length === 0">
-          <td colspan="5">
-            <div class="empty-state">
+        <ng-template pTemplate="body" let-usuario>
+          <tr>
+            <td>
+              <div class="usuario-cell">
+                <div class="usuario-avatar" [ngClass]="getAvatarClass(usuario.rol)">
+                  {{ getIniciales(usuario.nombre) }}
+                </div>
+                <div class="usuario-meta">
+                  <span class="usuario-nombre">{{ usuario.nombre }}</span>
+                  <span class="usuario-email">{{ usuario.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getRolBadgeClass(usuario.rol)">
+                {{ roles[usuario.rol] }}
+              </span>
+            </td>
+            <td>{{ usuario.sucursal ?? '—' }}</td>
+            <td>
+              <p-tag
+                [value]="usuario.activo ? 'Activo' : 'Inactivo'"
+                [severity]="usuario.activo ? 'success' : 'danger'">
+              </p-tag>
+            </td>
+            <td>
+              <div class="actions">
+                <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(usuario.id!)" pTooltip="Editar"></button>
+                <button pButton icon="pi pi-ban" class="p-button-text p-button-sm" *ngIf="usuario.activo" (click)="toggleActivo(usuario)" pTooltip="Desactivar"></button>
+                <button pButton icon="pi pi-check-circle" class="p-button-text p-button-sm" *ngIf="!usuario.activo" (click)="toggleActivo(usuario)" pTooltip="Activar"></button>
+                <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="confirmarEliminar(usuario)" pTooltip="Eliminar"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="empty-state">
               <i class="pi pi-users"></i>
               <span>No hay usuarios registrados</span>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
 
   </div>
 
