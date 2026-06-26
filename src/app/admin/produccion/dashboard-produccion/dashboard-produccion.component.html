@@ -1,0 +1,191 @@
+<div class="dashboard-produccion">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Producci&oacute;n</h1>
+      <p class="page-sub">Alertas de stock bajo para reabastecimiento inmediato</p>
+    </div>
+
+    <a
+      pButton
+      class="header-action"
+      icon="pi pi-box"
+      label="Abrir inventario"
+      routerLink="/admin/inventario">
+    </a>
+  </div>
+
+  <section
+    class="production-notification"
+    [ngClass]="notificationClass"
+    [attr.role]="tieneAlertas ? 'alert' : 'status'"
+    [attr.aria-live]="tieneAlertas ? 'assertive' : 'polite'"
+    *ngIf="!loading">
+    <div class="notification-icon">
+      <i class="pi" [ngClass]="kpis.alertasCriticas > 0 ? 'pi-exclamation-triangle' : 'pi-bell'"></i>
+    </div>
+
+    <div class="notification-copy">
+      <span class="notification-kicker">Notificaci&oacute;n activa</span>
+      <strong class="notification-title">{{ notificationTitle }}</strong>
+      <span class="notification-text">{{ notificationText }}</span>
+    </div>
+
+    <div class="notification-pill">
+      <span>{{ notificationLabel }}</span>
+      <small>{{ kpis.alertasActivas }}</small>
+    </div>
+  </section>
+
+  <ng-container *ngIf="loading">
+    <div class="kpi-grid">
+      <div class="kpi-card skeleton" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="panel skeleton-panel"></div>
+      <div class="panel skeleton-panel"></div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading">
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-card-critical">
+        <div class="kpi-icon">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Alertas activas</span>
+          <span class="kpi-value">{{ kpis.alertasActivas }}</span>
+          <span class="kpi-sub kpi-down" *ngIf="kpis.alertasCriticas > 0">
+            <i class="pi pi-exclamation-circle"></i>
+            {{ kpis.alertasCriticas }} cr&iacute;ticas
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-times-circle"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Sin stock</span>
+          <span class="kpi-value">{{ kpis.stockCero }}</span>
+          <span class="kpi-sub text-muted">Reposici&oacute;n urgente</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-sitemap"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Sucursales afectadas</span>
+          <span class="kpi-value">{{ kpis.sucursalesAfectadas }}</span>
+          <span class="kpi-sub text-muted">Con alertas de producci&oacute;n</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="pi pi-sort-amount-down"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Unidades por reponer</span>
+          <span class="kpi-value">{{ kpis.unidadesPorReponer }}</span>
+          <span class="kpi-sub text-muted">Faltante total estimado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <section class="panel panel-priority">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Prioridad m&aacute;xima</h2>
+            <p class="panel-sub">Productos que requieren respuesta inmediata</p>
+          </div>
+          <span class="panel-badge">{{ kpis.alertasCriticas }} cr&iacute;ticas</span>
+        </div>
+
+        <div class="priority-list" *ngIf="kpis.alertasPrioritarias.length > 0; else emptyPriority">
+          <article
+            class="priority-item"
+            *ngFor="let alerta of kpis.alertasPrioritarias; trackBy: trackByAlerta"
+            [ngClass]="alerta.nivel === 'critical' ? 'priority-item-critical' : 'priority-item-warning'">
+            <div class="priority-marker" [ngClass]="getMarkerClass(alerta)"></div>
+
+            <div class="priority-body">
+              <div class="priority-top">
+                <div class="priority-copy">
+                  <span class="priority-name">{{ alerta.nombreProducto }}</span>
+                  <span class="priority-sub">{{ alerta.sucursal }} - Stock {{ formatRatio(alerta) }}</span>
+                </div>
+
+                <p-tag [value]="getTagLabel(alerta)" [severity]="getTagSeverity(alerta)"></p-tag>
+              </div>
+
+              <div class="priority-progress" [attr.aria-label]="'Cobertura ' + formatRatio(alerta)">
+                <span class="priority-progress-bar" [style.width.%]="getProgressWidth(alerta)"></span>
+              </div>
+
+              <div class="priority-foot">
+                <span>Faltan {{ alerta.faltante }} unidades</span>
+                <a class="priority-link" routerLink="/admin/inventario">Ver inventario</a>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #emptyPriority>
+          <div class="empty-state">
+            <i class="pi pi-check-circle"></i>
+            <span>No hay alertas prioritarias</span>
+          </div>
+        </ng-template>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Alertas activas</h2>
+            <p class="panel-sub">Listado completo para el equipo de producci&oacute;n</p>
+          </div>
+          <span class="panel-pill">{{ kpis.totalProductos }} monitoreados</span>
+        </div>
+
+        <div class="alert-list" *ngIf="kpis.alertas.length > 0; else emptyAlerts">
+          <article
+            *ngFor="let alerta of kpis.alertas; trackBy: trackByAlerta"
+            [ngClass]="getAlertClass(alerta)">
+            <div class="alert-dot-wrap">
+              <div [ngClass]="getMarkerClass(alerta)"></div>
+            </div>
+
+            <div class="alert-info">
+              <div class="alert-head">
+                <span class="alert-name">{{ alerta.nombreProducto }}</span>
+                <p-tag [value]="getTagLabel(alerta)" [severity]="getTagSeverity(alerta)"></p-tag>
+              </div>
+
+                <span class="alert-sub">{{ alerta.sucursal }} - {{ alerta.stock }} de {{ alerta.stockMinimo }} unidades</span>
+
+              <div class="alert-meta">
+                <span>Faltan {{ alerta.faltante }} para el m&iacute;nimo</span>
+                <span>{{ alerta.codigoProducto }}</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #emptyAlerts>
+          <div class="empty-state">
+            <i class="pi pi-check-circle"></i>
+            <span>Sin alertas de stock bajo</span>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+  </ng-container>
+
+</div>
