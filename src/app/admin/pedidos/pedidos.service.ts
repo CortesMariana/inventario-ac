@@ -14,6 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { InventarioItem } from '../inventario/inventario.service';
 
 export interface ProductoPedido {
   productoId: string;
@@ -28,7 +29,9 @@ export interface Pedido {
   clienteId: string;
   clienteNombre: string;
   clienteRfc: string;
+  clienteEmail?: string;
   descuentoCliente: number;
+  tipoPedido: 'factura' | 'consigna';
   sucursalId: string;
   sucursal: string;
   productos: ProductoPedido[];
@@ -36,7 +39,7 @@ export interface Pedido {
   descuento: number;
   total: number;
   totalProductos: number;
-  estado: 'pendiente' | 'en_transito' | 'entregado' | 'cancelado' | 'sin_stock';
+  estado: 'en_revision' | 'pendiente' | 'en_transito' | 'entregado' | 'cancelado' | 'sin_stock';
   fechaCreacion?: any;
   fechaActualizacion?: any;
 }
@@ -44,8 +47,10 @@ export interface Pedido {
 @Injectable({ providedIn: 'root' })
 export class PedidosService {
 
-  private col = environment.collections.pedidos;
+  private col          = environment.collections.pedidos;
   private colInventario = environment.collections.inventario;
+  private colNotifProd = 'notificaciones_produccion';
+  private colMail      = 'mail';
 
   constructor(private firestore: Firestore) {}
 
@@ -67,9 +72,7 @@ export class PedidosService {
   }
 
   async create(pedido: Pedido): Promise<any> {
-    // Transacción atómica: verifica stock y crea pedido
     return runTransaction(this.firestore, async (transaction) => {
-      // Verifica stock de cada producto
       for (const item of pedido.productos) {
         const invRef = doc(
           this.firestore,
@@ -84,7 +87,6 @@ export class PedidosService {
         }
       }
 
-      // Descuenta stock
       for (const item of pedido.productos) {
         const invRef = doc(
           this.firestore,
@@ -95,7 +97,6 @@ export class PedidosService {
         transaction.update(invRef, { stock: stockActual - item.cantidad, fechaActualizacion: new Date() });
       }
 
-      // Crea el pedido
       const pedidoRef = doc(collection(this.firestore, this.col));
       transaction.set(pedidoRef, { ...pedido, fechaCreacion: new Date(), fechaActualizacion: new Date() });
       return pedidoRef;
@@ -109,5 +110,50 @@ export class PedidosService {
 
   cancelar(id: string): Promise<void> {
     return this.updateEstado(id, 'cancelado');
+  }
+
+  async notificarProduccion(item: InventarioItem): Promise<void> {
+    const ref = collection(this.firestore, this.colNotifProd);
+    await addDoc(ref, {
+      productoId:     item.productoId,
+      nombreProducto: item.descripcion || item.nombreProducto,
+      codigoProducto: item.codigoProducto ?? '',
+      sucursalId:     item.sucursalId,
+      sucursal:       item.sucursal,
+      stock:          item.stock,
+      stockMinimo:    item.stockMinimo,
+      fechaSolicitud: new Date(),
+      atendido:       false
+    });
+  }
+
+  async enviarConfirmacionEmail(pedido: Pedido): Promise<void> {
+    if (!pedido.clienteEmail) return;
+
+    const lineas = pedido.productos
+      .map(p => `<li>${p.nombreProducto} × ${p.cantidad} — $${p.subtotal.toFixed(2)}</li>`)
+      .join('');
+
+    const ref = collection(this.firestore, this.colMail);
+    await addDoc(ref, {
+      to: pedido.clienteEmail,
+      message: {
+        subject: `Confirmación de pedido — ${pedido.clienteNombre}`,
+        html: `
+          <h2 style="color:#111827">¡Tu pedido fue recibido!</h2>
+          <p>Estimado(a) <strong>${pedido.clienteNombre}</strong>,</p>
+          <p>Hemos recibido tu pedido correctamente. Está actualmente <strong>en revisión</strong> y te notificaremos cuando sea procesado.</p>
+          <h3>Detalle del pedido</h3>
+          <ul>${lineas}</ul>
+          <table style="border-top:1px solid #e5e7eb;margin-top:12px;padding-top:12px;width:100%">
+            <tr><td>Subtotal</td><td align="right">$${pedido.subtotal.toFixed(2)}</td></tr>
+            ${pedido.descuento > 0 ? `<tr><td>Descuento (${pedido.descuentoCliente}%)</td><td align="right" style="color:#16A34A">-$${pedido.descuento.toFixed(2)}</td></tr>` : ''}
+            <tr><td><strong>Total</strong></td><td align="right"><strong>$${pedido.total.toFixed(2)}</strong></td></tr>
+          </table>
+          <p style="margin-top:20px;color:#6b7280;font-size:13px">Tipo de pedido: ${pedido.tipoPedido === 'factura' ? 'Factura' : 'Consigna'}</p>
+          <p style="color:#6b7280;font-size:13px">Sucursal: ${pedido.sucursal}</p>
+        `
+      }
+    });
   }
 }

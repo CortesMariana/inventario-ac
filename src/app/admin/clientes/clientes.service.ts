@@ -26,6 +26,7 @@ export interface Cliente {
   id?: string;
   nombre: string;
   rfc: string;
+  email?: string;
   direccion: string;
   direccionFisica?: DireccionCliente;
   domicilioFiscal?: DireccionCliente;
