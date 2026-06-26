@@ -31,6 +31,12 @@ export class SidebarComponent {
       ]
     },
     {
+      label: 'Operacion',
+      items: [
+        { label: 'Produccion', icon: 'pi pi-bell', route: '/admin/produccion/dashboard' }
+      ]
+    },
+    {
       label: 'Gestión',
       items: [
         { label: 'Clientes',   icon: 'pi pi-users',          route: '/admin/clientes' },
