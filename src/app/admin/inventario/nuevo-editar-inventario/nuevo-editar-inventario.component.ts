@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { InventarioItem, InventarioService } from '../inventario.service';
+import { BarcodeLabelsService } from '../barcode-labels.service';
 
 @Component({
     selector: 'app-nuevo-editar-inventario',
@@ -29,6 +30,7 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private inventarioSrv: InventarioService,
+    private barcodeLabelsSrv: BarcodeLabelsService,
     private route: ActivatedRoute,
     private router: Router,
     private messageSrv: MessageService
@@ -55,6 +57,8 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
       nombreProducto: [''],
       productoId:     [''],
       codigoProducto: [''],
+      codigoBarras:   [''],
+      imprimirEtiquetas: [true],
       claveSat:       [''],
       fechaElaboracion: [''],
       fechaCaducidad: [''],
@@ -123,6 +127,8 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
             nombreProducto: item.nombreProducto ?? '',
             productoId: item.productoId ?? '',
             codigoProducto: item.codigoProducto ?? item.productoId ?? '',
+            codigoBarras: item.codigoBarras ?? '',
+            imprimirEtiquetas: false,
             claveSat: item.claveSat ?? '',
             fechaElaboracion: item.fechaElaboracion ?? '',
             fechaCaducidad: item.fechaCaducidad ?? '',
@@ -160,6 +166,16 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
     this.syncSucursalLabel(event.value);
   }
 
+  generarCodigoBarras(): void {
+    this.syncProductIdentity();
+    const data = this.form.getRawValue() as Partial<InventarioItem>;
+    const codigoBarras = this.barcodeLabelsSrv.generateUniqueCode(data);
+    this.form.patchValue({
+      codigoBarras,
+      imprimirEtiquetas: true
+    });
+  }
+
   private syncSucursalLabel(sucursalId: string | null | undefined, fallback = ''): void {
     const found = this.sucursales.find(s => s.value === sucursalId);
     this.form.patchValue({ sucursal: found?.label ?? fallback }, { emitEvent: false });
@@ -184,6 +200,10 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
 
   get resumenSucursalId(): string {
     return String(this.form?.get('sucursalId')?.value ?? '').trim() || 'Pendiente';
+  }
+
+  get resumenCodigoBarras(): string {
+    return String(this.form?.get('codigoBarras')?.value ?? '').trim() || 'Sin generar';
   }
 
   get resumenStock(): string {
@@ -230,6 +250,11 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
     return this.editMode ? 'Edición' : 'Nuevo';
   }
 
+  get etiquetasAImprimir(): number {
+    const stock = Number(this.form?.get('stock')?.value ?? 0);
+    return Math.max(0, Math.floor(Number.isFinite(stock) ? stock : 0));
+  }
+
   async guardar(): Promise<void> {
     this.syncProductIdentity();
     this.calcularImpuestos();
@@ -239,7 +264,12 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading = true;
-    const data = this.form.getRawValue() as Partial<InventarioItem>;
+    const rawData = this.form.getRawValue() as Partial<InventarioItem> & { imprimirEtiquetas?: boolean };
+    const { imprimirEtiquetas, ...data } = rawData;
+    const debeImprimirEtiquetas = !this.editMode && Boolean(data.codigoBarras) && Boolean(imprimirEtiquetas);
+    const printWindow = debeImprimirEtiquetas && this.etiquetasAImprimir > 0
+      ? this.barcodeLabelsSrv.openPrintWindow()
+      : null;
     try {
       if (this.editMode && this.itemId) {
         await this.inventarioSrv.updateInventarioItem(this.itemId, data);
@@ -247,9 +277,13 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
       } else {
         await this.inventarioSrv.createInventarioItem(data as InventarioItem);
         this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Producto agregado al inventario' });
+        if (debeImprimirEtiquetas) {
+          this.imprimirEtiquetas(data, printWindow);
+        }
       }
       this.router.navigate(['/admin/inventario']);
     } catch {
+      printWindow?.close();
       this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar' });
     } finally {
       this.loading = false;
@@ -258,5 +292,17 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
 
   cancelar(): void {
     this.router.navigate(['/admin/inventario']);
+  }
+
+  private imprimirEtiquetas(item: Partial<InventarioItem>, printWindow?: Window | null): void {
+    if (this.etiquetasAImprimir < 1) {
+      this.messageSrv.add({ severity: 'warn', summary: 'Sin etiquetas', detail: 'El stock capturado es 0' });
+      return;
+    }
+
+    const printed = this.barcodeLabelsSrv.printLabels(item, this.etiquetasAImprimir, printWindow);
+    if (!printed) {
+      this.messageSrv.add({ severity: 'warn', summary: 'Impresion bloqueada', detail: 'Permite ventanas emergentes para imprimir etiquetas' });
+    }
   }
 }

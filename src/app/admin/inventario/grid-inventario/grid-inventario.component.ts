@@ -4,6 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { InventarioItem, InventarioService } from '../inventario.service';
+import { BarcodeLabelsService } from '../barcode-labels.service';
 
 type StockFilter = 'todos' | 'disponibles' | 'stockBajo' | 'sinStock';
 
@@ -39,6 +40,7 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
 
   constructor(
     private inventarioSrv: InventarioService,
+    private barcodeLabelsSrv: BarcodeLabelsService,
     private router: Router,
     private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
@@ -86,6 +88,42 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
       icon: 'pi pi-exclamation-triangle',
       accept: () => this.eliminar(item.id!)
     });
+  }
+
+  async reimprimirEtiquetas(item: InventarioItem): Promise<void> {
+    const itemConCodigo = { ...item };
+    const etiquetas = Math.max(0, Math.floor(Number(itemConCodigo.stock) || 0));
+    const itemId = itemConCodigo.id ?? '';
+
+    if (etiquetas < 1) {
+      this.messageSrv.add({ severity: 'warn', summary: 'Sin etiquetas', detail: 'El producto no tiene stock disponible' });
+      return;
+    }
+
+    if (!itemConCodigo.codigoBarras) {
+      if (!itemId) {
+        this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el codigo de barras' });
+        return;
+      }
+    }
+
+    const printWindow = this.barcodeLabelsSrv.openPrintWindow();
+
+    if (!itemConCodigo.codigoBarras) {
+      itemConCodigo.codigoBarras = this.barcodeLabelsSrv.generateUniqueCode(itemConCodigo);
+      try {
+        await this.inventarioSrv.updateInventarioItem(itemId, { codigoBarras: itemConCodigo.codigoBarras });
+      } catch {
+        printWindow?.close();
+        this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar el codigo de barras' });
+        return;
+      }
+    }
+
+    const printed = this.barcodeLabelsSrv.printLabels(itemConCodigo, etiquetas, printWindow);
+    if (!printed) {
+      this.messageSrv.add({ severity: 'warn', summary: 'Impresion bloqueada', detail: 'Permite ventanas emergentes para imprimir etiquetas' });
+    }
   }
 
   filtrarGlobal(event: Event): void {

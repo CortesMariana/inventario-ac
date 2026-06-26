@@ -165,6 +165,38 @@
             </div>
           </section>
 
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">C&oacute;digo de barras</h2>
+                <p class="section-sub">Genera etiquetas imprimibles para el stock capturado</p>
+              </div>
+              <button
+                pButton
+                type="button"
+                class="p-button-outlined p-button-sm"
+                icon="pi pi-barcode"
+                [label]="f['codigoBarras'].value ? 'Regenerar codigo' : 'Generar codigo'"
+                (click)="generarCodigoBarras()">
+              </button>
+            </div>
+
+            <div class="form-grid">
+              <div class="field field-full">
+                <label>C&oacute;digo de barras</label>
+                <input pInputText formControlName="codigoBarras" placeholder="Genera un c&oacute;digo de barras &uacute;nico" readonly />
+              </div>
+
+              <div class="field field-full barcode-print-option" *ngIf="!editMode">
+                <label class="checkbox-row">
+                  <input type="checkbox" formControlName="imprimirEtiquetas" />
+                  <span>Imprimir etiquetas al guardar</span>
+                </label>
+                <small>Se imprimir&aacute;n {{ etiquetasAImprimir }} etiquetas de acuerdo al stock capturado.</small>
+              </div>
+            </div>
+          </section>
+
           <div class="form-footer">
             <button pButton type="submit" [label]="editMode ? 'Guardar cambios' : 'Agregar al inventario'" icon="pi pi-check" [loading]="loading"></button>
           </div>
@@ -220,6 +252,10 @@
         <div class="summary-block">
           <span class="summary-block-label">Sucursal ID</span>
           <div class="summary-block-value">{{ resumenSucursalId }}</div>
+        </div>
+        <div class="summary-block">
+          <span class="summary-block-label">C&oacute;digo de barras</span>
+          <div class="summary-block-value">{{ resumenCodigoBarras }}</div>
         </div>
       </div>
     </aside>

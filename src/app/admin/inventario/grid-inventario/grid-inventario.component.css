@@ -361,6 +361,11 @@
   white-space: nowrap;
 }
 
+.col-acciones {
+  min-width: 152px;
+  width: 152px;
+}
+
 .actions {
   display: flex;
   gap: 4px;

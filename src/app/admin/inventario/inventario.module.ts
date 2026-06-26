@@ -17,6 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { BarcodeLabelsService } from './barcode-labels.service';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     InputNumberModule
   ],
   providers: [
+    BarcodeLabelsService,
     ConfirmationService,
     MessageService
   ]

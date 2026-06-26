@@ -195,6 +195,31 @@
   font-size: 11px;
 }
 
+.barcode-print-option {
+  gap: 8px;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.barcode-print-option small {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .form-footer {
   margin-top: 24px;
   display: flex;
