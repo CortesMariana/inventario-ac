@@ -22,6 +22,10 @@ export class GridUsuariosComponent implements OnInit, OnDestroy {
   confirmMessage = '';
   confirmAction: (() => void) | null = null;
 
+  resetVisible = false;
+  resetMessage = '';
+  private resetUsuarioEmail = '';
+
   private destroy$ = new Subject<void>();
 
   roles: Record<string, string> = {
@@ -157,5 +161,26 @@ export class GridUsuariosComponent implements OnInit, OnDestroy {
   onCancel(): void {
     this.confirmVisible = false;
     this.confirmAction = null;
+  }
+
+  confirmarResetPassword(usuario: Usuario): void {
+    this.resetUsuarioEmail = usuario.email;
+    this.resetMessage = `Se enviará un enlace de recuperación al correo ${usuario.email} para que ${usuario.nombre} pueda establecer una nueva contraseña.`;
+    this.resetVisible = true;
+  }
+
+  async onConfirmReset(): Promise<void> {
+    this.resetVisible = false;
+    try {
+      await this.usuariosSrv.resetearPassword(this.resetUsuarioEmail);
+      this.messageSrv.add({ severity: 'success', summary: 'Enviado', detail: 'Enlace de recuperación enviado al correo del usuario' });
+    } catch {
+      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo enviar el enlace de recuperación' });
+    }
+  }
+
+  onCancelReset(): void {
+    this.resetVisible = false;
+    this.resetUsuarioEmail = '';
   }
 }

@@ -13,6 +13,17 @@
     (cancel)="onCancel()">
   </app-confirm-dialog>
 
+  <app-confirm-dialog
+    [visible]="resetVisible"
+    title="Restablecer contraseña"
+    [message]="resetMessage"
+    confirmLabel="Enviar enlace"
+    cancelLabel="Cancelar"
+    type="info"
+    (confirm)="onConfirmReset()"
+    (cancel)="onCancelReset()">
+  </app-confirm-dialog>
+
   <div class="page-header">
     <div>
       <h1 class="page-title">Usuarios</h1>
@@ -132,6 +143,7 @@
             <td>
               <div class="actions">
                 <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(usuario.id!)" pTooltip="Editar"></button>
+                <button pButton icon="pi pi-key" class="p-button-text p-button-sm" (click)="confirmarResetPassword(usuario)" pTooltip="Restablecer contraseña"></button>
                 <button pButton icon="pi pi-ban" class="p-button-text p-button-sm" *ngIf="usuario.activo" (click)="toggleActivo(usuario)" pTooltip="Desactivar"></button>
                 <button pButton icon="pi pi-check-circle" class="p-button-text p-button-sm" *ngIf="!usuario.activo" (click)="toggleActivo(usuario)" pTooltip="Activar"></button>
                 <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="confirmarEliminar(usuario)" pTooltip="Eliminar"></button>

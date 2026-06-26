@@ -90,6 +90,33 @@
             </div>
           </section>
 
+          <section class="section" *ngIf="editMode">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Seguridad</h2>
+                <p class="section-sub">Gestión del acceso y contraseña del usuario</p>
+              </div>
+            </div>
+            <div class="security-row">
+              <div class="security-icon">
+                <i class="pi pi-lock"></i>
+              </div>
+              <div class="security-copy">
+                <div class="security-label">Contraseña</div>
+                <div class="security-desc">Envía un enlace al correo del usuario para que pueda establecer una nueva contraseña.</div>
+              </div>
+              <button
+                pButton
+                type="button"
+                label="Enviar enlace"
+                icon="pi pi-send"
+                class="p-button-outlined p-button-sm"
+                [loading]="loadingReset"
+                (click)="enviarResetPassword()">
+              </button>
+            </div>
+          </section>
+
           <div class="form-footer">
             <button
               pButton

@@ -17,6 +17,7 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
   editMode = false;
   usuarioId: string | null = null;
   loading = false;
+  loadingReset = false;
   rolSeleccionado = '';
   private destroy$ = new Subject<void>();
 
@@ -158,6 +159,18 @@ export class NuevoEditarUsuariosComponent implements OnInit, OnDestroy {
       this.messageSrv.add({ severity: 'error', summary: 'Error', detail: msg });
     } finally {
       this.loading = false;
+    }
+  }
+
+  async enviarResetPassword(): Promise<void> {
+    this.loadingReset = true;
+    try {
+      await this.usuariosSrv.resetearPassword(this.form.value.email);
+      this.messageSrv.add({ severity: 'success', summary: 'Enviado', detail: 'Enlace de recuperación enviado al correo del usuario' });
+    } catch {
+      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo enviar el enlace de recuperación' });
+    } finally {
+      this.loadingReset = false;
     }
   }
 
