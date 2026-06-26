@@ -3,161 +3,147 @@
   <p-toast></p-toast>
 
   <div class="page-header">
-    <div class="header-left">
-      <button class="back-btn" (click)="cancelar()">
-        <i class="pi pi-arrow-left"></i>
-      </button>
-      <div>
-        <h1 class="page-title">{{ editMode ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
-        <p class="page-sub">{{ editMode ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema' }}</p>
-      </div>
+    <div>
+      <h1 class="page-title">{{ editMode ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+      <p class="page-sub">{{ editMode ? 'Modifica los datos del usuario' : 'Registra un nuevo usuario en el sistema' }}</p>
     </div>
+    <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="guardar()">
-    <div class="form-layout">
+  <div class="usuario-layout">
+    <div class="form-column">
+      <div class="card form-card">
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="usuario-form">
 
-      <!-- Columna principal -->
-      <div class="col-main">
-
-        <!-- Información personal -->
-        <div class="form-card">
-          <div class="form-card-header">
-            <div class="form-card-icon">
-              <i class="pi pi-user"></i>
-            </div>
-            <div>
-              <div class="form-card-title">Información personal</div>
-              <div class="form-card-sub">Datos de identificación del usuario</div>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="field field-full">
-              <label>Nombre completo *</label>
-              <input
-                pInputText
-                formControlName="nombre"
-                placeholder="Ej. Juan Pérez García" />
-              <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
-              <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Información personal</h2>
+                <p class="section-sub">Datos de identificación del usuario</p>
+              </div>
             </div>
 
-            <div class="field">
-              <label>Correo electrónico *</label>
-              <input
-                pInputText
-                formControlName="email"
-                placeholder="correo@ejemplo.com"
-                type="email"
-                [attr.disabled]="editMode ? true : null" />
-              <small class="error" *ngIf="f['email'].touched && f['email'].hasError('required')">Campo requerido</small>
-              <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
-              <small class="hint" *ngIf="editMode">El correo no puede modificarse</small>
+            <div class="form-grid">
+              <div class="field field-full">
+                <label>Nombre completo *</label>
+                <input pInputText formControlName="nombre" placeholder="Ej. Juan Pérez García" />
+                <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="f['nombre'].touched && f['nombre'].hasError('minlength')">Mínimo 3 caracteres</small>
+              </div>
+
+              <div class="field">
+                <label>Correo electrónico *</label>
+                <input
+                  pInputText
+                  formControlName="email"
+                  placeholder="correo@ejemplo.com"
+                  type="email"
+                  [attr.disabled]="editMode ? true : null" />
+                <small class="error" *ngIf="f['email'].touched && f['email'].hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
+                <small class="hint" *ngIf="editMode">El correo no puede modificarse</small>
+              </div>
+
+              <div class="field" *ngIf="!editMode">
+                <label>Contraseña *</label>
+                <p-password
+                  formControlName="password"
+                  placeholder="Mínimo 6 caracteres"
+                  [toggleMask]="true"
+                  [feedback]="false">
+                </p-password>
+                <small class="error" *ngIf="f['password'].touched && f['password'].hasError('required')">Campo requerido</small>
+                <small class="error" *ngIf="f['password'].touched && f['password'].hasError('minlength')">Mínimo 6 caracteres</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Rol y acceso</h2>
+                <p class="section-sub">Define los permisos y la sucursal del usuario</p>
+              </div>
             </div>
 
-            <div class="field" *ngIf="!editMode">
-              <label>Contraseña *</label>
-              <p-password
-                formControlName="password"
-                placeholder="Mínimo 6 caracteres"
-                [toggleMask]="true"
-                [feedback]="false">
-              </p-password>
-              <small class="error" *ngIf="f['password'].touched && f['password'].hasError('required')">Campo requerido</small>
-              <small class="error" *ngIf="f['password'].touched && f['password'].hasError('minlength')">Mínimo 6 caracteres</small>
+            <div class="form-grid">
+              <div class="field">
+                <label>Rol *</label>
+                <p-dropdown
+                  formControlName="rol"
+                  [options]="roles"
+                  placeholder="Selecciona un rol"
+                  (onChange)="onRolChange($event)">
+                </p-dropdown>
+                <small class="error" *ngIf="f['rol'].touched && f['rol'].hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field">
+                <label>Sucursal asignada</label>
+                <p-dropdown
+                  formControlName="sucursalId"
+                  [options]="sucursales"
+                  placeholder="Selecciona una sucursal"
+                  (onChange)="onSucursalChange($event)">
+                </p-dropdown>
+              </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        <!-- Rol y acceso -->
-        <div class="form-card">
-          <div class="form-card-header">
-            <div class="form-card-icon icon-purple">
-              <i class="pi pi-shield"></i>
-            </div>
-            <div>
-              <div class="form-card-title">Rol y acceso</div>
-              <div class="form-card-sub">Define los permisos del usuario</div>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label>Rol *</label>
-              <p-dropdown
-                formControlName="rol"
-                [options]="roles"
-                placeholder="Selecciona un rol"
-                (onChange)="onRolChange($event)">
-              </p-dropdown>
-              <small class="error" *ngIf="f['rol'].touched && f['rol'].hasError('required')">Campo requerido</small>
-            </div>
-
-            <div class="field">
-              <label>Sucursal asignada</label>
-              <p-dropdown
-                formControlName="sucursalId"
-                [options]="sucursales"
-                placeholder="Selecciona una sucursal"
-                (onChange)="onSucursalChange($event)">
-              </p-dropdown>
-            </div>
-          </div>
-
-          <!-- Preview del rol seleccionado -->
-          <div class="rol-preview" *ngIf="rolSeleccionado">
-            <i class="pi pi-info-circle"></i>
-            <span>{{ getRolDescripcion(rolSeleccionado) }}</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Columna lateral -->
-      <div class="col-aside">
-
-        <!-- Avatar preview -->
-        <div class="form-card aside-card">
-          <div class="form-card-title" style="margin-bottom:16px">Vista previa</div>
-          <div class="user-preview">
-            <div class="avatar-preview" [ngClass]="getAvatarClass(form.value.rol)">
-              {{ getIniciales(form.value.nombre) || 'AC' }}
-            </div>
-            <div class="preview-nombre">{{ form.value.nombre || 'Nombre del usuario' }}</div>
-            <div class="preview-email">{{ form.value.email || 'correo@ejemplo.com' }}</div>
-            <span class="badge" [ngClass]="getRolBadgeClass(form.value.rol)" *ngIf="form.value.rol">
-              {{ getRolLabel(form.value.rol) }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Acciones -->
-        <div class="form-card aside-card">
-          <div class="form-card-title" style="margin-bottom:16px">Acciones</div>
-          <div class="aside-actions">
+          <div class="form-footer">
             <button
               pButton
               type="submit"
               [label]="editMode ? 'Guardar cambios' : 'Crear usuario'"
               icon="pi pi-check"
-              [loading]="loading"
-              class="btn-guardar">
-            </button>
-            <button
-              pButton
-              type="button"
-              label="Cancelar"
-              icon="pi pi-times"
-              class="p-button-outlined btn-cancelar"
-              (click)="cancelar()">
+              [loading]="loading">
             </button>
           </div>
-        </div>
 
+        </form>
+      </div>
+    </div>
+
+    <aside class="summary-column">
+      <!-- Hero -->
+      <div class="summary-card summary-hero-card">
+        <div class="summary-hero">
+          <div class="summary-avatar" [ngClass]="getAvatarClass(form.value.rol)">
+            {{ getIniciales(form.value.nombre) || 'AC' }}
+          </div>
+          <div class="summary-hero-copy">
+            <div class="summary-name">{{ form.value.nombre || 'Nombre del usuario' }}</div>
+            <div class="summary-sub">{{ form.value.email || 'correo@ejemplo.com' }}</div>
+          </div>
+        </div>
+        <div class="summary-tags" *ngIf="form.value.rol">
+          <span class="badge" [ngClass]="getRolBadgeClass(form.value.rol)">
+            {{ getRolLabel(form.value.rol) }}
+          </span>
+        </div>
       </div>
 
-    </div>
-  </form>
+      <!-- Asignación -->
+      <div class="summary-card">
+        <div class="summary-card-title">Asignación</div>
+        <div class="summary-list">
+          <div class="summary-row">
+            <span>Rol</span>
+            <strong>{{ getRolLabel(form.value.rol) || '—' }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Sucursal</span>
+            <strong>{{ form.value.sucursal || '—' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Permisos del rol -->
+      <div class="summary-card" *ngIf="rolSeleccionado">
+        <div class="summary-card-title">Permisos del rol</div>
+        <p class="rol-desc">{{ getRolDescripcion(rolSeleccionado) }}</p>
+      </div>
+    </aside>
+  </div>
 
 </div>
