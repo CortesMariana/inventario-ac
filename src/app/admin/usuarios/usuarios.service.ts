@@ -11,7 +11,7 @@ import {
   query,
   orderBy
 } from '@angular/fire/firestore';
-import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, sendPasswordResetEmail } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -94,5 +94,9 @@ export class UsuariosService {
       const ref = doc(this.firestore, `${this.col}/${id}`);
       return deleteDoc(ref);
     });
+  }
+
+  resetearPassword(email: string): Promise<void> {
+    return this.runInContext(() => sendPasswordResetEmail(this.auth, email));
   }
 }
