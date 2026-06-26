@@ -201,11 +201,12 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       const cantidad = ctrl.get('cantidad')?.value;
       const precio = item.valorUnitario ?? 0;
       return {
-        productoId:     item.productoId,
-        nombreProducto: item.descripcion || item.nombreProducto,
+        productoId:       item.productoId,
+        inventarioItemId: item.id!,           // ID real del doc en Firestore
+        nombreProducto:   item.descripcion || item.nombreProducto,
         cantidad,
-        precioUnitario: precio,
-        subtotal:       precio * cantidad
+        precioUnitario:   precio,
+        subtotal:         precio * cantidad
       };
     });
 
