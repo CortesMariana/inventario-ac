@@ -12,68 +12,128 @@
 
   <div class="pedido-layout">
 
-    <!-- Columna principal -->
+    <!-- ── Columna principal ── -->
     <div class="form-column">
       <div class="card form-card">
         <form [formGroup]="form" (ngSubmit)="guardar()" class="pedido-form">
 
-          <!-- Datos del pedido -->
+          <!-- SECCIÓN 1: Datos del pedido -->
           <section class="section">
             <div class="section-header">
               <div>
                 <h2 class="section-title">Datos del pedido</h2>
-                <p class="section-sub">Selecciona el cliente y la sucursal de despacho</p>
+                <p class="section-sub">Selecciona el cliente, la sucursal y el tipo de facturación</p>
               </div>
             </div>
 
             <div class="form-grid">
-              <div class="field">
+
+              <!-- Cliente -->
+              <div class="field field-full">
                 <label>Cliente *</label>
                 <p-dropdown
                   formControlName="clienteId"
                   [options]="clientes"
-                  placeholder="Selecciona un cliente"
+                  placeholder="Buscar cliente por nombre o RFC..."
                   [filter]="true"
-                  filterPlaceholder="Buscar cliente"
+                  filterBy="label"
+                  filterPlaceholder="Escribe nombre o RFC"
+                  [appendTo]="'body'"
                   (onChange)="onClienteChange($event)">
+                  <ng-template pTemplate="item" let-item>
+                    <div class="cliente-option">
+                      <span class="cliente-option-nombre">{{ item.value.nombre }}</span>
+                      <span class="cliente-option-rfc">{{ item.value.rfc }}</span>
+                    </div>
+                  </ng-template>
+                  <ng-template pTemplate="selectedItem" let-selected>
+                    <div class="cliente-selected" *ngIf="selected">
+                      <span class="font-semibold">{{ selected.value.nombre }}</span>
+                      <span class="cliente-selected-rfc">{{ selected.value.rfc }}</span>
+                    </div>
+                  </ng-template>
                 </p-dropdown>
                 <small class="error" *ngIf="f['clienteId'].touched && f['clienteId'].hasError('required')">Campo requerido</small>
+                <div class="add-cliente-hint">
+                  <i class="pi pi-info-circle"></i>
+                  ¿El cliente no aparece en la lista?
+                  <button type="button" class="link-btn" (click)="irANuevoCliente()">Agregar nuevo cliente</button>
+                </div>
               </div>
 
+              <!-- Sucursal -->
               <div class="field">
                 <label>Sucursal *</label>
                 <p-dropdown
                   formControlName="sucursalId"
                   [options]="sucursales"
-                  placeholder="Selecciona una sucursal">
+                  placeholder="Selecciona una sucursal"
+                  [appendTo]="'body'"
+                  (onChange)="onSucursalChange($event)">
                 </p-dropdown>
                 <small class="error" *ngIf="f['sucursalId'].touched && f['sucursalId'].hasError('required')">Campo requerido</small>
               </div>
+
+              <!-- Tipo de pedido -->
+              <div class="field">
+                <label>Tipo de pedido *</label>
+                <div class="tipo-toggle">
+                  <button
+                    type="button"
+                    class="tipo-btn"
+                    [class.active]="form.value.tipoPedido === 'factura'"
+                    (click)="setTipoPedido('factura')">
+                    <i class="pi pi-file-pdf"></i>
+                    <span>Factura</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="tipo-btn"
+                    [class.active]="form.value.tipoPedido === 'consigna'"
+                    (click)="setTipoPedido('consigna')">
+                    <i class="pi pi-handshake"></i>
+                    <span>Consigna</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Info cliente -->
+            <!-- Info del cliente seleccionado -->
             <div class="cliente-info" *ngIf="clienteSeleccionado">
               <div class="info-item">
                 <span class="info-label">RFC</span>
                 <span class="info-value">{{ clienteSeleccionado.rfc }}</span>
               </div>
-              <div class="info-item">
+              <div class="info-item" *ngIf="clienteSeleccionado.descuento > 0">
                 <span class="info-label">Descuento</span>
                 <span class="info-value info-descuento">{{ clienteSeleccionado.descuento }}%</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">Dirección</span>
-                <span class="info-value">{{ clienteSeleccionado.direccion }}</span>
+              <div class="info-item" *ngIf="clienteSeleccionado.telefono">
+                <span class="info-label">Teléfono</span>
+                <span class="info-value">{{ clienteSeleccionado.telefono }}</span>
+              </div>
+              <div class="info-item" *ngIf="clienteSeleccionado.email">
+                <span class="info-label">Correo</span>
+                <span class="info-value">{{ clienteSeleccionado.email }}</span>
+              </div>
+              <div class="info-item info-warn" *ngIf="!clienteSeleccionado.email">
+                <i class="pi pi-exclamation-circle"></i>
+                <span class="info-label">Sin correo registrado — no se enviará confirmación</span>
               </div>
             </div>
           </section>
 
-          <!-- Productos -->
+          <!-- SECCIÓN 2: Productos -->
           <section class="section">
             <div class="section-header">
               <div>
                 <h2 class="section-title">Productos</h2>
-                <p class="section-sub">Agrega los artículos del pedido con sus cantidades</p>
+                <p class="section-sub">
+                  {{ inventarioCargado
+                    ? 'Catálogo cargado · ' + productosOpciones.length + ' productos disponibles'
+                    : 'Selecciona una sucursal para ver el catálogo' }}
+                </p>
               </div>
               <button
                 pButton
@@ -81,15 +141,18 @@
                 label="Agregar"
                 icon="pi pi-plus"
                 class="p-button-outlined p-button-sm"
+                [disabled]="!sucursalSeleccionada"
                 (click)="agregarProducto()">
               </button>
             </div>
 
+            <!-- Empty state -->
             <div class="empty-productos" *ngIf="productosArray.length === 0">
               <i class="pi pi-shopping-cart"></i>
-              <span>Agrega productos al pedido</span>
+              <span>{{ sucursalSeleccionada ? 'Agrega productos al pedido' : 'Primero selecciona una sucursal' }}</span>
             </div>
 
+            <!-- Filas de productos -->
             <div formArrayName="productos" class="productos-list">
               <div
                 class="producto-row"
@@ -101,11 +164,21 @@
                 <div class="prod-dropdown">
                   <p-dropdown
                     formControlName="producto"
-                    [options]="productos"
+                    [options]="productosOpciones"
+                    optionDisabled="disabled"
                     placeholder="Selecciona un producto"
                     [filter]="true"
+                    filterBy="label"
                     filterPlaceholder="Buscar producto"
                     [appendTo]="'body'">
+                    <ng-template pTemplate="item" let-item>
+                      <div class="prod-option">
+                        <span class="prod-option-nombre">{{ item.label }}</span>
+                        <span class="prod-option-stock" [class.stock-cero]="item.value.stock === 0">
+                          {{ item.value.stock === 0 ? 'Sin stock' : 'Stock: ' + item.value.stock + ' ' + (item.value.unidad || '') }}
+                        </span>
+                      </div>
+                    </ng-template>
                   </p-dropdown>
                 </div>
 
@@ -113,6 +186,7 @@
                   <p-inputNumber
                     formControlName="cantidad"
                     [min]="1"
+                    [max]="ctrl.get('producto')?.value?.stock ?? 9999"
                     [showButtons]="true"
                     buttonLayout="horizontal"
                     decrementButtonClass="p-button-text"
@@ -121,7 +195,7 @@
                 </div>
 
                 <div class="prod-subtotal">
-                  ${{ (ctrl.get('producto')?.value?.precioVenta ?? 0) * (ctrl.get('cantidad')?.value ?? 0) | number:'1.0-0' }}
+                  ${{ (ctrl.get('producto')?.value?.valorUnitario ?? 0) * (ctrl.get('cantidad')?.value ?? 0) | number:'1.0-0' }}
                 </div>
 
                 <button
@@ -134,6 +208,32 @@
                 </button>
               </div>
             </div>
+
+            <!-- Panel de productos sin existencia -->
+            <div class="sin-stock-panel" *ngIf="productosSinStock.length > 0 && inventarioCargado">
+              <div class="sin-stock-header">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>{{ productosSinStock.length }} producto(s) sin existencia en esta sucursal</span>
+              </div>
+              <div class="sin-stock-list">
+                <div class="sin-stock-row" *ngFor="let item of productosSinStock">
+                  <div class="sin-stock-info">
+                    <span class="sin-stock-nombre">{{ item.descripcion || item.nombreProducto }}</span>
+                    <span class="sin-stock-codigo">{{ item.codigoProducto }}</span>
+                  </div>
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-bell"
+                    label="Notificar a producción"
+                    class="p-button-outlined p-button-sm p-button-warning"
+                    [loading]="notificandoProduccion[item.id!]"
+                    (click)="notificarProduccion(item)">
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </section>
 
           <div class="form-footer">
@@ -150,27 +250,35 @@
       </div>
     </div>
 
-    <!-- Columna resumen -->
+    <!-- ── Columna resumen ── -->
     <aside class="summary-column">
 
       <!-- Hero cliente -->
       <div class="summary-card summary-hero-card">
-        <div class="summary-hero" *ngIf="clienteSeleccionado; else sinCliente">
-          <div class="summary-avatar">{{ getIniciales(clienteSeleccionado.nombre) }}</div>
-          <div class="summary-hero-copy">
-            <div class="summary-name">{{ clienteSeleccionado.nombre }}</div>
-            <div class="summary-sub">{{ clienteSeleccionado.rfc }}</div>
+        <ng-container *ngIf="clienteSeleccionado; else sinCliente">
+          <div class="summary-hero">
+            <div class="summary-avatar">{{ getIniciales(clienteSeleccionado.nombre) }}</div>
+            <div class="summary-hero-copy">
+              <div class="summary-name">{{ clienteSeleccionado.nombre }}</div>
+              <div class="summary-sub">{{ clienteSeleccionado.rfc }}</div>
+            </div>
           </div>
-        </div>
+          <div class="summary-tags">
+            <span class="tipo-badge" [class.factura]="form.value.tipoPedido === 'factura'" [class.consigna]="form.value.tipoPedido === 'consigna'">
+              <i [class]="form.value.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+              {{ form.value.tipoPedido === 'factura' ? 'Factura' : 'Consigna' }}
+            </span>
+            <span class="descuento-badge" *ngIf="clienteSeleccionado.descuento > 0">
+              {{ clienteSeleccionado.descuento }}% desc.
+            </span>
+          </div>
+        </ng-container>
         <ng-template #sinCliente>
           <div class="summary-placeholder">
             <i class="pi pi-user"></i>
             <span>Sin cliente seleccionado</span>
           </div>
         </ng-template>
-        <div class="summary-tags" *ngIf="clienteSeleccionado?.descuento > 0">
-          <p-tag [value]="clienteSeleccionado.descuento + '% descuento'" severity="success"></p-tag>
-        </div>
       </div>
 
       <!-- Resumen financiero -->
@@ -181,8 +289,8 @@
             <span>Subtotal</span>
             <strong>${{ calcularSubtotal() | number:'1.0-0' }}</strong>
           </div>
-          <div class="summary-row" *ngIf="clienteSeleccionado?.descuento > 0">
-            <span>Descuento ({{ clienteSeleccionado?.descuento }}%)</span>
+          <div class="summary-row" *ngIf="clienteSeleccionado && clienteSeleccionado.descuento > 0">
+            <span>Descuento ({{ clienteSeleccionado.descuento }}%)</span>
             <strong class="descuento-val">-${{ calcularDescuento() | number:'1.0-0' }}</strong>
           </div>
           <div class="summary-row summary-total">
@@ -203,6 +311,10 @@
           <div class="summary-row">
             <span>Productos</span>
             <strong>{{ productosArray.length }} artículo(s)</strong>
+          </div>
+          <div class="summary-row">
+            <span>Estado inicial</span>
+            <strong class="estado-revision">En revisión</strong>
           </div>
         </div>
       </div>

@@ -116,6 +116,7 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
 
   getEstadoSeverity(estado: string): string {
     const map: Record<string, string> = {
+      en_revision: 'info',
       pendiente:   'warning',
       en_transito: 'info',
       entregado:   'success',
@@ -127,6 +128,7 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: string): string {
     const map: Record<string, string> = {
+      en_revision: 'En revisión',
       pendiente:   'Pendiente',
       en_transito: 'En tránsito',
       entregado:   'Entregado',
