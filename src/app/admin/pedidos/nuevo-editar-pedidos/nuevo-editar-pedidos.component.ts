@@ -75,6 +75,11 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
 
   get f() { return this.form.controls; }
 
+  getIniciales(nombre: string): string {
+    if (!nombre) return '?';
+    return nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
   onClienteChange(event: any): void {
     this.clienteSeleccionado = event.value;
   }
