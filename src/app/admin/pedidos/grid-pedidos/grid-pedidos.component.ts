@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { Pedido, PedidosService } from '../pedidos.service';
 
 @Component({
@@ -13,21 +13,20 @@ import { Pedido, PedidosService } from '../pedidos.service';
 export class GridPedidosComponent implements OnInit, OnDestroy {
 
   pedidos: Pedido[] = [];
+  pedidosFiltrados: Pedido[] = [];
   loading = true;
-  private destroy$ = new Subject<void>();
+  searchTerm = '';
+  filtroEstadoActivo: string | null = null;
 
-  estadoOpciones = [
-    { label: 'Todos',        value: null },
-    { label: 'Pendiente',    value: 'pendiente' },
-    { label: 'En tránsito',  value: 'en_transito' },
-    { label: 'Entregado',    value: 'entregado' },
-    { label: 'Cancelado',    value: 'cancelado' },
-  ];
+  confirmVisible = false;
+  confirmMessage = '';
+  private confirmAction: (() => void) | null = null;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pedidosSrv: PedidosService,
     private router: Router,
-    private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
   ) {}
 
@@ -37,6 +36,7 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.pedidos = data;
+          this.filtrar();
           this.loading = false;
         },
         error: () => {
@@ -51,6 +51,37 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get totalPendientes(): number { return this.pedidos.filter(p => p.estado === 'pendiente').length; }
+  get totalEnTransito(): number { return this.pedidos.filter(p => p.estado === 'en_transito').length; }
+  get totalEntregados(): number { return this.pedidos.filter(p => p.estado === 'entregado').length; }
+  get totalCancelados(): number { return this.pedidos.filter(p => p.estado === 'cancelado').length; }
+
+  seleccionarFiltroEstado(estado: string | null): void {
+    this.filtroEstadoActivo = estado;
+    this.filtrar();
+  }
+
+  filtrar(): void {
+    let lista = [...this.pedidos];
+    if (this.filtroEstadoActivo) {
+      lista = lista.filter(p => p.estado === this.filtroEstadoActivo);
+    }
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      lista = lista.filter(p =>
+        p.clienteNombre?.toLowerCase().includes(term) ||
+        p.clienteRfc?.toLowerCase().includes(term) ||
+        p.sucursal?.toLowerCase().includes(term)
+      );
+    }
+    this.pedidosFiltrados = lista;
+  }
+
+  getIniciales(nombre: string): string {
+    if (!nombre) return '?';
+    return nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
   nuevo(): void {
     this.router.navigate(['/admin/pedidos/nuevo']);
   }
@@ -60,18 +91,27 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
   }
 
   confirmarCancelar(pedido: Pedido): void {
-    this.confirmSrv.confirm({
-      message: `¿Deseas cancelar el pedido de ${pedido.clienteNombre}?`,
-      header: 'Cancelar pedido',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.pedidosSrv.cancelar(pedido.id!).then(() => {
-          this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Pedido cancelado' });
-        }).catch(() => {
-          this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cancelar' });
-        });
-      }
+    this.confirmMessage = `¿Deseas cancelar el pedido de ${pedido.clienteNombre}? Esta acción no se puede deshacer.`;
+    this.confirmAction = () => this.cancelarPedido(pedido.id!);
+    this.confirmVisible = true;
+  }
+
+  private cancelarPedido(id: string): void {
+    this.pedidosSrv.cancelar(id).then(() => {
+      this.messageSrv.add({ severity: 'success', summary: 'Listo', detail: 'Pedido cancelado' });
+    }).catch(() => {
+      this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cancelar' });
     });
+  }
+
+  onConfirm(): void {
+    if (this.confirmAction) this.confirmAction();
+    this.confirmVisible = false;
+  }
+
+  onCancel(): void {
+    this.confirmVisible = false;
+    this.confirmAction = null;
   }
 
   getEstadoSeverity(estado: string): string {

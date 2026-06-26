@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PedidosRoutingModule } from './pedidos-routing.module';
 import { GridPedidosComponent } from './grid-pedidos/grid-pedidos.component';
@@ -12,11 +12,11 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 import { DropdownModule } from 'primeng/dropdown';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { DividerModule } from 'primeng/divider';
+import { TooltipModule } from 'primeng/tooltip';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -27,6 +27,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
   imports: [
     CommonModule,
     RouterModule,
+    FormsModule,
     ReactiveFormsModule,
     PedidosRoutingModule,
     TableModule,
@@ -34,13 +35,12 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     InputTextModule,
     TagModule,
     DropdownModule,
-    ConfirmDialogModule,
     ToastModule,
-    DividerModule,
-    InputNumberModule
+    TooltipModule,
+    InputNumberModule,
+    SharedModule
   ],
   providers: [
-    ConfirmationService,
     MessageService
   ]
 })

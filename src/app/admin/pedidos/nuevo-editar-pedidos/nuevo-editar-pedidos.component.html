@@ -10,120 +10,205 @@
     <button pButton label="Cancelar" icon="pi pi-arrow-left" class="p-button-text" (click)="cancelar()"></button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="guardar()">
+  <div class="pedido-layout">
 
-    <div class="grid-form">
+    <!-- Columna principal -->
+    <div class="form-column">
+      <div class="card form-card">
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="pedido-form">
 
-      <!-- Datos del pedido -->
-      <div class="card">
-        <div class="card-title">Datos del pedido</div>
+          <!-- Datos del pedido -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Datos del pedido</h2>
+                <p class="section-sub">Selecciona el cliente y la sucursal de despacho</p>
+              </div>
+            </div>
 
-        <div class="form-grid">
-          <div class="field">
-            <label>Cliente *</label>
-            <p-dropdown
-              formControlName="clienteId"
-              [options]="clientes"
-              placeholder="Selecciona un cliente"
-              [filter]="true"
-              filterPlaceholder="Buscar cliente"
-              (onChange)="onClienteChange($event)">
-            </p-dropdown>
-            <small class="error" *ngIf="f['clienteId'].touched && f['clienteId'].hasError('required')">Campo requerido</small>
+            <div class="form-grid">
+              <div class="field">
+                <label>Cliente *</label>
+                <p-dropdown
+                  formControlName="clienteId"
+                  [options]="clientes"
+                  placeholder="Selecciona un cliente"
+                  [filter]="true"
+                  filterPlaceholder="Buscar cliente"
+                  (onChange)="onClienteChange($event)">
+                </p-dropdown>
+                <small class="error" *ngIf="f['clienteId'].touched && f['clienteId'].hasError('required')">Campo requerido</small>
+              </div>
+
+              <div class="field">
+                <label>Sucursal *</label>
+                <p-dropdown
+                  formControlName="sucursalId"
+                  [options]="sucursales"
+                  placeholder="Selecciona una sucursal">
+                </p-dropdown>
+                <small class="error" *ngIf="f['sucursalId'].touched && f['sucursalId'].hasError('required')">Campo requerido</small>
+              </div>
+            </div>
+
+            <!-- Info cliente -->
+            <div class="cliente-info" *ngIf="clienteSeleccionado">
+              <div class="info-item">
+                <span class="info-label">RFC</span>
+                <span class="info-value">{{ clienteSeleccionado.rfc }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Descuento</span>
+                <span class="info-value info-descuento">{{ clienteSeleccionado.descuento }}%</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Dirección</span>
+                <span class="info-value">{{ clienteSeleccionado.direccion }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Productos -->
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Productos</h2>
+                <p class="section-sub">Agrega los artículos del pedido con sus cantidades</p>
+              </div>
+              <button
+                pButton
+                type="button"
+                label="Agregar"
+                icon="pi pi-plus"
+                class="p-button-outlined p-button-sm"
+                (click)="agregarProducto()">
+              </button>
+            </div>
+
+            <div class="empty-productos" *ngIf="productosArray.length === 0">
+              <i class="pi pi-shopping-cart"></i>
+              <span>Agrega productos al pedido</span>
+            </div>
+
+            <div formArrayName="productos" class="productos-list">
+              <div
+                class="producto-row"
+                *ngFor="let ctrl of productosArray.controls; let i = index"
+                [formGroupName]="i">
+
+                <div class="prod-num">{{ i + 1 }}</div>
+
+                <div class="prod-dropdown">
+                  <p-dropdown
+                    formControlName="producto"
+                    [options]="productos"
+                    placeholder="Selecciona un producto"
+                    [filter]="true"
+                    filterPlaceholder="Buscar producto"
+                    [appendTo]="'body'">
+                  </p-dropdown>
+                </div>
+
+                <div class="prod-cantidad">
+                  <p-inputNumber
+                    formControlName="cantidad"
+                    [min]="1"
+                    [showButtons]="true"
+                    buttonLayout="horizontal"
+                    decrementButtonClass="p-button-text"
+                    incrementButtonClass="p-button-text">
+                  </p-inputNumber>
+                </div>
+
+                <div class="prod-subtotal">
+                  ${{ (ctrl.get('producto')?.value?.precioVenta ?? 0) * (ctrl.get('cantidad')?.value ?? 0) | number:'1.0-0' }}
+                </div>
+
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-trash"
+                  class="p-button-text p-button-danger p-button-sm"
+                  (click)="eliminarProducto(i)"
+                  pTooltip="Quitar producto">
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <div class="form-footer">
+            <button
+              pButton
+              type="submit"
+              label="Crear pedido"
+              icon="pi pi-check"
+              [loading]="loading">
+            </button>
           </div>
 
-          <div class="field">
-            <label>Sucursal *</label>
-            <p-dropdown
-              formControlName="sucursalId"
-              [options]="sucursales"
-              placeholder="Selecciona una sucursal">
-            </p-dropdown>
-            <small class="error" *ngIf="f['sucursalId'].touched && f['sucursalId'].hasError('required')">Campo requerido</small>
+        </form>
+      </div>
+    </div>
+
+    <!-- Columna resumen -->
+    <aside class="summary-column">
+
+      <!-- Hero cliente -->
+      <div class="summary-card summary-hero-card">
+        <div class="summary-hero" *ngIf="clienteSeleccionado; else sinCliente">
+          <div class="summary-avatar">{{ getIniciales(clienteSeleccionado.nombre) }}</div>
+          <div class="summary-hero-copy">
+            <div class="summary-name">{{ clienteSeleccionado.nombre }}</div>
+            <div class="summary-sub">{{ clienteSeleccionado.rfc }}</div>
           </div>
         </div>
-
-        <!-- Info cliente seleccionado -->
-        <div class="cliente-info" *ngIf="clienteSeleccionado">
-          <div class="cliente-info-item">
-            <span class="info-label">RFC</span>
-            <span class="info-value">{{ clienteSeleccionado.rfc }}</span>
+        <ng-template #sinCliente>
+          <div class="summary-placeholder">
+            <i class="pi pi-user"></i>
+            <span>Sin cliente seleccionado</span>
           </div>
-          <div class="cliente-info-item">
-            <span class="info-label">Descuento</span>
-            <span class="info-value descuento-badge">{{ clienteSeleccionado.descuento }}%</span>
-          </div>
-          <div class="cliente-info-item">
-            <span class="info-label">Dirección</span>
-            <span class="info-value">{{ clienteSeleccionado.direccion }}</span>
-          </div>
+        </ng-template>
+        <div class="summary-tags" *ngIf="clienteSeleccionado?.descuento > 0">
+          <p-tag [value]="clienteSeleccionado.descuento + '% descuento'" severity="success"></p-tag>
         </div>
       </div>
 
-      <!-- Resumen -->
-      <div class="card resumen-card">
-        <div class="card-title">Resumen</div>
-        <div class="resumen-financiero">
-          <div class="resumen-row">
+      <!-- Resumen financiero -->
+      <div class="summary-card">
+        <div class="summary-card-title">Resumen financiero</div>
+        <div class="summary-list">
+          <div class="summary-row">
             <span>Subtotal</span>
-            <span>${{ calcularSubtotal() | number:'1.0-0' }}</span>
+            <strong>${{ calcularSubtotal() | number:'1.0-0' }}</strong>
           </div>
-          <div class="resumen-row descuento" *ngIf="clienteSeleccionado?.descuento > 0">
+          <div class="summary-row" *ngIf="clienteSeleccionado?.descuento > 0">
             <span>Descuento ({{ clienteSeleccionado?.descuento }}%)</span>
-            <span>-${{ calcularDescuento() | number:'1.0-0' }}</span>
+            <strong class="descuento-val">-${{ calcularDescuento() | number:'1.0-0' }}</strong>
           </div>
-          <div class="resumen-row total">
+          <div class="summary-row summary-total">
             <span>Total</span>
-            <span class="total-valor">${{ calcularTotal() | number:'1.0-0' }}</span>
+            <strong>${{ calcularTotal() | number:'1.0-0' }}</strong>
           </div>
         </div>
-        <button pButton type="submit" label="Crear pedido" icon="pi pi-check" [loading]="loading" class="btn-crear"></button>
       </div>
 
-    </div>
-
-    <!-- Productos -->
-    <div class="card mt">
-      <div class="productos-header">
-        <span class="card-title">Productos</span>
-        <button pButton type="button" label="Agregar producto" icon="pi pi-plus" class="p-button-outlined p-button-sm" (click)="agregarProducto()"></button>
-      </div>
-
-      <div class="empty-productos" *ngIf="productosArray.length === 0">
-        <i class="pi pi-shopping-cart"></i>
-        <span>Agrega productos al pedido</span>
-      </div>
-
-      <div formArrayName="productos">
-        <div class="producto-row" *ngFor="let ctrl of productosArray.controls; let i = index" [formGroupName]="i">
-          <div class="field producto-field">
-            <p-dropdown
-              formControlName="producto"
-              [options]="productos"
-              placeholder="Selecciona un producto"
-              [filter]="true"
-              filterPlaceholder="Buscar producto">
-            </p-dropdown>
+      <!-- Asignación -->
+      <div class="summary-card">
+        <div class="summary-card-title">Asignación</div>
+        <div class="summary-list">
+          <div class="summary-row">
+            <span>Sucursal</span>
+            <strong>{{ form.value.sucursalId || '—' }}</strong>
           </div>
-          <div class="field cantidad-field">
-            <p-inputNumber
-              formControlName="cantidad"
-              [min]="1"
-              [showButtons]="true"
-              buttonLayout="horizontal"
-              decrementButtonClass="p-button-text"
-              incrementButtonClass="p-button-text">
-            </p-inputNumber>
+          <div class="summary-row">
+            <span>Productos</span>
+            <strong>{{ productosArray.length }} artículo(s)</strong>
           </div>
-          <div class="subtotal-producto">
-            <span>${{ (ctrl.get('producto')?.value?.precioVenta ?? 0) * (ctrl.get('cantidad')?.value ?? 0) | number:'1.0-0' }}</span>
-          </div>
-          <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger p-button-sm" (click)="eliminarProducto(i)"></button>
         </div>
       </div>
 
-    </div>
+    </aside>
 
-  </form>
+  </div>
 
 </div>
