@@ -73,6 +73,17 @@
                 <input pInputText formControlName="telefonoContacto" placeholder="10 dígitos" maxlength="10" inputmode="numeric" />
                 <small class="error" *ngIf="f['telefonoContacto'].touched && f['telefonoContacto'].hasError('pattern')">Debe tener 10 dígitos</small>
               </div>
+
+              <div class="field field-full">
+                <label>Correo electrónico</label>
+                <input
+                  pInputText
+                  formControlName="email"
+                  type="email"
+                  placeholder="correo@empresa.com"
+                  autocomplete="email" />
+                <small class="error" *ngIf="f['email'].touched && f['email'].hasError('email')">Correo inválido</small>
+              </div>
             </div>
           </section>
 
@@ -199,6 +210,10 @@
           <div class="summary-row">
             <span>Teléfono principal</span>
             <strong>{{ resumenTelefono }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Correo electrónico</span>
+            <strong>{{ resumenEmail }}</strong>
           </div>
           <div class="summary-row">
             <span>Persona a cargo</span>
