@@ -10,7 +10,8 @@ import {
   deleteDoc,
   query,
   orderBy,
-  where
+  where,
+  runTransaction
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -52,6 +53,15 @@ export interface InventarioItem {
   stock: number;
   stockMinimo: number;
   fechaActualizacion?: Date;
+}
+
+export interface RegistrarProduccionInput {
+  cantidad: number;
+  fechaElaboracion: string;
+  fechaCaducidad?: string;
+  numeroLote?: string;
+  observaciones?: string;
+  codigoBarras?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -116,6 +126,55 @@ export class InventarioService {
   updateStock(id: string, stock: number): Promise<void> {
     const ref = doc(this.firestore, `${this.colInventario}/${id}`);
     return updateDoc(ref, { stock, fechaActualizacion: new Date() });
+  }
+
+  registrarProduccion(id: string, input: RegistrarProduccionInput): Promise<InventarioItem> {
+    const cantidad = Math.max(0, Math.floor(Number(input.cantidad || 0)));
+
+    if (!id) {
+      return Promise.reject(new Error('No se pudo identificar el producto de producción'));
+    }
+
+    if (cantidad < 1) {
+      return Promise.reject(new Error('La cantidad producida debe ser mayor a cero'));
+    }
+
+    return runTransaction(this.firestore, async (transaction) => {
+      const ref = doc(this.firestore, `${this.colInventario}/${id}`);
+      const snapshot = await transaction.get(ref);
+
+      if (!snapshot.exists()) {
+        throw new Error('El producto ya no existe en el inventario');
+      }
+
+      const current = snapshot.data() as InventarioItem;
+      const stockAntes = Number(current.stock ?? 0);
+      const stockDespues = stockAntes + cantidad;
+      const fechaElaboracion = String(input.fechaElaboracion ?? '').trim() || current.fechaElaboracion || '';
+      const fechaCaducidad = String(input.fechaCaducidad ?? '').trim() || current.fechaCaducidad || '';
+      const numeroLote = String(input.numeroLote ?? '').trim() || current.numeroLote || '';
+
+      const patch: Partial<InventarioItem> = {
+        stock: stockDespues,
+        fechaElaboracion,
+        fechaCaducidad,
+        numeroLote,
+        fechaActualizacion: new Date()
+      };
+
+      const codigoBarras = String(input.codigoBarras ?? '').trim();
+      if (codigoBarras) {
+        patch.codigoBarras = codigoBarras;
+      }
+
+      transaction.update(ref, patch);
+
+      return {
+        ...current,
+        ...patch,
+        id
+      };
+    });
   }
 
   createInventarioItem(item: InventarioItem): Promise<any> {

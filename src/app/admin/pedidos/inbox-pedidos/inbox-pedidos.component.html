@@ -23,8 +23,7 @@
   <div class="stats-grid">
     <button
       type="button"
-      class="stat-card stat-filter"
-      [class.pending-motion]="totalRevision > 0"
+      class="stat-card stat-filter pending-motion"
       [class.stat-card-active]="vistaActiva === 'bandeja'"
       (click)="abrirBandeja()">
       <div class="stat-head">
@@ -37,7 +36,7 @@
 
     <button
       type="button"
-      class="stat-card stat-filter stat-card-accent"
+      class="stat-card stat-filter stat-card-accent pending-motion"
       [class.stat-card-active]="vistaActiva === 'historial'"
       (click)="abrirHistorial()">
       <div class="stat-head">
@@ -50,8 +49,7 @@
 
     <button
       type="button"
-      class="stat-card stat-filter"
-      [class.pending-motion]="totalRevisionFactura > 0"
+      class="stat-card stat-filter pending-motion"
       [class.stat-card-active]="vistaActiva === 'bandeja' && tipoFiltro === 'factura'"
       (click)="filtrarFacturas()">
       <div class="stat-head">
@@ -64,8 +62,7 @@
 
     <button
       type="button"
-      class="stat-card stat-filter"
-      [class.pending-motion]="totalRevisionConsigna > 0"
+      class="stat-card stat-filter pending-motion"
       [class.stat-card-active]="vistaActiva === 'bandeja' && tipoFiltro === 'consigna'"
       (click)="filtrarConsignas()">
       <div class="stat-head">
