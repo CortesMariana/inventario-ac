@@ -34,7 +34,7 @@
 
   <!-- KPIs -->
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card motion-card">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-users"></i></span>
         <span class="stat-label">Total usuarios</span>
@@ -43,7 +43,7 @@
       <span class="stat-sub">Registros en el sistema</span>
     </div>
 
-    <div class="stat-card stat-card-accent">
+    <div class="stat-card stat-card-accent motion-card motion-card-accent">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-user-plus"></i></span>
         <span class="stat-label">Activos</span>
@@ -52,7 +52,7 @@
       <span class="stat-sub">{{ usuarios.length ? ((totalActivos / usuarios.length * 100) | number:'1.0-0') : 0 }}% del total</span>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card motion-card">
       <div class="stat-head">
         <span class="stat-icon"><i class="pi pi-shield"></i></span>
         <span class="stat-label">Roles asignados</span>
