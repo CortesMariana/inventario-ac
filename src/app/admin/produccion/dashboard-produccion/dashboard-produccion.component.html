@@ -1,18 +1,22 @@
 <div class="dashboard-produccion">
 
+  <p-toast></p-toast>
+
   <div class="page-header">
     <div>
       <h1 class="page-title">Producci&oacute;n</h1>
       <p class="page-sub">Alertas de stock bajo para reabastecimiento inmediato</p>
     </div>
 
-    <a
+    <button
       pButton
+      type="button"
       class="header-action"
-      icon="pi pi-box"
-      label="Abrir inventario"
-      routerLink="/admin/inventario">
-    </a>
+      icon="pi pi-plus-circle"
+      label="Registrar producci&oacute;n"
+      [disabled]="!tieneAlertas || loading"
+      (click)="abrirProduccionRapida()">
+    </button>
   </div>
 
   <section
@@ -131,7 +135,14 @@
 
               <div class="priority-foot">
                 <span>Faltan {{ alerta.faltante }} unidades</span>
-                <a class="priority-link" routerLink="/admin/inventario">Ver inventario</a>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-plus-circle"
+                  label="Registrar producci&oacute;n"
+                  class="p-button-outlined p-button-sm priority-action"
+                  (click)="abrirProduccion(alerta)">
+                </button>
               </div>
             </div>
           </article>
@@ -168,11 +179,22 @@
                 <p-tag [value]="getTagLabel(alerta)" [severity]="getTagSeverity(alerta)"></p-tag>
               </div>
 
-                <span class="alert-sub">{{ alerta.sucursal }} - {{ alerta.stock }} de {{ alerta.stockMinimo }} unidades</span>
+              <span class="alert-sub">{{ alerta.sucursal }} - {{ alerta.stock }} de {{ alerta.stockMinimo }} unidades</span>
 
               <div class="alert-meta">
                 <span>Faltan {{ alerta.faltante }} para el m&iacute;nimo</span>
                 <span>{{ alerta.codigoProducto }}</span>
+              </div>
+
+              <div class="alert-foot">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-plus-circle"
+                  label="Registrar producci&oacute;n"
+                  class="p-button-outlined p-button-sm alert-action"
+                  (click)="abrirProduccion(alerta)">
+                </button>
               </div>
             </div>
           </article>
@@ -187,5 +209,126 @@
       </section>
     </div>
   </ng-container>
+
+  <div
+    class="production-modal-overlay"
+    *ngIf="dialogVisible"
+    (click)="cerrarProduccion()">
+    <section
+      class="production-modal-shell"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="production-modal-title"
+      (click)="$event.stopPropagation()">
+
+      <button
+        type="button"
+        class="production-modal-close"
+        [disabled]="guardandoProduccion"
+        (click)="cerrarProduccion()"
+        aria-label="Cerrar ventana">
+        <i class="pi pi-times"></i>
+      </button>
+
+      <ng-container *ngIf="alertaSeleccionada as alerta">
+        <header class="production-modal-head">
+          <div class="modal-hero">
+            <div>
+              <p class="modal-kicker">Alerta seleccionada</p>
+              <h3 class="modal-title" id="production-modal-title">{{ alerta.nombreProducto }}</h3>
+              <p class="modal-sub">{{ alerta.sucursal }} · {{ alerta.codigoProducto }}</p>
+            </div>
+            <p-tag [value]="getTagLabel(alerta)" [severity]="getTagSeverity(alerta)"></p-tag>
+          </div>
+
+          <div class="modal-summary">
+            <div class="modal-summary-card modal-summary-card-neutral">
+              <span>Stock actual</span>
+              <strong>{{ alerta.stock }}</strong>
+            </div>
+            <div class="modal-summary-card modal-summary-card-accent">
+              <span>Después</span>
+              <strong>{{ stockDespuesProduccion }}</strong>
+            </div>
+            <div class="modal-summary-card modal-summary-card-warning">
+              <span>Faltante</span>
+              <strong>{{ faltanteDespuesProduccion }}</strong>
+            </div>
+          </div>
+        </header>
+
+        <form class="production-modal-body production-form" [formGroup]="produccionForm" (ngSubmit)="registrarProduccion()">
+          <div class="dialog-grid">
+            <div class="field quantity-field">
+              <label class="field-label">Cantidad fabricada *</label>
+              <p-inputNumber
+                formControlName="cantidad"
+                [showButtons]="true"
+                [min]="1"
+                buttonLayout="horizontal"
+                [inputStyle]="{ width: '100%' }">
+              </p-inputNumber>
+              <small class="field-hint">Se imprimir&aacute;n {{ cantidadProduccion }} etiquetas si activas la impresi&oacute;n.</small>
+            </div>
+
+            <div class="field field-wide date-pair">
+              <div class="field">
+                <label class="field-label">Fecha de elaboraci&oacute;n *</label>
+                <input pInputText type="date" formControlName="fechaElaboracion" />
+              </div>
+
+              <div class="field">
+                <label class="field-label">Caducidad</label>
+                <input pInputText type="date" formControlName="fechaCaducidad" />
+              </div>
+            </div>
+
+            <div class="field field-wide">
+              <label class="field-label">Lote</label>
+              <input pInputText formControlName="numeroLote" placeholder="N&uacute;mero de lote" />
+            </div>
+
+            <div class="field field-wide">
+              <label class="field-label">Observaciones</label>
+              <textarea
+                class="text-area"
+                formControlName="observaciones"
+                rows="3"
+                placeholder="Opcional: cambio de turno, ajuste, notas de calidad..."></textarea>
+            </div>
+
+            <div class="field field-wide">
+              <label class="checkbox-row">
+                <p-checkbox formControlName="imprimirEtiquetas" [binary]="true"></p-checkbox>
+                <span>Imprimir etiquetas al guardar</span>
+              </label>
+              <small class="field-hint">Se usar&aacute; el c&oacute;digo del producto y la cantidad capturada para las etiquetas.</small>
+            </div>
+          </div>
+
+          <footer class="dialog-actions">
+            <button
+              pButton
+              type="button"
+              label="Cancelar"
+              icon="pi pi-times"
+              class="p-button-text"
+              [disabled]="guardandoProduccion"
+              (click)="cerrarProduccion()">
+            </button>
+
+            <button
+              pButton
+              type="submit"
+              label="Guardar producci&oacute;n"
+              icon="pi pi-check"
+              [loading]="guardandoProduccion">
+            </button>
+          </footer>
+        </form>
+      </ng-container>
+
+    </section>
+  </div>
 
 </div>

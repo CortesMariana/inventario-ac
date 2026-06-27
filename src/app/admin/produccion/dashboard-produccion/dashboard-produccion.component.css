@@ -398,10 +398,297 @@
   color: #4b5563;
 }
 
-.priority-link {
-  color: var(--accent);
-  text-decoration: none;
+.priority-action,
+.alert-action {
+  white-space: nowrap;
+}
+
+.alert-foot {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.production-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.production-modal-shell {
+  position: relative;
+  width: min(980px, calc(100vw - 24px));
+  height: min(920px, calc(100vh - 24px));
+  max-height: calc(100vh - 24px);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.production-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #4b5563;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.production-modal-close:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.production-modal-head {
+  flex: 0 0 auto;
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid #eef2f7;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+}
+
+.production-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 24px 22px;
+}
+
+.production-modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.production-modal-body::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.modal-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 56px;
+}
+
+.modal-kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
   font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.modal-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.modal-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  padding: 0 2px 2px;
+}
+
+.modal-summary-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(254, 242, 242, 0.88) 0%, #ffffff 100%);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  box-shadow: 0 16px 32px rgba(239, 68, 68, 0.12);
+  animation:
+    production-warning-bounce 3.2s ease-in-out infinite,
+    production-warning-glow 3.8s ease-in-out infinite;
+}
+
+.modal-summary-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  border-radius: 12px 12px 0 0;
+  background: #f87171;
+}
+
+.modal-summary-card-accent {
+  border-color: rgba(59, 130, 246, 0.24);
+}
+
+.modal-summary-card-accent::before {
+  background: linear-gradient(90deg, #60a5fa, #93c5fd);
+}
+
+.modal-summary-card-neutral {
+  border-color: rgba(156, 163, 175, 0.24);
+}
+
+.modal-summary-card-neutral::before {
+  background: linear-gradient(90deg, #94a3b8, #cbd5e1);
+}
+
+.modal-summary-card-warning {
+  border-color: rgba(251, 146, 60, 0.22);
+}
+
+.modal-summary-card-warning::before {
+  background: linear-gradient(90deg, #fb923c, #fdba74);
+}
+
+.modal-summary-card span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-summary-card strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.1;
+}
+
+.production-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.date-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.quantity-field p-inputNumber {
+  width: min(320px, 100%);
+}
+
+.quantity-field {
+  width: min(320px, 100%);
+  justify-self: start;
+}
+
+:host ::ng-deep .quantity-field .p-inputnumber {
+  width: min(320px, 100%) !important;
+  max-width: 320px;
+}
+
+:host ::ng-deep .quantity-field .p-inputnumber-input {
+  width: 100%;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.field input,
+.field p-inputNumber {
+  width: 100%;
+}
+
+:host ::ng-deep .field .p-inputnumber,
+:host ::ng-deep .field .p-inputnumber-input {
+  width: 100%;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.text-area {
+  width: 100%;
+  min-height: 90px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 14px;
+  resize: vertical;
+  font: inherit;
+  color: #111827;
+  background: #ffffff;
+}
+
+.text-area:focus,
+.text-area:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-light-rgb, 238, 244, 255), 0.95);
+}
+
+.dialog-actions {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px solid #eef2f7;
 }
 
 .alert-item {
@@ -507,7 +794,8 @@
   .priority-top,
   .alert-head,
   .priority-foot,
-  .alert-meta {
+  .alert-meta,
+  .modal-hero {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -518,5 +806,55 @@
 
   .kpi-grid {
     grid-template-columns: 1fr;
+  }
+
+  .modal-summary,
+  .dialog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .date-pair {
+    grid-template-columns: 1fr;
+  }
+
+  .field-wide {
+    grid-column: auto;
+  }
+
+  .production-modal-overlay {
+    padding: 8px;
+  }
+
+  .production-modal-shell {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 16px);
+    max-height: calc(100vh - 16px);
+    border-radius: 14px;
+  }
+
+  .production-modal-head,
+  .production-modal-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .quantity-field {
+    width: 100%;
+  }
+
+  .production-modal-head {
+    padding-right: 16px;
+  }
+
+  .modal-hero {
+    padding-right: 44px;
+  }
+
+  .dialog-actions {
+    justify-content: stretch;
+  }
+
+  .dialog-actions button {
+    width: 100%;
   }
 }
