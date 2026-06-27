@@ -25,6 +25,15 @@ export interface ProductoPedido {
   subtotal: number;
 }
 
+export type PedidoEstado =
+  | 'en_revision'
+  | 'autorizado'
+  | 'en_transito'
+  | 'entregado'
+  | 'cancelado'
+  | 'sin_stock'
+  | 'pendiente';
+
 export interface Pedido {
   id?: string;
   clienteId: string;
@@ -40,9 +49,51 @@ export interface Pedido {
   descuento: number;
   total: number;
   totalProductos: number;
-  estado: 'en_revision' | 'pendiente' | 'en_transito' | 'entregado' | 'cancelado' | 'sin_stock';
+  estado: PedidoEstado;
   fechaCreacion?: any;
   fechaActualizacion?: any;
+}
+
+const PEDIDO_ESTADO_LABELS: Record<PedidoEstado, string> = {
+  en_revision: 'En revisión',
+  autorizado: 'Autorizado',
+  en_transito: 'En tránsito',
+  entregado: 'Entregado',
+  cancelado: 'Cancelado',
+  sin_stock: 'Sin stock',
+  pendiente: 'En revisión'
+};
+
+const PEDIDO_ESTADO_SEVERITIES: Record<PedidoEstado, string> = {
+  en_revision: 'warning',
+  autorizado: 'success',
+  en_transito: 'info',
+  entregado: 'success',
+  cancelado: 'danger',
+  sin_stock: 'danger',
+  pendiente: 'warning'
+};
+
+export function isPedidoEnRevision(estado?: string | null): boolean {
+  return estado === 'en_revision' || estado === 'pendiente';
+}
+
+export function getPedidoEstadoLabel(estado?: string | null): string {
+  if (!estado) return 'Sin estado';
+  return PEDIDO_ESTADO_LABELS[estado as PedidoEstado] ?? estado;
+}
+
+export function getPedidoEstadoSeverity(estado?: string | null): string {
+  if (!estado) return 'info';
+  return PEDIDO_ESTADO_SEVERITIES[estado as PedidoEstado] ?? 'info';
+}
+
+export function getTipoPedidoLabel(tipo?: Pedido['tipoPedido'] | null): string {
+  return tipo === 'consigna' ? 'Consigna' : 'Factura';
+}
+
+export function getTipoPedidoSeverity(tipo?: Pedido['tipoPedido'] | null): string {
+  return tipo === 'consigna' ? 'warning' : 'info';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -118,6 +169,7 @@ export class PedidosService {
         const pedidoRef = doc(collection(this.firestore, this.col));
         transaction.set(pedidoRef, {
           ...pedido,
+          estado: 'en_revision',
           fechaCreacion: new Date(),
           fechaActualizacion: new Date()
         });
@@ -131,6 +183,10 @@ export class PedidosService {
       const ref = doc(this.firestore, `${this.col}/${id}`);
       return updateDoc(ref, { estado, fechaActualizacion: new Date() });
     });
+  }
+
+  autorizar(id: string): Promise<void> {
+    return this.updateEstado(id, 'autorizado');
   }
 
   cancelar(id: string): Promise<void> {

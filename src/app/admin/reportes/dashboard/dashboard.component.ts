@@ -52,6 +52,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getEstadoClass(estado: string): string {
     const map: Record<string, string> = {
+      'en_revision': 'pill-amber',
+      'autorizado':  'pill-green',
       'entregado':   'pill-green',
       'en_transito': 'pill-amber',
       'pendiente':   'pill-amber',
@@ -63,9 +65,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: string): string {
     const map: Record<string, string> = {
+      'en_revision': 'En revisión',
+      'autorizado':  'Autorizado',
       'entregado':   'Entregado',
       'en_transito': 'En tránsito',
-      'pendiente':   'Pendiente',
+      'pendiente':   'En revisión',
       'cancelado':   'Cancelado',
       'sin_stock':   'Sin stock'
     };

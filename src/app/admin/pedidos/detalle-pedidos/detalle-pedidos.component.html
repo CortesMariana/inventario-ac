@@ -34,6 +34,10 @@
             <span class="info-value">{{ pedido.clienteRfc }}</span>
           </div>
           <div class="info-item">
+            <span class="info-label"><i class="pi pi-envelope"></i> Correo</span>
+            <span class="info-value">{{ pedido.clienteEmail || 'Sin información' }}</span>
+          </div>
+          <div class="info-item">
             <span class="info-label"><i class="pi pi-map-marker"></i> Sucursal</span>
             <span class="info-value">{{ pedido.sucursal }}</span>
           </div>
