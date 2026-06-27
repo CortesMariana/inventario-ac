@@ -6,7 +6,6 @@ import { PedidosRoutingModule } from './pedidos-routing.module';
 import { GridPedidosComponent } from './grid-pedidos/grid-pedidos.component';
 import { DetallePedidosComponent } from './detalle-pedidos/detalle-pedidos.component';
 import { NuevoEditarPedidosComponent } from './nuevo-editar-pedidos/nuevo-editar-pedidos.component';
-import { InboxPedidosComponent } from './inbox-pedidos/inbox-pedidos.component';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -23,8 +22,7 @@ import { SharedModule } from '../shared/shared.module';
   declarations: [
     GridPedidosComponent,
     DetallePedidosComponent,
-    NuevoEditarPedidosComponent,
-    InboxPedidosComponent
+    NuevoEditarPedidosComponent
   ],
   imports: [
     CommonModule,
