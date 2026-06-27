@@ -10,10 +10,35 @@
   <nav class="nav-section">
     <ng-container *ngFor="let section of navSections">
       <div class="nav-label">{{ section.label }}</div>
-      <a *ngFor="let item of section.items" class="nav-item" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="activeOptions">
-        <i [class]="item.icon"></i>
-        <span>{{ item.label }}</span>
-      </a>
+      <ng-container *ngFor="let item of section.items">
+        <a
+          *ngIf="item.route !== inboxRoute"
+          class="nav-item"
+          [class.nav-item-status]="hasNavStatus(item)"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="getRouterLinkActiveOptions(item)">
+          <span class="nav-icon-wrap">
+            <i [class]="item.icon"></i>
+            <span class="nav-dot" *ngIf="hasNavStatus(item)" aria-hidden="true"></span>
+          </span>
+          <span>{{ item.label }}</span>
+        </a>
+
+        <button
+          *ngIf="item.route === inboxRoute"
+          type="button"
+          class="nav-item nav-item-inbox"
+          [class.nav-item-status]="hasNavStatus(item)"
+          [class.active]="isInboxActive()"
+          (click)="abrirInbox($event)">
+          <span class="nav-icon-wrap">
+            <i [class]="item.icon"></i>
+            <span class="nav-dot" *ngIf="hasNavStatus(item)" aria-hidden="true"></span>
+          </span>
+          <span>{{ item.label }}</span>
+        </button>
+      </ng-container>
     </ng-container>
   </nav>
 

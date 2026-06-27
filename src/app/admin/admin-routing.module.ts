@@ -20,6 +20,10 @@ const routes: Routes = [
         loadChildren: () => import('./pedidos/pedidos.module').then(m => m.PedidosModule)
       },
       {
+        path: 'inbox-pedidos',
+        loadChildren: () => import('./inbox-pedidos/inbox-pedidos.module').then(m => m.InboxPedidosModule)
+      },
+      {
         path: 'entregas',
         loadChildren: () => import('./entregas/entregas.module').then(m => m.EntregasModule)
       },
