@@ -212,6 +212,7 @@
 
 .cliente-cell,
 .contacto-cell,
+.correo-cell,
 .direccion-cell {
   display: flex;
   flex-direction: column;
@@ -256,6 +257,7 @@
 
 .cliente-rfc,
 .contacto-telefono,
+.email-value,
 .direccion-linea,
 .mono-value {
   font-size: 12px;
@@ -281,6 +283,11 @@
 
 .mono-value {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #374151;
+  font-weight: 500;
+}
+
+.email-value {
   color: #374151;
   font-weight: 500;
 }

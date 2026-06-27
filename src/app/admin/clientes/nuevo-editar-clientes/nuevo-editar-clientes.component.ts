@@ -49,6 +49,7 @@ export class NuevoEditarClientesComponent implements OnInit, OnDestroy {
       nombre:    ['', [Validators.required, Validators.minLength(3)]],
       rfc:       ['', [Validators.required, Validators.pattern(/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i)]],
       telefono:  ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+      email:     ['', [Validators.email]],
       descuento: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       personaCargo: [''],
       telefonoContacto: ['', [Validators.pattern(/^\d{10}$/)]],
@@ -96,6 +97,7 @@ export class NuevoEditarClientesComponent implements OnInit, OnDestroy {
           nombre: cliente.nombre ?? '',
           rfc: cliente.rfc ?? '',
           telefono: cliente.telefono ?? '',
+          email: cliente.email ?? '',
           descuento: cliente.descuento ?? 0,
           personaCargo: cliente.personaCargo ?? '',
           telefonoContacto: cliente.telefonoContacto ?? '',
@@ -136,6 +138,10 @@ export class NuevoEditarClientesComponent implements OnInit, OnDestroy {
 
   get resumenTelefono(): string {
     return String(this.form?.get('telefono')?.value ?? '').trim() || 'Sin información';
+  }
+
+  get resumenEmail(): string {
+    return String(this.form?.get('email')?.value ?? '').trim() || 'Sin información';
   }
 
   get resumenContacto(): string {

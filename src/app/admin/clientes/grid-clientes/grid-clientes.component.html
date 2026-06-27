@@ -76,8 +76,8 @@
         [paginator]="true"
         [rows]="10"
         [rowsPerPageOptions]="[10, 25, 50]"
-        [globalFilterFields]="['nombre', 'rfc', 'telefono', 'personaCargo', 'telefonoContacto', 'direccion']"
-        [tableStyle]="{ 'min-width': '1480px' }"
+        [globalFilterFields]="['nombre', 'rfc', 'telefono', 'email', 'personaCargo', 'telefonoContacto', 'direccion']"
+        [tableStyle]="{ 'min-width': '1640px' }"
         dataKey="id"
         styleClass="p-datatable-sm clientes-table"
         #dt>
@@ -87,6 +87,7 @@
             <th pSortableColumn="nombre" class="col-cliente">Cliente <p-sortIcon field="nombre"></p-sortIcon></th>
             <th class="col-contacto">Contacto</th>
             <th pSortableColumn="telefono" class="col-telefono">Teléfono principal <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th class="col-correo">Correo electrónico</th>
             <th class="col-direccion">Dirección física</th>
             <th class="col-direccion-fiscal">Domicilio fiscal</th>
             <th pSortableColumn="descuento" class="col-descuento">Descuento <p-sortIcon field="descuento"></p-sortIcon></th>
@@ -118,6 +119,12 @@
 
             <td>
               <span class="mono-value">{{ cliente.telefono }}</span>
+            </td>
+
+            <td>
+              <div class="correo-cell">
+                <span class="email-value">{{ cliente.email || 'Sin correo' }}</span>
+              </div>
             </td>
 
             <td>
@@ -161,7 +168,7 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="8" class="empty-state">
+            <td colspan="9" class="empty-state">
               <i class="pi pi-users"></i>
               <span>No hay clientes registrados</span>
             </td>

@@ -106,6 +106,7 @@ function hydrateCliente(cliente: Partial<Cliente>): Cliente {
     id: cliente.id,
     nombre: clean(cliente.nombre),
     rfc: clean(cliente.rfc).toUpperCase(),
+    email: clean(cliente.email),
     direccionFisica,
     domicilioFiscal,
     domicilioFiscalIgualFisica,
@@ -128,6 +129,7 @@ function normalizeCliente(cliente: Partial<Cliente>): Partial<Cliente> {
   return {
     ...hydrated,
     rfc: clean(hydrated.rfc).toUpperCase(),
+    email: clean(hydrated.email),
     direccion: hydrated.direccion || formatDireccion(hydrated.direccionFisica) || formatDireccion(domicilioFiscal),
     direccionFisica: hydrated.direccionFisica,
     domicilioFiscal,
