@@ -31,9 +31,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   readonly inboxRoute = '/admin/inbox-pedidos';
   readonly productionRoute = '/admin/produccion/dashboard';
+  readonly almacenRoute = '/admin/almacen';
 
   pendingInboxCount = 0;
   productionAlertCount = 0;
+  almacenAlertCount = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -48,6 +50,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       label: 'Operación',
       items: [
         { label: 'Producción', icon: 'pi pi-bell', route: '/admin/produccion/dashboard' }
+      ]
+    },
+    {
+      label: 'Almacén',
+      items: [
+        { label: 'Almacén', icon: 'pi pi-warehouse', route: '/admin/almacen', exact: true }
       ]
     },
     {
@@ -87,9 +95,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (pedidos) => {
           this.pendingInboxCount = pedidos.filter(pedido => isPedidoEnRevision(pedido.estado)).length;
+          this.almacenAlertCount = pedidos.filter(pedido => pedido.estado === 'autorizado').length;
         },
         error: () => {
           this.pendingInboxCount = 0;
+          this.almacenAlertCount = 0;
         }
       });
 
@@ -130,6 +140,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     if (item.route === this.productionRoute) {
       return this.productionAlertCount > 0;
+    }
+
+    if (item.route === this.almacenRoute) {
+      return this.almacenAlertCount > 0;
     }
 
     return false;

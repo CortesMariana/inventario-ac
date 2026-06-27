@@ -183,6 +183,13 @@ const NAV_BREADCRUMBS: BreadcrumbRule[] = [
     ]
   },
   {
+    match: /^\/admin\/almacen$/,
+    crumbs: [
+      { label: 'Almacén', icon: 'pi pi-warehouse', route: '/admin/almacen' },
+      { label: 'Operación', icon: 'pi pi-sliders-h' }
+    ]
+  },
+  {
     match: /^\/admin\/dba$/,
     crumbs: [
       { label: 'Sistema', icon: 'pi pi-shield', route: '/admin/dba' },
@@ -391,6 +398,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       entregas: '/admin/entregas',
       reportes: '/admin/reportes/dashboard',
       produccion: '/admin/produccion/dashboard',
+      almacen: '/admin/almacen',
       dba: '/admin/dba',
       usuarios: '/admin/usuarios',
       'inbox-pedidos': '/admin/inbox-pedidos'
@@ -407,6 +415,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       entregas: 'pi pi-truck',
       reportes: 'pi pi-chart-bar',
       produccion: 'pi pi-bell',
+      almacen: 'pi pi-warehouse',
       dba: 'pi pi-database',
       usuarios: 'pi pi-user-edit',
       'inbox-pedidos': 'pi pi-inbox'

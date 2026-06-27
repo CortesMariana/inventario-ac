@@ -1,0 +1,387 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <app-confirm-dialog
+    [visible]="confirmSalidaVisible"
+    title="Confirmar salida"
+    [message]="confirmSalidaMessage"
+    confirmLabel="Sí, confirmar"
+    cancelLabel="Cancelar"
+    type="warning"
+    (confirm)="onConfirmSalida()"
+    (cancel)="onCancelSalida()">
+  </app-confirm-dialog>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Almacén</h1>
+      <p class="page-sub">Entrada de mercancía y salida de pedidos con validación por código de barras.</p>
+    </div>
+
+    <div class="header-badges">
+      <span class="header-chip">
+        <i class="pi pi-bolt"></i>
+        {{ pedidosAutorizados }} pedidos listos
+      </span>
+      <span class="header-chip header-chip-soft">
+        <i class="pi pi-box"></i>
+        {{ totalMovimientos }} movimientos
+      </span>
+    </div>
+  </div>
+
+  <section class="guide-grid">
+    <article class="guide-card">
+      <div class="guide-step">1</div>
+      <div>
+        <h2 class="guide-title">Entrada</h2>
+        <p class="guide-text">Escanea el producto, revisa la cantidad y confirma para sumar stock.</p>
+      </div>
+    </article>
+
+    <article class="guide-card">
+      <div class="guide-step">2</div>
+      <div>
+        <h2 class="guide-title">Pedido</h2>
+        <p class="guide-text">Busca el número de pedido y escanea cada pieza que se va a enviar.</p>
+      </div>
+    </article>
+
+    <article class="guide-card">
+      <div class="guide-step">3</div>
+      <div>
+        <h2 class="guide-title">Confirmar</h2>
+        <p class="guide-text">Solo se habilita cuando todas las cantidades hacen match.</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="work-grid">
+    <article class="work-card work-card-entry" [formGroup]="entradaForm">
+      <div class="card-head">
+        <div>
+          <p class="card-kicker">Paso 1</p>
+          <h2 class="card-title">Entrada de producción</h2>
+          <p class="card-sub">Captura las nuevas existencias que llegan de producción.</p>
+        </div>
+        <span class="card-badge card-badge-entry">
+          <i class="pi pi-sign-in"></i>
+          Entradas
+        </span>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Código de barras</label>
+        <div class="scan-row">
+            <span class="p-input-icon-left input-shell">
+            <i class="pi pi-barcode"></i>
+            <input
+              #entradaCodigoInput
+              pInputText
+              formControlName="codigoBarras"
+              placeholder="Escanea o escribe el código"
+              (keydown.enter)="buscarProductoEntrada()" />
+          </span>
+
+          <button
+            pButton
+            type="button"
+            icon="pi pi-search"
+            label="Buscar"
+            class="p-button-outlined"
+            [disabled]="loadingInventario"
+            (click)="buscarProductoEntrada()">
+          </button>
+        </div>
+      </div>
+
+      <div class="selected-box" *ngIf="entradaSeleccionada; else entradaVacia">
+        <div class="selected-top">
+          <div>
+            <div class="selected-name">{{ entradaSeleccionada.nombreProducto }}</div>
+            <div class="selected-code">{{ entradaSeleccionada.codigoBarras || entradaSeleccionada.codigoProducto || 'Sin código' }}</div>
+          </div>
+          <p-tag [value]="entradaSeleccionada.sucursal || 'Sucursal'" severity="info"></p-tag>
+        </div>
+
+        <div class="stock-grid">
+          <div class="stock-pill">
+            <span class="stock-label">Stock actual</span>
+            <strong>{{ entradaSeleccionada.stock }}</strong>
+          </div>
+          <div class="stock-pill stock-pill-success">
+            <span class="stock-label">Después de entrada</span>
+            <strong>{{ entradaStockDespues }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #entradaVacia>
+        <div class="empty-box">
+          <i class="pi pi-barcode"></i>
+          <p>Escanea un producto para ver su stock actual.</p>
+        </div>
+      </ng-template>
+
+      <div class="field">
+        <label class="field-label">Cantidad recibida</label>
+        <p-inputNumber
+          formControlName="cantidad"
+          [showButtons]="true"
+          [min]="1"
+          buttonLayout="horizontal"
+          [inputStyle]="{ width: '100%' }">
+        </p-inputNumber>
+        <small class="field-hint">Ingresa la cantidad real recibida.</small>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Observaciones</label>
+        <textarea
+          class="text-area"
+          formControlName="observaciones"
+          rows="3"
+          placeholder="Opcional: lote, daño, diferencia, etc."></textarea>
+      </div>
+
+      <div class="button-row">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-check"
+          label="Registrar entrada"
+          [loading]="guardandoEntrada"
+          [disabled]="!puedeRegistrarEntrada || loadingInventario"
+          (click)="registrarEntrada()">
+        </button>
+
+        <button
+          pButton
+          type="button"
+          icon="pi pi-refresh"
+          label="Limpiar"
+          class="p-button-outlined"
+          (click)="limpiarEntrada()">
+        </button>
+      </div>
+    </article>
+
+    <article class="work-card work-card-salida" [formGroup]="salidaForm">
+      <div class="card-head">
+        <div>
+          <p class="card-kicker">Paso 2</p>
+          <h2 class="card-title">Salida de pedidos</h2>
+          <p class="card-sub">Busca el pedido y escanea una pieza por cada lectura.</p>
+        </div>
+        <span class="card-badge card-badge-salida">
+          <i class="pi pi-truck"></i>
+          Surtido
+        </span>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Número de pedido</label>
+        <div class="scan-row">
+            <span class="p-input-icon-left input-shell">
+            <i class="pi pi-hashtag"></i>
+            <input
+              #salidaPedidoInput
+              pInputText
+              formControlName="pedidoId"
+              placeholder="Escribe o escanea el pedido"
+              (keydown.enter)="buscarPedido()" />
+          </span>
+
+          <button
+            pButton
+            type="button"
+            icon="pi pi-search"
+            label="Buscar"
+            class="p-button-outlined"
+            [loading]="loadingPedidos"
+            (click)="buscarPedido()">
+          </button>
+        </div>
+      </div>
+
+      <div class="pedido-state" *ngIf="pedidoActual; else pedidoVacio">
+        <div class="pedido-top">
+          <div>
+            <div class="pedido-name">{{ pedidoActual.clienteNombre }}</div>
+            <div class="pedido-ref">Pedido {{ getPedidoReferencia(pedidoActual) }}</div>
+          </div>
+          <p-tag
+            [value]="getEstadoPedidoLabel(pedidoActual.estado)"
+            [severity]="getEstadoPedidoSeverity(pedidoActual.estado)">
+          </p-tag>
+        </div>
+
+        <div class="pedido-summary">
+          <div class="summary-item">
+            <span>Cliente</span>
+            <strong>{{ pedidoActual.clienteNombre }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Sucursal</span>
+            <strong>{{ pedidoActual.sucursal }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Piezas</span>
+            <strong>{{ totalPedidoEscaneado }} / {{ totalPedidoSolicitado }}</strong>
+          </div>
+        </div>
+
+        <div class="warning-box" *ngIf="pedidoBloqueadoMotivo">
+          <i class="pi pi-info-circle"></i>
+          <span>{{ pedidoBloqueadoMotivo }}</span>
+        </div>
+
+        <div class="scan-progress">
+          <div class="scan-progress-head">
+            <span>Surtido general</span>
+            <strong>{{ porcentajeSurtido }}%</strong>
+          </div>
+          <p-progressBar [value]="porcentajeSurtido"></p-progressBar>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Escanear producto</label>
+          <div class="scan-row">
+            <span class="p-input-icon-left input-shell">
+              <i class="pi pi-barcode"></i>
+              <input
+                #salidaCodigoInput
+                pInputText
+                formControlName="codigoBarras"
+                [disabled]="!!pedidoBloqueadoMotivo"
+                placeholder="Escanea una pieza"
+                (keydown.enter)="agregarEscaneoSalida()" />
+            </span>
+
+            <button
+              pButton
+              type="button"
+              icon="pi pi-plus"
+              label="Agregar"
+              [disabled]="!!pedidoBloqueadoMotivo"
+              (click)="agregarEscaneoSalida()">
+            </button>
+          </div>
+          <small class="field-hint">Cada lectura suma una pieza al producto correspondiente.</small>
+        </div>
+
+        <div class="line-list">
+          <article class="line-item" *ngFor="let linea of lineasSurtido">
+            <div class="line-top">
+              <div>
+                <div class="line-name">{{ linea.nombreProducto }}</div>
+                <div class="line-code">{{ linea.codigoBarras }}</div>
+              </div>
+              <div class="line-counts">
+                <strong>{{ linea.cantidadEscaneada }} / {{ linea.cantidadSolicitada }}</strong>
+                <span>{{ getLineaPendiente(linea) }} pendientes</span>
+              </div>
+            </div>
+
+            <p-progressBar [value]="getLineaProgreso(linea)"></p-progressBar>
+          </article>
+        </div>
+
+        <div class="button-row">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-check-circle"
+            label="Confirmar salida"
+            [loading]="guardandoSalida"
+            [disabled]="!pedidoListoParaConfirmar || loadingPedidos || guardandoSalida"
+            (click)="confirmarSalida()">
+          </button>
+
+          <button
+            pButton
+            type="button"
+            icon="pi pi-refresh"
+            label="Limpiar pedido"
+            class="p-button-outlined"
+            (click)="limpiarPedido()">
+          </button>
+        </div>
+      </div>
+
+      <ng-template #pedidoVacio>
+        <div class="empty-box">
+          <i class="pi pi-search"></i>
+          <p>Busca un pedido para comenzar a surtirlo.</p>
+        </div>
+      </ng-template>
+    </article>
+  </section>
+
+  <section class="movements-card">
+    <div class="card-head">
+      <div>
+        <p class="card-kicker">Historial</p>
+        <h2 class="card-title">Últimos movimientos</h2>
+        <p class="card-sub">Entradas y salidas recientes para tener control rápido de la operación.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <p-table
+        [value]="movimientos"
+        [loading]="loadingMovimientos"
+        [paginator]="true"
+        [rows]="6"
+        [rowsPerPageOptions]="[6, 12]"
+        [tableStyle]="{ 'min-width': '760px' }"
+        dataKey="id"
+        styleClass="p-datatable-sm clientes-table">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Detalle</th>
+            <th>Cantidad</th>
+            <th>Sucursal</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-movimiento>
+          <tr>
+            <td>{{ formatFecha(movimiento.fechaCreacion) }}</td>
+            <td>
+              <p-tag
+                [value]="getMovimientoEtiqueta(movimiento.tipo)"
+                [severity]="getMovimientoSeverity(movimiento.tipo)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="movement-detail">
+                <div class="movement-title">
+                  <i [class]="getMovimientoIcon(movimiento.tipo)"></i>
+                  <span>{{ movimiento.titulo }}</span>
+                </div>
+                <div class="movement-sub">{{ movimiento.descripcion }}</div>
+              </div>
+            </td>
+            <td>{{ movimiento.cantidad }}</td>
+            <td>{{ movimiento.sucursal ?? 'General' }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <span>Aún no hay movimientos registrados</span>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </section>
+
+</div>
