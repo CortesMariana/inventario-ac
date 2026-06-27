@@ -1,0 +1,340 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <app-confirm-dialog
+    [visible]="confirmVisible"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [confirmLabel]="confirmLabel"
+    cancelLabel="Volver"
+    [type]="confirmType"
+    (confirm)="onConfirm()"
+    (cancel)="onCancel()">
+  </app-confirm-dialog>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Inbox de pedidos</h1>
+      <p class="page-sub">Los pedidos nuevos llegan en revisión. La autorización los mueve a preparación y deja historial para consulta.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <button
+      type="button"
+      class="stat-card stat-filter"
+      [class.pending-motion]="totalRevision > 0"
+      [class.stat-card-active]="vistaActiva === 'bandeja'"
+      (click)="abrirBandeja()">
+      <div class="stat-head">
+        <span class="stat-icon" [class.stat-icon-pulse]="totalRevision > 0"><i class="pi pi-inbox"></i></span>
+        <span class="stat-label">En revisión</span>
+      </div>
+      <strong class="stat-value">{{ totalRevision }}</strong>
+      <span class="stat-sub">Esperando autorización</span>
+    </button>
+
+    <button
+      type="button"
+      class="stat-card stat-filter stat-card-accent"
+      [class.stat-card-active]="vistaActiva === 'historial'"
+      (click)="abrirHistorial()">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-history"></i></span>
+        <span class="stat-label">Autorizados</span>
+      </div>
+      <strong class="stat-value">{{ totalAutorizados }}</strong>
+      <span class="stat-sub">Ya enviados a preparación</span>
+    </button>
+
+    <button
+      type="button"
+      class="stat-card stat-filter"
+      [class.pending-motion]="totalRevisionFactura > 0"
+      [class.stat-card-active]="vistaActiva === 'bandeja' && tipoFiltro === 'factura'"
+      (click)="filtrarFacturas()">
+      <div class="stat-head">
+        <span class="stat-icon" [class.stat-icon-pulse]="totalRevisionFactura > 0"><i class="pi pi-file-pdf"></i></span>
+        <span class="stat-label">Facturas</span>
+      </div>
+      <strong class="stat-value">{{ totalRevisionFactura }}</strong>
+      <span class="stat-sub">Pedidos en revisión de factura</span>
+    </button>
+
+    <button
+      type="button"
+      class="stat-card stat-filter"
+      [class.pending-motion]="totalRevisionConsigna > 0"
+      [class.stat-card-active]="vistaActiva === 'bandeja' && tipoFiltro === 'consigna'"
+      (click)="filtrarConsignas()">
+      <div class="stat-head">
+        <span class="stat-icon" [class.stat-icon-pulse]="totalRevisionConsigna > 0"><i class="pi pi-handshake"></i></span>
+        <span class="stat-label">Consignas</span>
+      </div>
+      <strong class="stat-value">{{ totalRevisionConsigna }}</strong>
+      <span class="stat-sub">Pedidos en revisión de consigna</span>
+    </button>
+  </div>
+
+  <div class="inbox-toolbar">
+    <div class="segmented-menu" role="tablist" aria-label="Vistas de pedidos">
+      <button
+        *ngFor="let vista of vistas"
+        type="button"
+        class="segment-option"
+        [class.pending-motion]="vista.value === 'bandeja' && totalRevision > 0"
+        [class.active]="vistaActiva === vista.value"
+        (click)="activarVista(vista.value)">
+        <span class="segment-icon" [class.segment-icon-pulse]="vista.value === 'bandeja' && totalRevision > 0"><i [class]="vista.icon"></i></span>
+        <span class="segment-copy">
+          <span class="segment-label">{{ vista.label }}</span>
+          <span class="segment-hint">{{ vista.hint }}</span>
+        </span>
+        <strong class="segment-count">{{ getVistaCount(vista.value) }}</strong>
+      </button>
+    </div>
+
+    <div class="type-menu" role="toolbar" aria-label="Tipo de pedido">
+      <button
+        *ngFor="let tipo of tipos"
+        type="button"
+        class="type-pill"
+        [class.pending-motion]="(tipo.value === 'factura' && totalRevisionFactura > 0) || (tipo.value === 'consigna' && totalRevisionConsigna > 0)"
+        [class.active]="tipoFiltro === tipo.value"
+        (click)="activarFiltro(tipo.value)">
+        <i [class]="tipo.icon" [class.type-icon-pulse]="(tipo.value === 'factura' && totalRevisionFactura > 0) || (tipo.value === 'consigna' && totalRevisionConsigna > 0)"></i>
+        <span>{{ tipo.label }}</span>
+      </button>
+    </div>
+
+    <span class="p-input-icon-left search-box">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar cliente, RFC, sucursal o estado..."
+        [value]="searchTerm"
+        (input)="onSearch($event)" />
+    </span>
+  </div>
+
+  <div class="inbox-layout">
+    <section class="inbox-panel list-panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">{{ vistaActiva === 'bandeja' ? 'Pedidos por autorizar' : 'Historial de pedidos' }}</h2>
+          <p class="panel-subtitle">
+            {{
+              vistaActiva === 'bandeja'
+                ? 'Revisa el contenido, valida los datos y autoriza el pedido para que preparación lo tome.'
+                : 'Consulta pedidos ya revisados, autorizados o procesados sin salir del inbox.'
+            }}
+          </p>
+        </div>
+        <span class="count-pill">{{ totalVisibles }} pedidos</span>
+      </div>
+
+      <div class="pedido-list" *ngIf="!loading; else loadingLista">
+        <div
+          class="pedido-item"
+          *ngFor="let pedido of pedidosVisibles"
+          [class.selected]="pedidoSeleccionado?.id === pedido.id"
+          role="button"
+          tabindex="0"
+          (click)="seleccionarPedido(pedido)"
+          (keydown.enter)="seleccionarPedido(pedido)"
+          (keydown.space)="seleccionarPedido(pedido)">
+
+          <div class="pedido-item-top">
+            <div class="pedido-avatar">{{ getIniciales(pedido.clienteNombre) }}</div>
+
+            <div class="pedido-copy">
+              <div class="pedido-name">{{ pedido.clienteNombre }}</div>
+              <div class="pedido-rfc">{{ pedido.clienteRfc }}</div>
+            </div>
+
+            <div class="pedido-flags">
+              <span class="pedido-type" [ngClass]="pedido.tipoPedido">
+                <i [class]="pedido.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+                {{ getTipoLabel(pedido.tipoPedido) }}
+              </span>
+              <p-tag
+                [value]="getEstadoLabel(pedido.estado)"
+                [severity]="getEstadoSeverity(pedido.estado)">
+              </p-tag>
+            </div>
+          </div>
+
+          <div class="pedido-metrics">
+            <div class="pedido-metric">
+              <span class="metric-label">Sucursal</span>
+              <strong>{{ pedido.sucursal }}</strong>
+            </div>
+            <div class="pedido-metric">
+              <span class="metric-label">Piezas</span>
+              <strong>{{ pedido.totalProductos }}</strong>
+            </div>
+            <div class="pedido-metric">
+              <span class="metric-label">Total</span>
+              <strong>${{ pedido.total | number:'1.0-0' }}</strong>
+            </div>
+          </div>
+
+          <div class="pedido-item-footer">
+            <div class="pedido-dates">
+              <span>Recibido {{ formatFecha(pedido.fechaCreacion) }}</span>
+              <span *ngIf="!esRevision(pedido.estado)">Actualizado {{ formatFecha(pedido.fechaActualizacion || pedido.fechaCreacion) }}</span>
+            </div>
+
+            <button
+              *ngIf="vistaActiva === 'bandeja' && esRevision(pedido.estado)"
+              pButton
+              type="button"
+              label="Autorizar"
+              icon="pi pi-check"
+              class="p-button-outlined p-button-sm"
+              (click)="abrirAutorizacion(pedido, $event)">
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state empty-inline" *ngIf="pedidosVisibles.length === 0">
+          <i class="pi pi-inbox"></i>
+          <span>{{ vistaActiva === 'bandeja' ? 'No hay pedidos en revisión' : 'No hay pedidos en el historial con estos filtros' }}</span>
+        </div>
+      </div>
+
+      <ng-template #loadingLista>
+        <div class="loading-state inline">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Cargando pedidos...</span>
+        </div>
+      </ng-template>
+    </section>
+
+    <aside class="inbox-panel preview-panel">
+      <ng-container *ngIf="pedidoSeleccionado; else previewVacio">
+        <div class="preview-hero">
+          <div class="preview-identity">
+            <div class="preview-avatar">{{ getIniciales(pedidoSeleccionado.clienteNombre) }}</div>
+            <div class="preview-copy">
+              <div class="preview-title">{{ pedidoSeleccionado.clienteNombre }}</div>
+              <div class="preview-sub">{{ pedidoSeleccionado.clienteRfc }}</div>
+            </div>
+          </div>
+
+          <div class="preview-flags">
+            <span class="pedido-type" [ngClass]="pedidoSeleccionado.tipoPedido">
+              <i [class]="pedidoSeleccionado.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+              {{ getTipoLabel(pedidoSeleccionado.tipoPedido) }}
+            </span>
+            <p-tag
+              [value]="getEstadoLabel(pedidoSeleccionado.estado)"
+              [severity]="getEstadoSeverity(pedidoSeleccionado.estado)">
+            </p-tag>
+          </div>
+        </div>
+
+        <div class="preview-actions">
+          <button
+            *ngIf="esRevision(pedidoSeleccionado.estado)"
+            pButton
+            type="button"
+            label="Autorizar pedido"
+            icon="pi pi-check"
+            (click)="autorizarSeleccionado()">
+          </button>
+          <button
+            pButton
+            type="button"
+            label="Ver detalle completo"
+            icon="pi pi-eye"
+            class="p-button-outlined"
+            (click)="verDetalle(pedidoSeleccionado.id!)">
+          </button>
+        </div>
+
+        <div class="preview-grid">
+          <div class="preview-card">
+            <span>Tipo</span>
+            <strong>{{ getTipoLabel(pedidoSeleccionado.tipoPedido) }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Sucursal</span>
+            <strong>{{ pedidoSeleccionado.sucursal }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Piezas</span>
+            <strong>{{ pedidoSeleccionado.totalProductos }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Correo</span>
+            <strong>{{ pedidoSeleccionado.clienteEmail || 'Sin correo' }}</strong>
+          </div>
+          <div class="preview-card preview-wide">
+            <span>Recibido</span>
+            <strong>{{ formatFecha(pedidoSeleccionado.fechaCreacion) }}</strong>
+          </div>
+          <div class="preview-card preview-wide">
+            <span>Actualizado</span>
+            <strong>{{ formatFecha(pedidoSeleccionado.fechaActualizacion || pedidoSeleccionado.fechaCreacion) }}</strong>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="section-head">
+            <span>Resumen financiero</span>
+          </div>
+
+          <div class="summary-stack">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <strong>${{ pedidoSeleccionado.subtotal | number:'1.0-0' }}</strong>
+            </div>
+            <div class="summary-row" *ngIf="pedidoSeleccionado.descuento > 0">
+              <span>Descuento ({{ pedidoSeleccionado.descuentoCliente }}%)</span>
+              <strong class="discount">-${{ pedidoSeleccionado.descuento | number:'1.0-0' }}</strong>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span>
+              <strong>${{ pedidoSeleccionado.total | number:'1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="section-head">
+            <span>Productos</span>
+            <strong>{{ pedidoSeleccionado.totalProductos }} piezas</strong>
+          </div>
+
+          <div class="product-list">
+            <div class="product-row" *ngFor="let item of pedidoSeleccionado.productos">
+              <div class="product-copy">
+                <strong>{{ item.nombreProducto }}</strong>
+                <span>{{ item.cantidad }} x ${{ item.precioUnitario | number:'1.0-0' }}</span>
+              </div>
+              <strong>${{ item.subtotal | number:'1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #previewVacio>
+        <div class="preview-empty">
+          <i class="pi pi-inbox"></i>
+          <h3>{{ vistaActiva === 'bandeja' ? 'Sin pedidos por revisar' : 'Sin resultados en historial' }}</h3>
+          <p>
+            {{
+              vistaActiva === 'bandeja'
+                ? 'Los pedidos nuevos se colocan aquí con estado en revisión.'
+                : 'Ajusta los filtros para recuperar pedidos ya procesados.'
+            }}
+          </p>
+        </div>
+      </ng-template>
+    </aside>
+  </div>
+
+</div>

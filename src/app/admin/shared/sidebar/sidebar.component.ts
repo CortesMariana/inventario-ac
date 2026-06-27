@@ -42,6 +42,7 @@ export class SidebarComponent {
         { label: 'Clientes',   icon: 'pi pi-users',          route: '/admin/clientes' },
         { label: 'Inventario', icon: 'pi pi-box',             route: '/admin/inventario' },
         { label: 'Pedidos',    icon: 'pi pi-file-edit',       route: '/admin/pedidos' },
+        { label: 'Inbox pedidos', icon: 'pi pi-inbox',       route: '/admin/pedidos/inbox' },
         { label: 'Entregas',   icon: 'pi pi-truck',           route: '/admin/entregas' },
       ]
     },

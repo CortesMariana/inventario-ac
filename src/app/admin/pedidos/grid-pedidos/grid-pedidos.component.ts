@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
-import { Pedido, PedidosService } from '../pedidos.service';
+import { getPedidoEstadoLabel, getPedidoEstadoSeverity, isPedidoEnRevision, Pedido, PedidosService } from '../pedidos.service';
 
 @Component({
     selector: 'app-grid-pedidos',
@@ -51,7 +51,7 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get totalPendientes(): number { return this.pedidos.filter(p => p.estado === 'pendiente').length; }
+  get totalPendientes(): number { return this.pedidos.filter(p => isPedidoEnRevision(p.estado)).length; }
   get totalEnTransito(): number { return this.pedidos.filter(p => p.estado === 'en_transito').length; }
   get totalEntregados(): number { return this.pedidos.filter(p => p.estado === 'entregado').length; }
   get totalCancelados(): number { return this.pedidos.filter(p => p.estado === 'cancelado').length; }
@@ -64,7 +64,11 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
   filtrar(): void {
     let lista = [...this.pedidos];
     if (this.filtroEstadoActivo) {
-      lista = lista.filter(p => p.estado === this.filtroEstadoActivo);
+      if (isPedidoEnRevision(this.filtroEstadoActivo)) {
+        lista = lista.filter(p => isPedidoEnRevision(p.estado));
+      } else {
+        lista = lista.filter(p => p.estado === this.filtroEstadoActivo);
+      }
     }
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
@@ -115,26 +119,10 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
   }
 
   getEstadoSeverity(estado: string): string {
-    const map: Record<string, string> = {
-      en_revision: 'info',
-      pendiente:   'warning',
-      en_transito: 'info',
-      entregado:   'success',
-      cancelado:   'danger',
-      sin_stock:   'danger'
-    };
-    return map[estado] ?? 'info';
+    return getPedidoEstadoSeverity(estado);
   }
 
   getEstadoLabel(estado: string): string {
-    const map: Record<string, string> = {
-      en_revision: 'En revisión',
-      pendiente:   'Pendiente',
-      en_transito: 'En tránsito',
-      entregado:   'Entregado',
-      cancelado:   'Cancelado',
-      sin_stock:   'Sin stock'
-    };
-    return map[estado] ?? estado;
+    return getPedidoEstadoLabel(estado);
   }
 }
