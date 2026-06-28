@@ -4,54 +4,56 @@
 
   <div class="page-header">
     <div>
-      <h1 class="page-title">Detalle de entrega</h1>
-      <p class="page-sub">Trazabilidad completa del despacho</p>
+      <h1 class="page-title">Detalle de pedido</h1>
+      <p class="page-sub">Consulta el estado y el contenido del pedido dentro del módulo de entregas.</p>
     </div>
     <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-text" (click)="volver()"></button>
   </div>
 
-  <ng-container *ngIf="!loading && entrega">
-
+  <ng-container *ngIf="!loading && pedido">
     <div class="grid-detalle">
-
-      <!-- Info general -->
-      <div class="card">
+      <div class="card card-general">
         <div class="card-header">
-          <span class="card-title">Información de entrega</span>
+          <span class="card-title">Información general</span>
           <p-tag
-            [value]="getEstadoLabel(entrega.estado)"
-            [severity]="getEstadoSeverity(entrega.estado)">
+            [value]="getEstadoLabel(pedido.estado)"
+            [severity]="getEstadoSeverity(pedido.estado)">
           </p-tag>
         </div>
 
         <div class="info-grid">
           <div class="info-item">
+            <span class="info-label"><i class="pi pi-hashtag"></i> Número de pedido</span>
+            <span class="info-value">{{ getPedidoReferencia(pedido) }}</span>
+          </div>
+          <div class="info-item">
             <span class="info-label"><i class="pi pi-user"></i> Cliente</span>
-            <span class="info-value">{{ entrega.clienteNombre }}</span>
+            <span class="info-value">{{ pedido.clienteNombre }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="pi pi-id-card"></i> RFC</span>
+            <span class="info-value">{{ pedido.clienteRfc }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="pi pi-envelope"></i> Correo</span>
+            <span class="info-value">{{ pedido.clienteEmail || 'Sin información' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label"><i class="pi pi-map-marker"></i> Sucursal</span>
-            <span class="info-value">{{ entrega.sucursal }}</span>
+            <span class="info-value">{{ pedido.sucursal }}</span>
           </div>
           <div class="info-item">
-            <span class="info-label"><i class="pi pi-truck"></i> Repartidor</span>
-            <span class="info-value">{{ entrega.repartidorNombre ?? 'Sin asignar' }}</span>
-          </div>
-          <div class="info-item" *ngIf="entrega.observaciones">
-            <span class="info-label"><i class="pi pi-comment"></i> Observaciones</span>
-            <span class="info-value">{{ entrega.observaciones }}</span>
+            <span class="info-label"><i class="pi pi-percentage"></i> Descuento cliente</span>
+            <span class="info-value">{{ pedido.descuentoCliente }}%</span>
           </div>
         </div>
       </div>
 
-      <!-- Timeline -->
-      <div class="card">
+      <div class="card card-status">
         <div class="card-title">Seguimiento</div>
-        <p-timeline [value]="timeline" layout="vertical">
+        <p-timeline [value]="timeline" layout="vertical" styleClass="pedido-timeline">
           <ng-template pTemplate="marker" let-event>
-            <div
-              class="timeline-marker"
-              [style.background]="event.color">
+            <div class="timeline-marker" [style.background]="event.color">
               <i [class]="event.icon" style="color:#fff; font-size:12px"></i>
             </div>
           </ng-template>
@@ -65,14 +67,53 @@
           </ng-template>
         </p-timeline>
       </div>
-
     </div>
 
+    <div class="card card-products mt">
+      <div class="card-header">
+        <span class="card-title">Productos del pedido</span>
+        <span class="badge-total">{{ pedido.totalProductos }} piezas</span>
+      </div>
+
+      <div class="resumen-grid">
+        <div class="resumen-box">
+          <span class="resumen-label">Subtotal</span>
+          <strong>${{ pedido.subtotal | number:'1.0-0' }}</strong>
+        </div>
+        <div class="resumen-box" *ngIf="pedido.descuento > 0">
+          <span class="resumen-label">Descuento</span>
+          <strong class="desc-green">-${{ pedido.descuento | number:'1.0-0' }}</strong>
+        </div>
+        <div class="resumen-box total-box">
+          <span class="resumen-label">Total</span>
+          <strong>${{ pedido.total | number:'1.0-0' }}</strong>
+        </div>
+      </div>
+
+      <p-table [value]="pedido.productos" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio unitario</th>
+            <th>Subtotal</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.nombreProducto }}</td>
+            <td>{{ item.cantidad }}</td>
+            <td>${{ item.precioUnitario | number:'1.0-0' }}</td>
+            <td>${{ item.subtotal | number:'1.0-0' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </ng-container>
 
   <div class="loading-state" *ngIf="loading">
     <i class="pi pi-spin pi-spinner"></i>
-    <span>Cargando entrega...</span>
+    <span>Cargando pedido...</span>
   </div>
 
 </div>

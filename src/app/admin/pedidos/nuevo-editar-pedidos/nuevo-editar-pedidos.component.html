@@ -91,7 +91,10 @@
                     class="tipo-btn"
                     [class.active]="form.value.tipoPedido === 'consigna'"
                     (click)="setTipoPedido('consigna')">
-                    <i class="pi pi-handshake"></i>
+                    <span class="tipo-icon tipo-icon-consigna" aria-hidden="true">
+                      <i class="pi pi-file"></i>
+                      <span class="tipo-icon-badge">C</span>
+                    </span>
                     <span>Consigna</span>
                   </button>
                 </div>
@@ -170,7 +173,8 @@
                     [filter]="true"
                     filterBy="label"
                     filterPlaceholder="Buscar producto"
-                    [appendTo]="'body'">
+                    [appendTo]="'body'"
+                    (onChange)="onProductoChange(i)">
                     <ng-template pTemplate="item" let-item>
                       <div class="prod-option">
                         <span class="prod-option-nombre">{{ item.label }}</span>
@@ -192,6 +196,9 @@
                     decrementButtonClass="p-button-text"
                     incrementButtonClass="p-button-text">
                   </p-inputNumber>
+                  <small class="error prod-error" *ngIf="ctrl.get('cantidad')?.touched && ctrl.get('cantidad')?.hasError('max')">
+                    {{ getStockErrorMessage(i) }}
+                  </small>
                 </div>
 
                 <div class="prod-subtotal">
@@ -254,7 +261,7 @@
     <aside class="summary-column">
 
       <!-- Hero cliente -->
-      <div class="summary-card summary-hero-card">
+      <div class="summary-card summary-hero-card summary-card-hero">
         <ng-container *ngIf="clienteSeleccionado; else sinCliente">
           <div class="summary-hero">
             <div class="summary-avatar">{{ getIniciales(clienteSeleccionado.nombre) }}</div>
@@ -265,7 +272,15 @@
           </div>
           <div class="summary-tags">
             <span class="tipo-badge" [class.factura]="form.value.tipoPedido === 'factura'" [class.consigna]="form.value.tipoPedido === 'consigna'">
-              <i [class]="form.value.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+              <ng-container *ngIf="form.value.tipoPedido === 'factura'; else consignaBadgeIcon">
+                <i class="pi pi-file-pdf"></i>
+              </ng-container>
+              <ng-template #consignaBadgeIcon>
+                <span class="tipo-icon tipo-icon-consigna tipo-icon-consigna-sm" aria-hidden="true">
+                  <i class="pi pi-file"></i>
+                  <span class="tipo-icon-badge">C</span>
+                </span>
+              </ng-template>
               {{ form.value.tipoPedido === 'factura' ? 'Factura' : 'Consigna' }}
             </span>
             <span class="descuento-badge" *ngIf="clienteSeleccionado.descuento > 0">
@@ -282,7 +297,7 @@
       </div>
 
       <!-- Resumen financiero -->
-      <div class="summary-card">
+      <div class="summary-card summary-card-finance">
         <div class="summary-card-title">Resumen financiero</div>
         <div class="summary-list">
           <div class="summary-row">
@@ -301,7 +316,7 @@
       </div>
 
       <!-- Asignación -->
-      <div class="summary-card">
+      <div class="summary-card summary-card-assignment">
         <div class="summary-card-title">Asignación</div>
         <div class="summary-list">
           <div class="summary-row">

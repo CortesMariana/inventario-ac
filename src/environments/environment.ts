@@ -17,7 +17,8 @@ export const environment = {
     entregas:   '/entregas-dev',
     sucursales: '/sucursales-dev',
     transferencias: '/transferencias-dev',
-    almacenMovimientos: '/almacen-movimientos-dev'
+    almacenMovimientos: '/almacen-movimientos-dev',
+    pedidoContadores: '/pedido-contadores-dev'
   },
   "styles": [
     "node_modules/@fortawesome/fontawesome-free/css/all.min.css",

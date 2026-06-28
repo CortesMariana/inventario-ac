@@ -75,7 +75,8 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
       lista = lista.filter(p =>
         p.clienteNombre?.toLowerCase().includes(term) ||
         p.clienteRfc?.toLowerCase().includes(term) ||
-        p.sucursal?.toLowerCase().includes(term)
+        p.sucursal?.toLowerCase().includes(term) ||
+        String(p.numeroPedido ?? p.folio ?? p.pedidoNumero ?? '').toLowerCase().includes(term)
       );
     }
     this.pedidosFiltrados = lista;
@@ -91,7 +92,9 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
   }
 
   verDetalle(id: string): void {
-    this.router.navigate(['/admin/pedidos', id]);
+    this.router.navigate(['/admin/pedidos', id], {
+      state: { returnUrl: '/admin/pedidos' }
+    });
   }
 
   confirmarCancelar(pedido: Pedido): void {

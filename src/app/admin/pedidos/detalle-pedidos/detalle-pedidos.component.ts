@@ -19,6 +19,7 @@ export class DetallePedidosComponent implements OnInit, OnDestroy {
 
   pedido: Pedido | null = null;
   loading = true;
+  private returnUrl = '/admin/pedidos';
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -29,6 +30,9 @@ export class DetallePedidosComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const navigationState = this.router.getCurrentNavigation()?.extras.state as { returnUrl?: string } | undefined;
+    this.returnUrl = navigationState?.returnUrl ?? (history.state?.returnUrl as string | undefined) ?? '/admin/pedidos';
+
     const id = this.route.snapshot.paramMap.get('id')!;
     this.pedidosSrv.getById$(id)
       .pipe(takeUntil(this.destroy$))
@@ -55,6 +59,6 @@ export class DetallePedidosComponent implements OnInit, OnDestroy {
   }
 
   volver(): void {
-    this.router.navigate(['/admin/pedidos']);
+    this.router.navigateByUrl(this.returnUrl);
   }
 }

@@ -1,124 +1,333 @@
-<div class="dashboard">
+<div class="dashboard-operativo">
 
-  <!-- Header -->
   <div class="page-header">
-    <h1 class="page-title">Dashboard</h1>
-    <p class="page-sub">Resumen general de operaciones</p>
+    <div>
+      <h1 class="page-title">Dashboard operativo</h1>
+      <p class="page-sub">
+        Vista rápida para la operación diaria: ventas, pedidos, stock, producción y alertas críticas.
+      </p>
+    </div>
+
+    <div class="header-meta">
+      <span class="updated-chip">
+        <i class="pi pi-clock"></i>
+        Actualizado {{ lastUpdated | date:'dd/MM/yyyy HH:mm' }}
+      </span>
+      <a class="header-link" routerLink="/admin/reportes/analytics">
+        <i class="pi pi-chart-line"></i>
+        Analytics
+      </a>
+    </div>
   </div>
 
-  <!-- Skeleton loader -->
+  <div class="quick-actions">
+    <a
+      *ngFor="let accion of accionesRapidas"
+      class="action-link"
+      [routerLink]="accion.route">
+      <span class="action-icon">
+        <i [class]="accion.icon"></i>
+      </span>
+      <span class="action-copy">
+        <strong>{{ accion.label }}</strong>
+        <small>{{ accion.hint }}</small>
+      </span>
+    </a>
+  </div>
+
   <ng-container *ngIf="loading">
     <div class="kpi-grid">
       <div class="kpi-card skeleton" *ngFor="let i of [1,2,3,4]"></div>
     </div>
+
+    <div class="metric-grid">
+      <div class="metric-card skeleton" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+
+    <div class="panel-grid">
+      <div class="panel skeleton-panel tall"></div>
+      <div class="panel skeleton-panel"></div>
+    </div>
   </ng-container>
 
-  <!-- Contenido -->
   <ng-container *ngIf="!loading">
-
-    <!-- KPIs -->
     <div class="kpi-grid">
-      <div class="kpi-card">
+      <section class="kpi-card kpi-blue">
         <div class="kpi-icon">
-          <i class="pi pi-users"></i>
+          <i class="pi pi-dollar"></i>
         </div>
         <div class="kpi-info">
-          <span class="kpi-label">Clientes activos</span>
-          <span class="kpi-value">{{ kpis.totalClientes }}</span>
+          <span class="kpi-label">Ventas del mes</span>
+          <span class="kpi-value">{{ formatMoney(snapshot.ventasMes) }}</span>
+          <span class="kpi-sub">Importe activo del mes</span>
         </div>
-      </div>
+      </section>
 
-      <div class="kpi-card">
-        <div class="kpi-icon">
-          <i class="pi pi-box"></i>
-        </div>
-        <div class="kpi-info">
-          <span class="kpi-label">Productos en stock</span>
-          <span class="kpi-value">{{ kpis.totalProductos }}</span>
-          <span class="kpi-sub kpi-down" *ngIf="kpis.productosEnAlerta.length > 0">
-            <i class="pi pi-exclamation-triangle"></i>
-            {{ kpis.productosEnAlerta.length }} en alerta
-          </span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
+      <section class="kpi-card kpi-green">
         <div class="kpi-icon">
           <i class="pi pi-file-edit"></i>
         </div>
         <div class="kpi-info">
           <span class="kpi-label">Pedidos del mes</span>
-          <span class="kpi-value">{{ kpis.totalPedidosMes }}</span>
+          <span class="kpi-value">{{ snapshot.pedidosMes }}</span>
+          <span class="kpi-sub">Pedidos creados en curso</span>
         </div>
-      </div>
+      </section>
 
-      <div class="kpi-card">
+      <section class="kpi-card kpi-amber">
         <div class="kpi-icon">
-          <i class="pi pi-dollar"></i>
+          <i class="pi pi-exclamation-triangle"></i>
         </div>
         <div class="kpi-info">
-          <span class="kpi-label">Valor en almacén</span>
-          <span class="kpi-value">{{ formatValor(kpis.valorAlmacen) }}</span>
-          <span class="kpi-sub text-muted">4 sucursales</span>
+          <span class="kpi-label">Stock bajo</span>
+          <span class="kpi-value">{{ snapshot.alertasStock }}</span>
+          <span class="kpi-sub">Productos que requieren acción</span>
         </div>
-      </div>
+      </section>
+
+      <section class="kpi-card kpi-purple">
+        <div class="kpi-icon">
+          <i class="pi pi-bolt"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Producción activa</span>
+          <span class="kpi-value">{{ snapshot.alertasProduccion }}</span>
+          <span class="kpi-sub">{{ produccionBase.alertasCriticas }} críticas / {{ produccionBase.alertasBajas }} bajas</span>
+        </div>
+      </section>
     </div>
 
-    <!-- Grid inferior -->
-    <div class="grid-row">
+    <div class="metric-grid">
+      <section class="metric-card metric-slate">
+        <span class="metric-label">Clientes activos</span>
+        <strong class="metric-value">{{ snapshot.clientesActivos }}</strong>
+      </section>
 
-      <!-- Últimos pedidos -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Últimos pedidos</span>
-          <a class="card-action" routerLink="/admin/pedidos">Ver todos</a>
+      <section class="metric-card metric-blue">
+        <span class="metric-label">En revisión</span>
+        <strong class="metric-value">{{ snapshot.pedidosEnRevision }}</strong>
+      </section>
+
+      <section class="metric-card metric-green">
+        <span class="metric-label">En tránsito</span>
+        <strong class="metric-value">{{ snapshot.pedidosEnTransito }}</strong>
+      </section>
+
+      <section class="metric-card metric-red">
+        <span class="metric-label">Cancelados</span>
+        <strong class="metric-value">{{ snapshot.pedidosCancelados }}</strong>
+      </section>
+    </div>
+
+    <div class="panel-grid">
+      <section class="panel panel-wide">
+        <div class="panel-head">
+          <div>
+            <h2>Tendencia semanal</h2>
+            <p>Ventas y pedidos de los últimos 7 días</p>
+          </div>
+          <a class="panel-link" routerLink="/admin/reportes/analytics">
+            Ver análisis completo
+          </a>
         </div>
-
-        <div class="table-head">
-          <span>Cliente</span>
-          <span>Productos</span>
-          <span>Total</span>
-          <span>Estado</span>
+        <div class="chart-box chart-lg">
+          <canvas #trendCanvas></canvas>
         </div>
+      </section>
 
-        <div class="table-row" *ngFor="let pedido of kpis.ultimosPedidos">
-          <span>{{ pedido.clienteNombre }}</span>
-          <span>{{ pedido.totalProductos }} pzas</span>
-          <span>${{ pedido.total | number:'1.0-0' }}</span>
-          <span class="pill" [ngClass]="getEstadoClass(pedido.estado)">
-            {{ getEstadoLabel(pedido.estado) }}
-          </span>
-        </div>
-
-        <div class="empty-state" *ngIf="kpis.ultimosPedidos.length === 0">
-          <i class="pi pi-inbox"></i>
-          <span>Sin pedidos este mes</span>
-        </div>
-      </div>
-
-      <!-- Alertas de stock -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Alertas de stock</span>
-          <a class="card-action" routerLink="/admin/inventario">Ver inventario</a>
-        </div>
-
-        <div class="alert-item" *ngFor="let alerta of kpis.productosEnAlerta">
-          <div class="alert-dot" [ngClass]="getAlertaClass(alerta.stock)"></div>
-          <div class="alert-info">
-            <span class="alert-text">{{ alerta.nombreProducto }}</span>
-            <span class="alert-sub">{{ alerta.sucursal }} — {{ alerta.stock }} unidades</span>
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Alertas prioritarias</h2>
+            <p>Stock bajo, producción crítica y pedidos en revisión</p>
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="kpis.productosEnAlerta.length === 0">
-          <i class="pi pi-check-circle"></i>
-          <span>Sin alertas de stock</span>
+        <div class="alert-list" *ngIf="snapshot.alertas.length > 0; else noAlertas">
+          <button
+            type="button"
+            class="alert-item"
+            *ngFor="let alerta of snapshot.alertas"
+            (click)="navegar(alerta.ruta)">
+            <span class="alert-icon" [ngClass]="alerta.tipo">
+              <i [class]="alerta.icono"></i>
+            </span>
+            <span class="alert-info">
+              <strong>{{ alerta.titulo }}</strong>
+              <small>{{ alerta.detalle }}</small>
+            </span>
+            <span class="alert-tag">{{ alerta.etiqueta }}</span>
+          </button>
         </div>
-      </div>
 
+        <ng-template #noAlertas>
+          <div class="empty-state">
+            <i class="pi pi-check-circle"></i>
+            <span>Sin alertas activas</span>
+          </div>
+        </ng-template>
+      </section>
     </div>
 
+    <div class="panel-grid two">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Estados de pedidos</h2>
+            <p>Distribución del mes en curso</p>
+          </div>
+        </div>
+
+        <div class="chart-box chart-md">
+          <canvas #estadoCanvas></canvas>
+        </div>
+
+        <div class="state-list">
+          <div class="state-row" *ngFor="let estado of snapshot.estados">
+            <div class="state-label">
+              <span class="state-dot" [style.background]="estado.color"></span>
+              <span>{{ estado.label }}</span>
+            </div>
+            <strong>{{ estado.value }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Top productos</h2>
+            <p>Unidades y monto acumulado</p>
+          </div>
+        </div>
+
+        <div class="chart-box chart-md">
+          <canvas #productosCanvas></canvas>
+        </div>
+      </section>
+    </div>
+
+    <div class="panel-grid two">
+      <section class="panel table-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Clientes clave</h2>
+            <p>Clientes que más aportan al resultado del mes</p>
+          </div>
+        </div>
+
+        <div class="data-table" *ngIf="snapshot.topClientes.length > 0; else noClientes">
+          <div class="data-head">
+            <span>Cliente</span>
+            <span>Pedidos</span>
+            <span>Ticket</span>
+          </div>
+          <div class="data-row" *ngFor="let cliente of snapshot.topClientes">
+            <span class="name-cell">{{ cliente.clienteNombre }}</span>
+            <span>{{ cliente.pedidos }}</span>
+            <span>{{ formatMoney(cliente.ticketPromedio) }}</span>
+          </div>
+        </div>
+
+        <ng-template #noClientes>
+          <div class="empty-state">
+            <i class="pi pi-users"></i>
+            <span>Sin clientes con movimiento</span>
+          </div>
+        </ng-template>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Últimos pedidos</h2>
+            <p>Lectura rápida de los pedidos más recientes</p>
+          </div>
+          <a class="panel-link" routerLink="/admin/pedidos">Ver todos</a>
+        </div>
+
+        <div class="data-table" *ngIf="snapshot.pedidosRecientes.length > 0; else noPedidos">
+          <div class="data-head">
+            <span>Pedido</span>
+            <span>Total</span>
+            <span>Estado</span>
+          </div>
+          <div class="data-row" *ngFor="let pedido of snapshot.pedidosRecientes">
+            <span class="name-cell">{{ pedido.clienteNombre }}</span>
+            <span>{{ formatMoney(pedido.total || 0) }}</span>
+            <span class="pill" [ngClass]="getEstadoClass(pedido.estado)">
+              {{ getEstadoLabel(pedido.estado) }}
+            </span>
+          </div>
+        </div>
+
+        <ng-template #noPedidos>
+          <div class="empty-state">
+            <i class="pi pi-inbox"></i>
+            <span>Sin pedidos recientes</span>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+
+    <div class="panel-grid two">
+      <section class="panel table-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Sucursales</h2>
+            <p>Contribución por pedidos y ventas</p>
+          </div>
+        </div>
+
+        <div class="data-table" *ngIf="snapshot.sucursales.length > 0; else noSucursales">
+          <div class="data-head">
+            <span>Sucursal</span>
+            <span>Pedidos</span>
+            <span>Ventas</span>
+          </div>
+          <div class="data-row" *ngFor="let sucursal of snapshot.sucursales">
+            <span class="name-cell">{{ sucursal.sucursal }}</span>
+            <span>{{ sucursal.pedidos }}</span>
+            <span>{{ formatMoney(sucursal.ventas) }}</span>
+          </div>
+        </div>
+
+        <ng-template #noSucursales>
+          <div class="empty-state">
+            <i class="pi pi-map-marker"></i>
+            <span>Sin datos por sucursal</span>
+          </div>
+        </ng-template>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Estado ejecutivo</h2>
+            <p>Indicadores resumidos para decisión rápida</p>
+          </div>
+        </div>
+
+        <div class="executive-grid">
+          <div class="executive-item">
+            <span>Ventas del mes</span>
+            <strong>{{ formatMoney(snapshot.ventasMes) }}</strong>
+          </div>
+          <div class="executive-item">
+            <span>Ticket promedio</span>
+            <strong>{{ formatMoney(snapshot.ticketPromedio) }}</strong>
+          </div>
+          <div class="executive-item">
+            <span>Valor inventario</span>
+            <strong>{{ formatMoney(snapshot.valorAlmacen) }}</strong>
+          </div>
+          <div class="executive-item">
+            <span>Productos en stock</span>
+            <strong>{{ snapshot.productosStock }}</strong>
+          </div>
+        </div>
+      </section>
+    </div>
   </ng-container>
 
 </div>

@@ -5,13 +5,15 @@ import { ReportesRoutingModule } from './reportes-routing.module';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ReporteVentasComponent } from './reporte-ventas/reporte-ventas.component';
 import { ReporteInventarioComponent } from './reporte-inventario/reporte-inventario.component';
+import { AnalyticsGerencialComponent } from './analytics-gerencial/analytics-gerencial.component';
 import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
   declarations: [
     DashboardComponent,
     ReporteVentasComponent,
-    ReporteInventarioComponent
+    ReporteInventarioComponent,
+    AnalyticsGerencialComponent
   ],
   imports: [
     CommonModule,

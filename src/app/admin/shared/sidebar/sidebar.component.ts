@@ -69,9 +69,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       ]
     },
     {
-      label: 'Reportes',
+      label: 'Gerencia',
       items: [
-        { label: 'Reportes', icon: 'pi pi-chart-bar', route: '/admin/reportes' }
+        { label: 'Analytics', icon: 'pi pi-chart-line', route: '/admin/reportes/analytics', exact: true }
       ]
     },
     {

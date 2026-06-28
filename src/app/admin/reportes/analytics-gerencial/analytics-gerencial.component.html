@@ -1,0 +1,251 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Analytics gerencial</h1>
+      <p class="page-sub">
+        Panorama operativo y financiero de pedidos, clientes y productos por día, semana, mes y año.
+      </p>
+    </div>
+
+    <div class="header-meta">
+      <span class="updated-chip">
+        <i class="pi pi-clock"></i>
+        Actualizado {{ lastUpdated | date:'dd/MM/yyyy HH:mm' }}
+      </span>
+      <a class="header-link" routerLink="/admin/reportes/dashboard">
+        <i class="pi pi-arrow-left"></i>
+        Volver a reportes
+      </a>
+    </div>
+  </div>
+
+  <div class="period-bar">
+    <div class="period-group">
+      <button
+        *ngFor="let periodo of periodos"
+        type="button"
+        class="period-btn"
+        [class.active]="periodoSeleccionado === periodo.value"
+        (click)="setPeriodo(periodo.value)">
+        <i [class]="periodo.icon"></i>
+        <span class="period-label">{{ periodo.label }}</span>
+        <small>{{ periodo.hint }}</small>
+      </button>
+    </div>
+
+    <div class="period-note">
+      <i class="pi pi-info-circle"></i>
+      {{ periodoLabel }} con corte operativo de pedidos y ventas
+    </div>
+  </div>
+
+  <ng-container *ngIf="loading">
+    <div class="kpi-grid">
+      <div class="kpi-card skeleton" *ngFor="let item of [1,2,3,4]"></div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card skeleton" *ngFor="let item of [1,2,3,4]"></div>
+    </div>
+
+    <div class="panel-grid">
+      <div class="panel skeleton-panel tall"></div>
+      <div class="panel skeleton-panel"></div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading">
+    <div class="kpi-grid">
+      <section class="kpi-card kpi-blue">
+        <div class="kpi-icon">
+          <i class="pi pi-dollar"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Ventas netas</span>
+          <span class="kpi-value">{{ formatMoney(snapshot.ventasNetas) }}</span>
+          <span class="kpi-sub">Periodo seleccionado</span>
+        </div>
+      </section>
+
+      <section class="kpi-card kpi-green">
+        <div class="kpi-icon">
+          <i class="pi pi-file-edit"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Pedidos totales</span>
+          <span class="kpi-value">{{ snapshot.pedidosTotales }}</span>
+          <span class="kpi-sub">Pedidos creados en el corte</span>
+        </div>
+      </section>
+
+      <section class="kpi-card kpi-amber">
+        <div class="kpi-icon">
+          <i class="pi pi-wallet"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Ticket promedio</span>
+          <span class="kpi-value">{{ formatMoney(snapshot.ticketPromedio) }}</span>
+          <span class="kpi-sub">Promedio por pedido activo</span>
+        </div>
+      </section>
+
+      <section class="kpi-card kpi-purple">
+        <div class="kpi-icon">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Clientes activos</span>
+          <span class="kpi-value">{{ snapshot.clientesActivos }}</span>
+          <span class="kpi-sub">{{ totalClientesRegistrados }} clientes registrados</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="metric-grid">
+      <section class="metric-card metric-slate">
+        <span class="metric-label">Unidades vendidas</span>
+        <strong class="metric-value">{{ snapshot.unidadesVendidas }}</strong>
+      </section>
+
+      <section class="metric-card metric-blue">
+        <span class="metric-label">En tránsito</span>
+        <strong class="metric-value">{{ snapshot.pedidosEnTransito }}</strong>
+      </section>
+
+      <section class="metric-card metric-green">
+        <span class="metric-label">Entregados</span>
+        <strong class="metric-value">{{ snapshot.pedidosEntregados }}</strong>
+      </section>
+
+      <section class="metric-card metric-red">
+        <span class="metric-label">Cancelados</span>
+        <strong class="metric-value">{{ snapshot.pedidosCancelados }}</strong>
+      </section>
+    </div>
+
+    <div class="panel-grid">
+      <section class="panel panel-wide">
+        <div class="panel-head">
+          <div>
+            <h2>Ventas y pedidos</h2>
+            <p>Comparativo del importe total y la cantidad de pedidos en el periodo</p>
+          </div>
+          <span class="panel-badge">
+            <i class="pi pi-chart-bar"></i>
+            {{ periodoSeleccionado | titlecase }}
+          </span>
+        </div>
+        <div class="chart-box chart-lg">
+          <canvas #trendCanvas></canvas>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Estados</h2>
+            <p>Distribución operativa de pedidos</p>
+          </div>
+        </div>
+        <div class="chart-box chart-md">
+          <canvas #estadoCanvas></canvas>
+        </div>
+        <div class="state-list">
+          <div class="state-row" *ngFor="let estado of snapshot.estadoCounts">
+            <div class="state-label">
+              <span class="state-dot" [style.background]="estado.color"></span>
+              <span>{{ estado.label }}</span>
+            </div>
+            <strong>{{ estado.value }}</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="panel-grid two">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Productos más vendidos</h2>
+            <p>Ranking por unidades y monto acumulado</p>
+          </div>
+        </div>
+        <div class="chart-box chart-md">
+          <canvas #productosCanvas></canvas>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Clientes con mayor gasto</h2>
+            <p>Concentración por pedidos, monto y ticket promedio</p>
+          </div>
+        </div>
+        <div class="chart-box chart-md">
+          <canvas #clientesCanvas></canvas>
+        </div>
+      </section>
+    </div>
+
+    <div class="panel-grid two">
+      <section class="panel table-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Top productos</h2>
+            <p>Detalle operativo para seguimiento comercial</p>
+          </div>
+        </div>
+
+        <div class="data-table" *ngIf="snapshot.topProductos.length > 0; else noProductos">
+          <div class="data-head">
+            <span>Producto</span>
+            <span>Unidades</span>
+            <span>Importe</span>
+          </div>
+          <div class="data-row" *ngFor="let producto of snapshot.topProductos">
+            <span class="name-cell">{{ producto.nombre }}</span>
+            <span>{{ producto.unidades }}</span>
+            <span>{{ formatMoney(producto.importe) }}</span>
+          </div>
+        </div>
+
+        <ng-template #noProductos>
+          <div class="empty-state">
+            <i class="pi pi-box"></i>
+            <span>Sin ventas en el periodo seleccionado</span>
+          </div>
+        </ng-template>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Top clientes</h2>
+            <p>Clientes que más aportan al resultado</p>
+          </div>
+        </div>
+
+        <div class="data-table" *ngIf="snapshot.topClientes.length > 0; else noClientes">
+          <div class="data-head">
+            <span>Cliente</span>
+            <span>Pedidos</span>
+            <span>Ticket</span>
+          </div>
+          <div class="data-row" *ngFor="let cliente of snapshot.topClientes">
+            <span class="name-cell">{{ cliente.clienteNombre }}</span>
+            <span>{{ cliente.pedidos }}</span>
+            <span>{{ formatMoney(cliente.ticketPromedio) }}</span>
+          </div>
+        </div>
+
+        <ng-template #noClientes>
+          <div class="empty-state">
+            <i class="pi pi-users"></i>
+            <span>Sin clientes con movimiento en el periodo seleccionado</span>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+  </ng-container>
+</div>

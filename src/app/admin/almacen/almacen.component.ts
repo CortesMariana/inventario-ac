@@ -397,9 +397,7 @@ export class AlmacenComponent implements OnInit, OnDestroy {
       cantidadSolicitada: Number(producto.cantidad || 0),
       cantidadEscaneada: 0
     }));
-    this.pedidoBloqueadoMotivo = pedido.estado !== 'autorizado'
-      ? 'Este pedido todavía no está autorizado para surtido'
-      : null;
+    this.pedidoBloqueadoMotivo = this.getBloqueoPedido(pedido);
 
     if (this.pedidoBloqueadoMotivo) {
       this.messageSrv.add({ severity: 'warn', summary: 'Pedido pendiente', detail: this.pedidoBloqueadoMotivo });
@@ -412,6 +410,22 @@ export class AlmacenComponent implements OnInit, OnDestroy {
     }
 
     this.focusSalidaCodigo();
+  }
+
+  private getBloqueoPedido(pedido: Pedido): string | null {
+    if (pedido.estado === 'en_transito') {
+      return 'Ese pedido ya salió a reparto';
+    }
+
+    if (pedido.estado === 'entregado') {
+      return 'Ese pedido ya fue entregado';
+    }
+
+    if (pedido.estado !== 'autorizado') {
+      return 'Este pedido todavía no está autorizado para surtido';
+    }
+
+    return null;
   }
 
   getEstadoPedidoLabel(estado: string): string {

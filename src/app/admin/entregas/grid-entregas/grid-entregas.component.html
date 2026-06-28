@@ -5,123 +5,160 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Entregas</h1>
-      <p class="page-sub">Seguimiento de entregas y despacho</p>
+      <p class="page-sub">Pedidos en tránsito, entregados y cancelados con el mismo estilo operativo de la app.</p>
     </div>
   </div>
 
-  <div class="card">
-    <p-table
-      [value]="entregas"
-      [loading]="loading"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      [globalFilterFields]="['clienteNombre', 'sucursal', 'repartidorNombre']"
-      dataKey="id"
-      styleClass="p-datatable-sm"
-      #dt>
+  <div class="stats-grid">
+    <button
+      type="button"
+      class="stat-card stat-filter pending-motion"
+      [class.stat-card-active]="estadoFiltro === 'todos'"
+      (click)="seleccionarFiltroEstado('todos')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-file-edit"></i></span>
+        <span class="stat-label">Pedidos</span>
+      </div>
+      <strong class="stat-value">{{ totalPedidos }}</strong>
+      <span class="stat-sub">Registros visibles</span>
+    </button>
 
-      <ng-template pTemplate="caption">
-        <div class="table-caption">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <input
-              pInputText
-              type="text"
-              placeholder="Buscar entrega..."
-              (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
-          </span>
-        </div>
-      </ng-template>
+    <button
+      type="button"
+      class="stat-card stat-filter pending-motion stat-card-accent"
+      [class.stat-card-active]="estadoFiltro === 'en_transito'"
+      (click)="seleccionarFiltroEstado('en_transito')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-truck"></i></span>
+        <span class="stat-label">En tránsito</span>
+      </div>
+      <strong class="stat-value">{{ totalEnTransito }}</strong>
+      <span class="stat-sub">Pedidos en reparto</span>
+    </button>
 
-      <ng-template pTemplate="header">
-        <tr>
-          <th pSortableColumn="clienteNombre">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
-          <th pSortableColumn="sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
-          <th>Repartidor</th>
-          <th pSortableColumn="estado">Estado <p-sortIcon field="estado"></p-sortIcon></th>
-          <th>Acciones</th>
-        </tr>
-      </ng-template>
+    <button
+      type="button"
+      class="stat-card stat-filter pending-motion"
+      [class.stat-card-active]="estadoFiltro === 'entregado'"
+      (click)="seleccionarFiltroEstado('entregado')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-check-circle"></i></span>
+        <span class="stat-label">Entregados</span>
+      </div>
+      <strong class="stat-value">{{ totalEntregados }}</strong>
+      <span class="stat-sub">Pedidos completados</span>
+    </button>
 
-      <ng-template pTemplate="body" let-entrega>
-        <tr>
-          <td>{{ entrega.clienteNombre }}</td>
-          <td>{{ entrega.sucursal }}</td>
-          <td>
-            <span *ngIf="entrega.repartidorNombre; else sinRepartidor">
-              {{ entrega.repartidorNombre }}
-            </span>
-            <ng-template #sinRepartidor>
-              <span class="text-muted">Sin asignar</span>
-            </ng-template>
-          </td>
-          <td>
-            <p-tag
-              [value]="getEstadoLabel(entrega.estado)"
-              [severity]="getEstadoSeverity(entrega.estado)">
-            </p-tag>
-          </td>
-          <td>
-            <div class="actions">
-              <button
-                pButton icon="pi pi-eye"
-                class="p-button-text p-button-sm"
-                (click)="verDetalle(entrega.id)"
-                pTooltip="Ver detalle">
-              </button>
-              <button
-                pButton icon="pi pi-truck"
-                class="p-button-text p-button-sm p-button-info"
-                (click)="abrirDialogTransito(entrega)"
-                pTooltip="Marcar en tránsito"
-                [disabled]="entrega.estado !== 'asignado'">
-              </button>
-              <button
-                pButton icon="pi pi-check"
-                class="p-button-text p-button-sm p-button-success"
-                (click)="marcarEntregado(entrega)"
-                pTooltip="Marcar entregado"
-                [disabled]="entrega.estado !== 'en_transito'">
-              </button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="5" class="empty-state">
-            <i class="pi pi-truck"></i>
-            <span>No hay entregas registradas</span>
-          </td>
-        </tr>
-      </ng-template>
-
-    </p-table>
+    <button
+      type="button"
+      class="stat-card stat-filter pending-motion"
+      [class.stat-card-active]="estadoFiltro === 'cancelado'"
+      (click)="seleccionarFiltroEstado('cancelado')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-times-circle"></i></span>
+        <span class="stat-label">Cancelados</span>
+      </div>
+      <strong class="stat-value">{{ totalCancelados }}</strong>
+      <span class="stat-sub">Pedidos cancelados</span>
+    </button>
   </div>
 
-  <!-- Dialog repartidor -->
-  <p-dialog
-    header="Asignar repartidor"
-    [(visible)]="dialogVisible"
-    [modal]="true"
-    [style]="{ width: '360px' }">
-
-    <div class="dialog-body">
-      <label class="dialog-label">Nombre del repartidor *</label>
-      <input
-        pInputText
-        [(ngModel)]="repartidorNombre"
-        placeholder="Ej. Juan Pérez"
-        class="dialog-input" />
+  <div class="table-card">
+    <div class="table-head">
+      <div>
+        <h2 class="table-title">Listado de pedidos</h2>
+        <p class="table-subtitle">Consulta pedidos por estado y abre su detalle sin perder el contexto.</p>
+      </div>
+      <div class="table-tools">
+        <span class="table-count-pill">{{ totalFiltrados }} pedidos</span>
+        <span class="p-input-icon-left search-box">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar pedido, cliente, RFC o sucursal..."
+            [(ngModel)]="searchTerm"
+            (input)="filtrar()" />
+        </span>
+      </div>
     </div>
 
-    <ng-template pTemplate="footer">
-      <button pButton label="Cancelar" class="p-button-text" (click)="dialogVisible = false"></button>
-      <button pButton label="Confirmar" icon="pi pi-check" (click)="confirmarTransito()"></button>
-    </ng-template>
+    <div class="table-scroll">
+      <p-table
+        [value]="pedidosFiltrados"
+        [loading]="loading"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [tableStyle]="{ 'min-width': '980px' }"
+        dataKey="id"
+        styleClass="p-datatable-sm clientes-table">
 
-  </p-dialog>
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="numeroPedido">Pedido <p-sortIcon field="numeroPedido"></p-sortIcon></th>
+            <th pSortableColumn="sucursal">Sucursal <p-sortIcon field="sucursal"></p-sortIcon></th>
+            <th pSortableColumn="totalProductos">Piezas <p-sortIcon field="totalProductos"></p-sortIcon></th>
+            <th pSortableColumn="total">Total <p-sortIcon field="total"></p-sortIcon></th>
+            <th pSortableColumn="estado">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+            <th class="col-acciones">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-pedido>
+          <tr>
+            <td>
+              <div class="pedido-cell">
+                <div class="pedido-avatar">{{ getIniciales(pedido.clienteNombre) }}</div>
+                <div class="pedido-meta">
+                  <span class="pedido-name">{{ pedido.clienteNombre }}</span>
+                  <span class="pedido-rfc">{{ pedido.clienteRfc }}</span>
+                  <span class="pedido-ref">Pedido {{ getPedidoReferencia(pedido) }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ pedido.sucursal }}</td>
+            <td>
+              <span class="cantidad-value">{{ pedido.totalProductos }}</span>
+              <span class="cantidad-label"> pzas</span>
+            </td>
+            <td>
+              <div class="total-cell">
+                <span class="total-valor">${{ pedido.total | number:'1.0-0' }}</span>
+                <span class="descuento-label" *ngIf="pedido.descuentoCliente > 0">-{{ pedido.descuentoCliente }}% desc.</span>
+              </div>
+            </td>
+            <td>
+              <p-tag
+                [value]="getEstadoLabel(pedido.estado)"
+                [severity]="getEstadoSeverity(pedido.estado)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="actions">
+                <button
+                  pButton
+                  icon="pi pi-eye"
+                  class="p-button-text p-button-sm"
+                  (click)="verDetalle(pedido.id!)"
+                  pTooltip="Ver detalle">
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="pi pi-truck"></i>
+              <span>No hay pedidos con los filtros seleccionados</span>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
 
 </div>

@@ -3,9 +3,11 @@ import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ReporteVentasComponent } from './reporte-ventas/reporte-ventas.component';
 import { ReporteInventarioComponent } from './reporte-inventario/reporte-inventario.component';
+import { AnalyticsGerencialComponent } from './analytics-gerencial/analytics-gerencial.component';
 
 const routes: Routes = [
   { path: 'dashboard',  component: DashboardComponent },
+  { path: 'analytics',  component: AnalyticsGerencialComponent },
   { path: 'ventas',     component: ReporteVentasComponent },
   { path: 'inventario', component: ReporteInventarioComponent },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' }

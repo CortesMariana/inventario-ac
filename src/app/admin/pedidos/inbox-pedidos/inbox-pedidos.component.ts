@@ -58,7 +58,7 @@ export class InboxPedidosComponent implements OnInit, OnDestroy {
   readonly tipos: TipoMenu[] = [
     { value: 'todos', label: 'Todos', icon: 'pi pi-filter' },
     { value: 'factura', label: 'Factura', icon: 'pi pi-file-pdf' },
-    { value: 'consigna', label: 'Consigna', icon: 'pi pi-handshake' }
+    { value: 'consigna', label: 'Consigna', icon: 'pi pi-file' }
   ];
 
   private destroy$ = new Subject<void>();
@@ -184,8 +184,24 @@ export class InboxPedidosComponent implements OnInit, OnDestroy {
     return getTipoPedidoLabel(tipo);
   }
 
+  isConsigna(tipo: Pedido['tipoPedido']): boolean {
+    return tipo === 'consigna';
+  }
+
   getTipoSeverity(tipo: Pedido['tipoPedido']): string {
     return getTipoPedidoSeverity(tipo);
+  }
+
+  getPedidoReferencia(pedido: Pedido): string {
+    return String(
+      pedido.numeroPedido ??
+      pedido.folio ??
+      pedido.pedidoNumero ??
+      pedido.consecutivoPedido ??
+      pedido.consecutivo ??
+      pedido.id ??
+      ''
+    );
   }
 
   getEstadoLabel(estado: string): string {
@@ -215,7 +231,9 @@ export class InboxPedidosComponent implements OnInit, OnDestroy {
   }
 
   verDetalle(id: string): void {
-    this.router.navigate(['/admin/pedidos', id]);
+    this.router.navigate(['/admin/pedidos', id], {
+      state: { returnUrl: '/admin/inbox-pedidos' }
+    });
   }
 
   seleccionarPedido(pedido: Pedido): void {
@@ -297,6 +315,7 @@ export class InboxPedidosComponent implements OnInit, OnDestroy {
       pedido.clienteRfc,
       pedido.clienteEmail ?? '',
       pedido.sucursal,
+      this.getPedidoReferencia(pedido),
       getPedidoEstadoLabel(pedido.estado),
       getTipoPedidoLabel(pedido.tipoPedido)
     ];
