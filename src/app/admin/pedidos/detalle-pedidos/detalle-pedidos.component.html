@@ -15,7 +15,7 @@
     <div class="grid-detalle">
 
       <!-- Info general -->
-      <div class="card">
+      <div class="card card-general">
         <div class="card-header">
           <span class="card-title">Información general</span>
           <p-tag
@@ -41,6 +41,10 @@
             <span class="info-label"><i class="pi pi-map-marker"></i> Sucursal</span>
             <span class="info-value">{{ pedido.sucursal }}</span>
           </div>
+          <div class="info-item" *ngIf="pedido.numeroPedido || pedido.folio || pedido.pedidoNumero">
+            <span class="info-label"><i class="pi pi-hashtag"></i> Numero de pedido</span>
+            <span class="info-value">{{ pedido.numeroPedido || pedido.folio || pedido.pedidoNumero }}</span>
+          </div>
           <div class="info-item">
             <span class="info-label"><i class="pi pi-percentage"></i> Descuento cliente</span>
             <span class="info-value">{{ pedido.descuentoCliente }}%</span>
@@ -49,7 +53,7 @@
       </div>
 
       <!-- Resumen financiero -->
-      <div class="card">
+      <div class="card card-finance">
         <div class="card-header">
           <span class="card-title">Resumen financiero</span>
         </div>
@@ -72,7 +76,7 @@
     </div>
 
     <!-- Productos -->
-    <div class="card mt">
+    <div class="card card-products mt">
       <div class="card-header">
         <span class="card-title">Productos del pedido</span>
         <span class="badge-total">{{ pedido.totalProductos }} piezas</span>

@@ -54,6 +54,13 @@ const NAV_BREADCRUMBS: BreadcrumbRule[] = [
     ]
   },
   {
+    match: /^\/admin\/reportes\/analytics$/,
+    crumbs: [
+      { label: 'Reportes', icon: 'pi pi-chart-bar', route: '/admin/reportes/dashboard' },
+      { label: 'Analytics', icon: 'pi pi-chart-line' }
+    ]
+  },
+  {
     match: /^\/admin\/reportes\/inventario$/,
     crumbs: [
       { label: 'Reportes', icon: 'pi pi-chart-bar', route: '/admin/reportes/dashboard' },

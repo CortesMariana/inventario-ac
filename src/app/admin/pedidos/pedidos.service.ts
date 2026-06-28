@@ -36,6 +36,11 @@ export type PedidoEstado =
 
 export interface Pedido {
   id?: string;
+  numeroPedido?: string;
+  folio?: string;
+  pedidoNumero?: string;
+  consecutivoPedido?: number;
+  consecutivo?: number;
   clienteId: string;
   clienteNombre: string;
   clienteRfc: string;
@@ -101,6 +106,7 @@ export class PedidosService {
 
   private col           = environment.collections.pedidos;
   private colInventario = environment.collections.inventario;
+  private colContadores = environment.collections.pedidoContadores;
   private colNotifProd  = 'notificaciones_produccion';
   private colMail       = 'mail';
 
@@ -139,6 +145,15 @@ export class PedidosService {
   async create(pedido: Pedido): Promise<any> {
     return this.run(() =>
       runTransaction(this.firestore, async (transaction) => {
+        const referencia = await this.obtenerSiguienteReferenciaPedido(transaction, pedido.sucursalId, pedido.sucursal);
+        pedido.numeroPedido = referencia.numeroPedido;
+        pedido.folio = referencia.numeroPedido;
+        pedido.pedidoNumero = referencia.numeroPedido;
+        pedido.consecutivoPedido = referencia.consecutivo;
+        pedido.consecutivo = referencia.consecutivo;
+
+        const inventarioActualizado: Array<{ ref: any; stockActual: number; cantidad: number }> = [];
+
         // Verifica stock usando el ID real del documento de inventario
         for (const item of pedido.productos) {
           const invRef = doc(this.firestore, `${this.colInventario}/${item.inventarioItemId}`);
@@ -152,15 +167,28 @@ export class PedidosService {
           if (stockActual < item.cantidad) {
             throw new Error(`Stock insuficiente para "${item.nombreProducto}". Disponible: ${stockActual}`);
           }
+
+          inventarioActualizado.push({
+            ref: invRef,
+            stockActual,
+            cantidad: item.cantidad
+          });
         }
 
+        const contadorRef = doc(this.firestore, `${this.colContadores}/${pedido.sucursalId}`);
+
+        transaction.set(contadorRef, {
+          sucursalId: pedido.sucursalId,
+          sucursal: pedido.sucursal,
+          prefijo: referencia.prefijo,
+          ultimoConsecutivo: referencia.consecutivo,
+          fechaActualizacion: new Date()
+        }, { merge: true });
+
         // Descuenta stock
-        for (const item of pedido.productos) {
-          const invRef = doc(this.firestore, `${this.colInventario}/${item.inventarioItemId}`);
-          const invSnap = await transaction.get(invRef);
-          const stockActual = invSnap.data()!['stock'] ?? 0;
-          transaction.update(invRef, {
-            stock: stockActual - item.cantidad,
+        for (const item of inventarioActualizado) {
+          transaction.update(item.ref, {
+            stock: item.stockActual - item.cantidad,
             fechaActualizacion: new Date()
           });
         }
@@ -213,6 +241,7 @@ export class PedidosService {
   async enviarConfirmacionEmail(pedido: Pedido): Promise<void> {
     if (!pedido.clienteEmail) return;
 
+    const referencia = this.getPedidoReferencia(pedido);
     const lineas = pedido.productos
       .map(p => `<li>${p.nombreProducto} × ${p.cantidad} — $${p.subtotal.toFixed(2)}</li>`)
       .join('');
@@ -222,10 +251,11 @@ export class PedidosService {
       await addDoc(ref, {
         to: pedido.clienteEmail,
         message: {
-          subject: `Confirmación de pedido — ${pedido.clienteNombre}`,
+          subject: `Confirmación de pedido — ${referencia} — ${pedido.clienteNombre}`,
           html: `
             <h2 style="color:#111827">¡Tu pedido fue recibido!</h2>
             <p>Estimado(a) <strong>${pedido.clienteNombre}</strong>,</p>
+            <p>Referencia del pedido: <strong>${referencia}</strong>.</p>
             <p>Hemos recibido tu pedido correctamente. Está actualmente <strong>en revisión</strong>.</p>
             <h3>Detalle</h3>
             <ul>${lineas}</ul>
@@ -239,5 +269,39 @@ export class PedidosService {
         }
       });
     });
+  }
+
+  getPedidoReferencia(pedido: Pedido): string {
+    return String(
+      pedido.numeroPedido ??
+      pedido.folio ??
+      pedido.pedidoNumero ??
+      pedido.consecutivoPedido ??
+      pedido.consecutivo ??
+      pedido.id ??
+      ''
+    );
+  }
+
+  private async obtenerSiguienteReferenciaPedido(transaction: any, sucursalId: string, sucursal: string): Promise<{ numeroPedido: string; consecutivo: number; prefijo: string }> {
+    const contadorRef = doc(this.firestore, `${this.colContadores}/${sucursalId}`);
+    const contadorSnap = await transaction.get(contadorRef);
+
+    const consecutivo = Number(contadorSnap.exists() ? contadorSnap.data()?.['ultimoConsecutivo'] : 0) || 0;
+    const siguiente = consecutivo + 1;
+    const prefijo = String(contadorSnap.data()?.['prefijo'] ?? this.getPrefijoSucursal(sucursal, sucursalId)).toUpperCase();
+    const numeroPedido = `${prefijo}-${siguiente}`;
+
+    return { numeroPedido, consecutivo: siguiente, prefijo };
+  }
+
+  private getPrefijoSucursal(sucursal: string, sucursalId: string): string {
+    const base = String(sucursal ?? sucursalId ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+
+    const letra = base.charAt(0) || String(sucursalId ?? '').charAt(0) || 'P';
+    return letra.toUpperCase();
   }
 }

@@ -160,6 +160,60 @@
   animation: statPulse 1.8s ease-in-out infinite;
 }
 
+.tipo-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.tipo-icon i {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.tipo-icon-consigna {
+  color: #7c3aed;
+}
+
+.tipo-icon-consigna-sm {
+  width: 15px;
+  height: 15px;
+  flex-basis: 15px;
+}
+
+.tipo-icon-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -3px;
+  min-width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #7c3aed;
+  color: #7c3aed;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.stat-icon .tipo-icon {
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
+}
+
+.stat-icon .tipo-icon i {
+  font-size: 14px;
+}
+
 @keyframes statPulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(var(--accent-rgb, 59, 130, 246), 0.16);
@@ -350,6 +404,16 @@
   font-size: 13px;
 }
 
+.type-pill .tipo-icon {
+  width: 15px;
+  height: 15px;
+  flex-basis: 15px;
+}
+
+.type-pill .tipo-icon i {
+  font-size: 12px;
+}
+
 .type-pill:hover {
   transform: translateY(-1px);
   border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.24);
@@ -366,10 +430,18 @@
 .search-box {
   display: block;
   width: 100%;
+  position: relative;
+}
+
+.search-box > i {
+  left: 14px;
+  color: #6b7280;
+  z-index: 1;
 }
 
 .search-box .p-inputtext {
   width: 100%;
+  padding-left: 2.6rem !important;
   border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.18) !important;
   background: rgba(var(--accent-light-rgb, 238, 244, 255), 0.22);
   transition: box-shadow 0.18s ease, border-color 0.18s ease;
@@ -386,6 +458,16 @@
     0 0 0 3px rgba(var(--accent-light-rgb, 238, 244, 255), 0.92),
     0 10px 24px rgba(var(--accent-rgb, 59, 130, 246), 0.12) !important;
   background: #fff;
+}
+
+@media (max-width: 768px) {
+  .search-box > i {
+    left: 12px;
+  }
+
+  .search-box .p-inputtext {
+    padding-left: 2.4rem !important;
+  }
 }
 
 .inbox-layout {
@@ -531,6 +613,15 @@
   word-break: break-word;
 }
 
+.pedido-ref,
+.preview-ref {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1d4ed8;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
 .pedido-flags,
 .preview-flags {
   display: flex;
@@ -549,6 +640,24 @@
   font-size: 11px;
   font-weight: 700;
   border: 1px solid transparent;
+}
+
+.pedido-type .tipo-icon {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+}
+
+.pedido-type .tipo-icon i {
+  font-size: 11px;
+}
+
+.pedido-type .tipo-icon-badge {
+  right: -3px;
+  bottom: -4px;
+  min-width: 8px;
+  height: 8px;
+  font-size: 6px;
 }
 
 .pedido-type.factura {

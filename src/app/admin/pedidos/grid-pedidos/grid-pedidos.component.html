@@ -135,6 +135,9 @@
                 <div class="cliente-meta">
                   <span class="cliente-nombre">{{ pedido.clienteNombre }}</span>
                   <span class="cliente-rfc">{{ pedido.clienteRfc }}</span>
+                  <span class="cliente-ref" *ngIf="pedido.numeroPedido || pedido.folio || pedido.pedidoNumero">
+                    Pedido {{ pedido.numeroPedido || pedido.folio || pedido.pedidoNumero }}
+                  </span>
                 </div>
               </div>
             </td>

@@ -20,6 +20,17 @@
     </div>
   </div>
 
+  <ng-template #consignaIcon let-small="small" let-pulse="pulse">
+    <span
+      class="tipo-icon tipo-icon-consigna"
+      [class.tipo-icon-consigna-sm]="small"
+      [class.type-icon-pulse]="pulse"
+      aria-hidden="true">
+      <i class="pi pi-file"></i>
+      <span class="tipo-icon-badge">C</span>
+    </span>
+  </ng-template>
+
   <div class="stats-grid">
     <button
       type="button"
@@ -66,7 +77,9 @@
       [class.stat-card-active]="vistaActiva === 'bandeja' && tipoFiltro === 'consigna'"
       (click)="filtrarConsignas()">
       <div class="stat-head">
-        <span class="stat-icon" [class.stat-icon-pulse]="totalRevisionConsigna > 0"><i class="pi pi-handshake"></i></span>
+        <span class="stat-icon" [class.stat-icon-pulse]="totalRevisionConsigna > 0">
+          <ng-container *ngTemplateOutlet="consignaIcon"></ng-container>
+        </span>
         <span class="stat-label">Consignas</span>
       </div>
       <strong class="stat-value">{{ totalRevisionConsigna }}</strong>
@@ -100,7 +113,12 @@
         [class.pending-motion]="(tipo.value === 'factura' && totalRevisionFactura > 0) || (tipo.value === 'consigna' && totalRevisionConsigna > 0)"
         [class.active]="tipoFiltro === tipo.value"
         (click)="activarFiltro(tipo.value)">
-        <i [class]="tipo.icon" [class.type-icon-pulse]="(tipo.value === 'factura' && totalRevisionFactura > 0) || (tipo.value === 'consigna' && totalRevisionConsigna > 0)"></i>
+        <ng-container *ngIf="tipo.value === 'consigna'; else tipoIconRegular">
+          <ng-container *ngTemplateOutlet="consignaIcon; context: { small: true, pulse: true }"></ng-container>
+        </ng-container>
+        <ng-template #tipoIconRegular>
+          <i [class]="tipo.icon" [class.type-icon-pulse]="(tipo.value === 'factura' && totalRevisionFactura > 0) || (tipo.value === 'consigna' && totalRevisionConsigna > 0)"></i>
+        </ng-template>
         <span>{{ tipo.label }}</span>
       </button>
     </div>
@@ -149,11 +167,17 @@
             <div class="pedido-copy">
               <div class="pedido-name">{{ pedido.clienteNombre }}</div>
               <div class="pedido-rfc">{{ pedido.clienteRfc }}</div>
+              <div class="pedido-ref">Pedido {{ getPedidoReferencia(pedido) }}</div>
             </div>
 
             <div class="pedido-flags">
               <span class="pedido-type" [ngClass]="pedido.tipoPedido">
-                <i [class]="pedido.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+                <ng-container *ngIf="pedido.tipoPedido === 'consigna'; else pedidoTipoIcon">
+                  <ng-container *ngTemplateOutlet="consignaIcon; context: { small: true }"></ng-container>
+                </ng-container>
+                <ng-template #pedidoTipoIcon>
+                  <i [class]="pedido.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+                </ng-template>
                 {{ getTipoLabel(pedido.tipoPedido) }}
               </span>
               <p-tag
@@ -218,12 +242,18 @@
             <div class="preview-copy">
               <div class="preview-title">{{ pedidoSeleccionado.clienteNombre }}</div>
               <div class="preview-sub">{{ pedidoSeleccionado.clienteRfc }}</div>
+              <div class="preview-ref">Pedido {{ getPedidoReferencia(pedidoSeleccionado) }}</div>
             </div>
           </div>
 
           <div class="preview-flags">
             <span class="pedido-type" [ngClass]="pedidoSeleccionado.tipoPedido">
-              <i [class]="pedidoSeleccionado.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+              <ng-container *ngIf="pedidoSeleccionado.tipoPedido === 'consigna'; else previewTipoIcon">
+                <ng-container *ngTemplateOutlet="consignaIcon; context: { small: true }"></ng-container>
+              </ng-container>
+              <ng-template #previewTipoIcon>
+                <i [class]="pedidoSeleccionado.tipoPedido === 'factura' ? 'pi pi-file-pdf' : 'pi pi-handshake'"></i>
+              </ng-template>
               {{ getTipoLabel(pedidoSeleccionado.tipoPedido) }}
             </span>
             <p-tag

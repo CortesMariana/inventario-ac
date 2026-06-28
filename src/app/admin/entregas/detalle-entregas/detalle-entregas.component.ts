@@ -1,8 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { MessageService } from 'primeng/api';
-import { Entrega, EntregasService } from '../entregas.service';
+import { Pedido, PedidosService, getPedidoEstadoLabel, getPedidoEstadoSeverity } from '../../pedidos/pedidos.service';
 
 @Component({
     selector: 'app-detalle-entregas',
@@ -12,27 +11,25 @@ import { Entrega, EntregasService } from '../entregas.service';
 })
 export class DetalleEntregasComponent implements OnInit, OnDestroy {
 
-  entrega: Entrega | null = null;
+  pedido: Pedido | null = null;
   loading = true;
+  timeline: any[] = [];
   private destroy$ = new Subject<void>();
 
-  timeline: any[] = [];
-
   constructor(
-    private entregasSrv: EntregasService,
+    private pedidosSrv: PedidosService,
     private route: ActivatedRoute,
-    private router: Router,
-    private messageSrv: MessageService
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.entregasSrv.getById$(id)
+    this.pedidosSrv.getById$(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.entrega = data;
-          this.buildTimeline(data);
+          this.pedido = this.normalizarPedido(data);
+          this.buildTimeline(this.pedido);
           this.loading = false;
         },
         error: () => this.loading = false
@@ -44,51 +41,81 @@ export class DetalleEntregasComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private buildTimeline(entrega: Entrega): void {
+  getPedidoReferencia(pedido: Pedido): string {
+    return String(
+      pedido.numeroPedido ??
+      pedido.folio ??
+      pedido.pedidoNumero ??
+      pedido.consecutivoPedido ??
+      pedido.consecutivo ??
+      pedido.id ??
+      ''
+    );
+  }
+
+  private buildTimeline(pedido: Pedido): void {
+    const esTransito = pedido.estado === 'en_transito';
+    const esEntregado = pedido.estado === 'entregado';
+    const esCancelado = pedido.estado === 'cancelado';
+
     this.timeline = [
       {
-        status: 'Pedido asignado',
-        date: entrega.fechaAsignacion?.toDate?.() ?? null,
-        icon: 'pi pi-check',
+        status: 'Pedido registrado',
+        date: this.toDate(pedido.fechaCreacion),
+        icon: 'pi pi-file',
         color: '#16A34A',
         completado: true
       },
       {
         status: 'En tránsito',
-        date: null,
+        date: this.toDate(pedido.fechaActualizacion),
         icon: 'pi pi-truck',
-        color: entrega.estado === 'en_transito' || entrega.estado === 'entregado' ? '#3B82F6' : '#d1d5db',
-        completado: entrega.estado === 'en_transito' || entrega.estado === 'entregado'
+        color: esTransito || esEntregado ? '#3B82F6' : '#d1d5db',
+        completado: esTransito || esEntregado
       },
       {
-        status: 'Entregado',
-        date: entrega.fechaEntrega?.toDate?.() ?? null,
-        icon: 'pi pi-home',
-        color: entrega.estado === 'entregado' ? '#16A34A' : '#d1d5db',
-        completado: entrega.estado === 'entregado'
+        status: esCancelado ? 'Cancelado' : 'Entregado',
+        date: this.toDate(pedido.fechaActualizacion),
+        icon: esCancelado ? 'pi pi-times-circle' : 'pi pi-check-circle',
+        color: esCancelado ? '#DC2626' : (esEntregado ? '#16A34A' : '#d1d5db'),
+        completado: esCancelado || esEntregado
       }
     ];
   }
 
   getEstadoSeverity(estado: string): string {
-    const map: Record<string, string> = {
-      asignado:    'warning',
-      en_transito: 'info',
-      entregado:   'success'
-    };
-    return map[estado] ?? 'info';
+    return getPedidoEstadoSeverity(estado);
   }
 
   getEstadoLabel(estado: string): string {
-    const map: Record<string, string> = {
-      asignado:    'Asignado',
-      en_transito: 'En tránsito',
-      entregado:   'Entregado'
-    };
-    return map[estado] ?? estado;
+    return getPedidoEstadoLabel(estado);
   }
 
   volver(): void {
     this.router.navigate(['/admin/entregas']);
+  }
+
+  private normalizarPedido(pedido: Pedido): Pedido {
+    return {
+      ...pedido,
+      estado: pedido.estado === 'pendiente' ? 'en_revision' : pedido.estado
+    };
+  }
+
+  private toDate(valor?: any): Date | null {
+    if (!valor) {
+      return null;
+    }
+
+    if (valor instanceof Date) {
+      return valor;
+    }
+
+    if (typeof valor?.toDate === 'function') {
+      return valor.toDate();
+    }
+
+    const fecha = new Date(valor);
+    return Number.isNaN(fecha.getTime()) ? null : fecha;
   }
 }

@@ -5,7 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { Cliente, ClientesService } from '../../clientes/clientes.service';
 import { InventarioItem, InventarioService } from '../../inventario/inventario.service';
-import { PedidosService, ProductoPedido } from '../pedidos.service';
+import { Pedido, PedidosService, ProductoPedido } from '../pedidos.service';
 
 export interface ProductoOpcion {
   label: string;
@@ -149,8 +149,54 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
     this.productosArray.push(grupo);
   }
 
+  onProductoChange(index: number): void {
+    const grupo = this.productosArray.at(index) as FormGroup | null;
+    if (!grupo) {
+      return;
+    }
+
+    const producto = grupo.get('producto')?.value as InventarioItem | null;
+    const cantidadCtrl = grupo.get('cantidad');
+
+    if (!cantidadCtrl) {
+      return;
+    }
+
+    const validators = [Validators.required, Validators.min(1)];
+    if (producto) {
+      validators.push(Validators.max(producto.stock ?? 0));
+    }
+
+    cantidadCtrl.setValidators(validators);
+    cantidadCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
   eliminarProducto(index: number): void {
     this.productosArray.removeAt(index);
+  }
+
+  getStockErrorMessage(index: number): string {
+    const grupo = this.productosArray.at(index) as FormGroup | null;
+    const producto = grupo?.get('producto')?.value as InventarioItem | null;
+    const cantidadCtrl = grupo?.get('cantidad');
+
+    if (!grupo || !producto || !cantidadCtrl || !cantidadCtrl.hasError('max')) {
+      return '';
+    }
+
+    return `Solo hay ${producto.stock ?? 0} unidad(es) disponibles de este producto.`;
+  }
+
+  getPrimerErrorStock(): string {
+    for (const ctrl of this.productosArray.controls) {
+      const producto = ctrl.get('producto')?.value as InventarioItem | null;
+      const cantidadCtrl = ctrl.get('cantidad');
+      if (producto && cantidadCtrl?.hasError('max')) {
+        return `No puedes capturar más de ${producto.stock ?? 0} unidad(es) para "${producto.descripcion || producto.nombreProducto}".`;
+      }
+    }
+
+    return '';
   }
 
   calcularSubtotal(): number {
@@ -188,7 +234,12 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
   async guardar(): Promise<void> {
     if (this.form.invalid || this.productosArray.length === 0) {
       this.form.markAllAsTouched();
-      this.messageSrv.add({ severity: 'warn', summary: 'Atención', detail: 'Completa todos los campos y agrega al menos un producto' });
+      const errorStock = this.getPrimerErrorStock();
+      this.messageSrv.add({
+        severity: errorStock ? 'warn' : 'warn',
+        summary: errorStock ? 'Stock insuficiente' : 'Atención',
+        detail: errorStock || 'Completa todos los campos y agrega al menos un producto'
+      });
       return;
     }
 
@@ -214,7 +265,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
     const descuento = this.calcularDescuento();
     const total     = this.calcularTotal();
 
-    const pedido = {
+    const pedido: Pedido = {
       clienteId:        cliente.id!,
       clienteNombre:    cliente.nombre,
       clienteRfc:       cliente.rfc,
@@ -233,6 +284,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
 
     try {
       await this.pedidosSrv.create(pedido);
+      const referenciaPedido = this.pedidosSrv.getPedidoReferencia(pedido);
 
       // Envía confirmación por email si el cliente tiene correo registrado
       if (cliente.email) {
@@ -245,8 +297,8 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
         severity: 'success',
         summary: 'Pedido creado',
         detail: cliente.email
-          ? 'Pedido en revisión. Se envió confirmación al correo del cliente.'
-          : 'Pedido en revisión.'
+          ? `Pedido ${referenciaPedido} en revisión. Se envió confirmación al correo del cliente.`
+          : `Pedido ${referenciaPedido} en revisión.`
       });
       this.router.navigate(['/admin/pedidos']);
     } catch (err: any) {

@@ -120,6 +120,14 @@ export class AlmacenService {
       }
 
       const pedidoActual = pedidoSnap.data() as Pedido;
+      if (pedidoActual.estado === 'en_transito') {
+        throw new Error('Ese pedido ya salió a reparto');
+      }
+
+      if (pedidoActual.estado === 'entregado') {
+        throw new Error('Ese pedido ya fue entregado');
+      }
+
       if (pedidoActual.estado !== 'autorizado') {
         throw new Error('El pedido todavía no está autorizado para surtido');
       }
