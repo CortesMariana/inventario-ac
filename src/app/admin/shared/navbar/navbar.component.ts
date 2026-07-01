@@ -238,6 +238,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   @Input() collapsed = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
+  @Input() mobileMode = false;
+  @Input() mobileOpen = false;
+  @Output() mobileOpenChange = new EventEmitter<boolean>();
 
   themeVisible = false;
   breadcrumbs: BreadcrumbItem[] = [];
@@ -267,8 +270,35 @@ export class NavbarComponent implements OnInit, OnDestroy {
   constructor(private router: Router) {}
 
   toggleSidebar(): void {
+    if (this.mobileMode) {
+      this.mobileOpenChange.emit(!this.mobileOpen);
+      return;
+    }
+
     this.collapsed = !this.collapsed;
     this.collapsedChange.emit(this.collapsed);
+  }
+
+  get menuButtonIcon(): string {
+    if (this.mobileMode) {
+      return this.mobileOpen ? 'pi pi-times' : 'pi pi-bars';
+    }
+
+    return 'pi pi-bars';
+  }
+
+  get menuButtonLabel(): string {
+    if (this.mobileMode) {
+      return this.mobileOpen ? 'Cerrar menú' : 'Abrir menú';
+    }
+
+    return this.collapsed ? 'Expandir menú' : 'Colapsar menú';
+  }
+
+  get themePanelStyle(): { width: string } {
+    return {
+      width: this.mobileMode ? 'min(86vw, 280px)' : '240px'
+    };
   }
 
   toggleThemePanel(): void {

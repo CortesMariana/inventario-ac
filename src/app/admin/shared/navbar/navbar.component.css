@@ -236,16 +236,25 @@
 
 @media (max-width: 900px) {
   .navbar {
-    padding: 0 12px;
-    gap: 10px;
+    padding: 0 10px;
+    gap: 8px;
+    min-height: 56px;
   }
 
   .navbar-left {
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .breadcrumb-item:not(.is-current) {
+    display: none;
+  }
+
+  .breadcrumb-separator {
+    display: none;
   }
 
   .breadcrumb-chip {
-    max-width: 150px;
+    max-width: min(52vw, 220px);
   }
 
   .sucursal-pill span {
@@ -255,15 +264,24 @@
   .sucursal-pill {
     padding-inline: 9px;
   }
+
+  .navbar-actions {
+    gap: 8px;
+  }
 }
 
 @media (max-width: 640px) {
   .breadcrumb-chip {
-    max-width: 112px;
-    padding-inline: 9px;
+    max-width: min(44vw, 160px);
+    padding-inline: 8px;
   }
 
   .navbar-actions {
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
   }
 }

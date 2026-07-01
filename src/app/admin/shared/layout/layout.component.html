@@ -1,15 +1,20 @@
-<div class="app-layout">
+<div class="app-layout" [class.is-mobile]="isMobile" [class.mobile-nav-open]="isMobile && mobileSidebarOpen">
 
   <app-sidebar
+    [class.mobile-drawer]="isMobile"
+    [class.mobile-open]="isMobile && mobileSidebarOpen"
     [collapsed]="sidebarCollapsed"
-    (collapsedChange)="sidebarCollapsed = $event">
+    (collapsedChange)="onSidebarCollapsedChange($event)">
   </app-sidebar>
 
   <div class="main-wrapper">
 
     <app-navbar
       [collapsed]="sidebarCollapsed"
-      (collapsedChange)="sidebarCollapsed = $event">
+      [mobileMode]="isMobile"
+      [mobileOpen]="mobileSidebarOpen"
+      (collapsedChange)="onSidebarCollapsedChange($event)"
+      (mobileOpenChange)="onMobileSidebarOpenChange($event)">
     </app-navbar>
 
     <main class="main-content">
@@ -17,5 +22,13 @@
     </main>
 
   </div>
+
+  <button
+    *ngIf="isMobile && mobileSidebarOpen"
+    type="button"
+    class="mobile-backdrop"
+    aria-label="Cerrar menú"
+    (click)="closeMobileSidebar()">
+  </button>
 
 </div>
