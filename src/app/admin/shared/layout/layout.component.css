@@ -1,8 +1,10 @@
 .app-layout {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #F3F4F6;
+  position: relative;
 }
 
 .main-wrapper {
@@ -17,4 +19,26 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  min-width: 0;
+}
+
+.mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: 14px;
+  }
+
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(15, 23, 42, 0.44);
+    backdrop-filter: blur(1px);
+    z-index: 30;
+  }
 }
