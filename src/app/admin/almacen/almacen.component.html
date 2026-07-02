@@ -97,11 +97,11 @@
       </div>
 
       <div class="selected-box" *ngIf="entradaSeleccionada; else entradaVacia">
-        <div class="selected-top">
-          <div>
-            <div class="selected-name">{{ entradaSeleccionada.nombreProducto }}</div>
-            <div class="selected-code">{{ entradaSeleccionada.codigoBarras || entradaSeleccionada.codigoProducto || 'Sin código' }}</div>
-          </div>
+      <div class="selected-top">
+        <div>
+            <div class="selected-name">{{ entradaSeleccionada.codigoProducto || entradaSeleccionada.productoId || 'Sin codigo' }}</div>
+            <div class="selected-code">{{ entradaSeleccionada.descripcion || entradaSeleccionada.nombreProducto || 'Sin descripcion' }}</div>
+        </div>
           <p-tag [value]="entradaSeleccionada.sucursal || 'Sucursal'" severity="info"></p-tag>
         </div>
 

@@ -71,7 +71,7 @@ const COLLECTIONS: DbaCollectionConfig[] = [
     label: 'Inventario',
     description: 'Existencias y stock por sucursal.',
     path: environment.collections.inventario,
-    defaultQueryField: 'nombreProducto'
+    defaultQueryField: 'codigoProducto'
   },
   {
     key: 'pedidos',

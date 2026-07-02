@@ -102,7 +102,7 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
 
     this.form.patchValue({
       productoId: codigoProducto,
-      nombreProducto: descripcion || codigoProducto
+      nombreProducto: codigoProducto || descripcion
     }, { emitEvent: false });
   }
 
@@ -124,8 +124,8 @@ export class NuevoEditarInventarioComponent implements OnInit, OnDestroy {
           }
 
           this.form.patchValue({
-            nombreProducto: item.nombreProducto ?? '',
-            productoId: item.productoId ?? '',
+            nombreProducto: item.codigoProducto ?? item.productoId ?? item.nombreProducto ?? '',
+            productoId: item.codigoProducto ?? item.productoId ?? '',
             codigoProducto: item.codigoProducto ?? item.productoId ?? '',
             codigoBarras: item.codigoBarras ?? '',
             imprimirEtiquetas: false,

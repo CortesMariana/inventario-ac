@@ -14,7 +14,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { InventarioItem } from '../inventario/inventario.service';
+import { InventarioItem, resolveInventarioCodigo, resolveInventarioEtiqueta } from '../inventario/inventario.service';
 
 export interface ProductoPedido {
   productoId: string;
@@ -160,12 +160,15 @@ export class PedidosService {
           const invSnap = await transaction.get(invRef);
 
           if (!invSnap.exists()) {
-            throw new Error(`Producto "${item.nombreProducto}" no encontrado en el inventario de esta sucursal`);
+            const etiqueta = String(item.nombreProducto || item.productoId || 'Producto');
+            throw new Error(`Producto "${etiqueta}" no encontrado en el inventario de esta sucursal`);
           }
 
-          const stockActual = invSnap.data()['stock'] ?? 0;
+          const invData = invSnap.data() as Partial<InventarioItem>;
+          const etiqueta = String(item.nombreProducto || resolveInventarioCodigo(invData) || item.productoId || 'Producto');
+          const stockActual = Number(invData.stock ?? 0);
           if (stockActual < item.cantidad) {
-            throw new Error(`Stock insuficiente para "${item.nombreProducto}". Disponible: ${stockActual}`);
+            throw new Error(`Stock insuficiente para "${etiqueta}". Disponible: ${stockActual}`);
           }
 
           inventarioActualizado.push({
@@ -224,10 +227,11 @@ export class PedidosService {
   async notificarProduccion(item: InventarioItem): Promise<void> {
     return this.run(async () => {
       const ref = collection(this.firestore, this.colNotifProd);
+      const codigo = resolveInventarioCodigo(item);
       await addDoc(ref, {
-        productoId:     item.productoId,
-        nombreProducto: item.descripcion || item.nombreProducto,
-        codigoProducto: item.codigoProducto ?? '',
+        productoId:     codigo,
+        nombreProducto: codigo || resolveInventarioEtiqueta(item),
+        codigoProducto: codigo,
         sucursalId:     item.sucursalId,
         sucursal:       item.sucursal,
         stock:          item.stock,

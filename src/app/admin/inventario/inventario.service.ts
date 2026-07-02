@@ -64,6 +64,25 @@ export interface RegistrarProduccionInput {
   codigoBarras?: string;
 }
 
+export function resolveInventarioCodigo(item?: Partial<InventarioItem> | null): string {
+  return String(
+    item?.codigoProducto ??
+    item?.productoId ??
+    item?.codigoBarras ??
+    item?.id ??
+    ''
+  ).trim();
+}
+
+export function resolveInventarioEtiqueta(item?: Partial<InventarioItem> | null): string {
+  return String(
+    resolveInventarioCodigo(item) ||
+    item?.descripcion ||
+    item?.nombreProducto ||
+    'Producto'
+  ).trim();
+}
+
 @Injectable({ providedIn: 'root' })
 export class InventarioService {
 
@@ -102,7 +121,7 @@ export class InventarioService {
   // Inventario por sucursal
   getInventario$(): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
-    const q = query(ref, orderBy('nombreProducto', 'asc'));
+    const q = query(ref, orderBy('codigoProducto', 'asc'));
     return collectionData(q as any, { idField: 'id' }) as Observable<InventarioItem[]>;
   }
 
@@ -113,7 +132,7 @@ export class InventarioService {
 
   getInventarioBySucursal$(sucursalId: string): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
-    const q = query(ref, where('sucursalId', '==', sucursalId), orderBy('nombreProducto', 'asc'));
+    const q = query(ref, where('sucursalId', '==', sucursalId), orderBy('codigoProducto', 'asc'));
     return collectionData(q, { idField: 'id' }) as Observable<InventarioItem[]>;
   }
 

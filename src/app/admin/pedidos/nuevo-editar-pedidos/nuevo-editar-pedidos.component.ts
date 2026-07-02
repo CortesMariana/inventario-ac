@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { Cliente, ClientesService } from '../../clientes/clientes.service';
-import { InventarioItem, InventarioService } from '../../inventario/inventario.service';
+import { InventarioItem, InventarioService, resolveInventarioCodigo, resolveInventarioEtiqueta } from '../../inventario/inventario.service';
 import { Pedido, PedidosService, ProductoPedido } from '../pedidos.service';
 
 export interface ProductoOpcion {
@@ -96,7 +96,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       .subscribe(items => {
         this.productosSinStock = items.filter(i => i.stock === 0);
         this.productosOpciones = items.map(item => ({
-          label: item.descripcion || item.nombreProducto || item.codigoProducto || 'Sin nombre',
+          label: resolveInventarioEtiqueta(item),
           value: item,
           disabled: item.stock === 0
         }));
@@ -192,7 +192,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       const producto = ctrl.get('producto')?.value as InventarioItem | null;
       const cantidadCtrl = ctrl.get('cantidad');
       if (producto && cantidadCtrl?.hasError('max')) {
-        return `No puedes capturar más de ${producto.stock ?? 0} unidad(es) para "${producto.descripcion || producto.nombreProducto}".`;
+    return `No puedes capturar más de ${producto.stock ?? 0} unidad(es) para "${resolveInventarioEtiqueta(producto)}".`;
       }
     }
 
@@ -222,7 +222,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       this.messageSrv.add({
         severity: 'success',
         summary: 'Notificado',
-        detail: `Se notificó a producción sobre "${item.descripcion || item.nombreProducto}"`
+        detail: `Se notificó a producción sobre "${resolveInventarioEtiqueta(item)}"`
       });
     } catch {
       this.messageSrv.add({ severity: 'error', summary: 'Error', detail: 'No se pudo enviar la notificación' });
@@ -252,9 +252,9 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       const cantidad = ctrl.get('cantidad')?.value;
       const precio = item.valorUnitario ?? 0;
       return {
-        productoId:       item.productoId,
+        productoId:       resolveInventarioCodigo(item),
         inventarioItemId: item.id!,           // ID real del doc en Firestore
-        nombreProducto:   item.descripcion || item.nombreProducto,
+        nombreProducto:   resolveInventarioEtiqueta(item),
         cantidad,
         precioUnitario:   precio,
         subtotal:         precio * cantidad

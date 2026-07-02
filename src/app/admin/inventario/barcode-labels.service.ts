@@ -15,7 +15,7 @@ export class BarcodeLabelsService {
 
   generateUniqueCode(item: Partial<InventarioItem> = {}): string {
     const prefix = this.normalizeCodeSegment(
-      item.codigoProducto ?? item.productoId ?? item.nombreProducto ?? item.descripcion ?? 'INV'
+      item.codigoProducto ?? item.productoId ?? item.descripcion ?? item.nombreProducto ?? 'INV'
     ) || 'INV';
     const timePart = Date.now().toString(36).toUpperCase();
     const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -65,7 +65,7 @@ export class BarcodeLabelsService {
   }
 
   private renderLabel(item: Partial<InventarioItem>, code: string, index: number): string {
-    const title = this.escapeHtml(item.descripcion ?? item.nombreProducto ?? item.productoId ?? 'Producto');
+    const title = this.escapeHtml(item.codigoProducto ?? item.productoId ?? item.descripcion ?? item.nombreProducto ?? 'Producto');
     const subtitle = this.escapeHtml(
       [item.sucursal ? `Sucursal: ${item.sucursal}` : '', item.sucursalId ? `ID: ${item.sucursalId}` : '']
         .filter(Boolean)

@@ -225,8 +225,8 @@
               <div class="sin-stock-list">
                 <div class="sin-stock-row" *ngFor="let item of productosSinStock">
                   <div class="sin-stock-info">
-                    <span class="sin-stock-nombre">{{ item.descripcion || item.nombreProducto }}</span>
-                    <span class="sin-stock-codigo">{{ item.codigoProducto }}</span>
+                    <span class="sin-stock-nombre">{{ item.codigoProducto || item.productoId || 'Sin codigo' }}</span>
+                    <span class="sin-stock-codigo">{{ item.descripcion || item.nombreProducto || 'Sin descripcion' }}</span>
                   </div>
                   <button
                     pButton

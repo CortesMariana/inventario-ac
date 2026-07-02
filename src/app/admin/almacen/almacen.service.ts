@@ -11,7 +11,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { InventarioItem } from '../inventario/inventario.service';
+import { InventarioItem, resolveInventarioEtiqueta } from '../inventario/inventario.service';
 import { Pedido } from '../pedidos/pedidos.service';
 
 export type AlmacenMovimientoTipo = 'entrada' | 'salida';
@@ -84,7 +84,7 @@ export class AlmacenService {
 
       transaction.set(movimientoRef, {
         tipo: 'entrada' as AlmacenMovimientoTipo,
-        titulo: item.nombreProducto || 'Producto',
+        titulo: resolveInventarioEtiqueta(item),
         descripcion: `Entrada de ${cantidad} ${item.unidad || 'pzas'}`,
         cantidad,
         inventarioItemId: item.id,

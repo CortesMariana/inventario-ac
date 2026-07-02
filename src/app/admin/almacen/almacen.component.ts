@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Subject, take, takeUntil } from 'rxjs';
-import { InventarioItem, InventarioService } from '../inventario/inventario.service';
+import { InventarioItem, InventarioService, resolveInventarioCodigo, resolveInventarioEtiqueta } from '../inventario/inventario.service';
 import { Pedido, PedidosService, getPedidoEstadoLabel, getPedidoEstadoSeverity } from '../pedidos/pedidos.service';
 import { AlmacenLineaSurtido, AlmacenMovimiento, AlmacenService } from './almacen.service';
 
@@ -215,7 +215,7 @@ export class AlmacenComponent implements OnInit, OnDestroy {
       this.messageSrv.add({
         severity: 'success',
         summary: 'Entrada registrada',
-        detail: `Se agregaron ${cantidad} ${cantidad === 1 ? 'pieza' : 'piezas'} a ${this.entradaSeleccionada.nombreProducto}`
+        detail: `Se agregaron ${cantidad} ${cantidad === 1 ? 'pieza' : 'piezas'} a ${resolveInventarioEtiqueta(this.entradaSeleccionada)}`
       });
 
       this.limpiarEntrada();
@@ -294,7 +294,7 @@ export class AlmacenComponent implements OnInit, OnDestroy {
     const linea = this.lineasSurtido.find(entry => entry.inventarioItemId === item.id || entry.productoId === item.productoId);
 
     if (!linea) {
-      this.messageSrv.add({ severity: 'warn', summary: 'No coincide', detail: `${item.nombreProducto} no pertenece a este pedido` });
+      this.messageSrv.add({ severity: 'warn', summary: 'No coincide', detail: `${resolveInventarioEtiqueta(item)} no pertenece a este pedido` });
       this.focusSalidaCodigo();
       return;
     }
@@ -513,7 +513,7 @@ export class AlmacenComponent implements OnInit, OnDestroy {
 
   private findCodigoProducto(inventarioItemId: string, productoId: string): string {
     const item = this.inventario.find(entry => entry.id === inventarioItemId || entry.productoId === productoId);
-    return String(item?.codigoBarras ?? item?.codigoProducto ?? item?.productoId ?? inventarioItemId ?? '');
+    return String(item?.codigoBarras ?? resolveInventarioCodigo(item) ?? inventarioItemId ?? '');
   }
 
   private matchesCode(item: InventarioItem, codigo: string): boolean {

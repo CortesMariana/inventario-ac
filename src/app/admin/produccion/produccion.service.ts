@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { InventarioItem, InventarioService } from '../inventario/inventario.service';
+import { InventarioItem, InventarioService, resolveInventarioCodigo } from '../inventario/inventario.service';
 
 export type ProduccionAlertaNivel = 'critical' | 'warning';
 
@@ -54,7 +54,7 @@ export class ProduccionService {
           return b.faltante - a.faltante;
         }
 
-        return a.nombreProducto.localeCompare(b.nombreProducto);
+        return resolveInventarioCodigo(a).localeCompare(resolveInventarioCodigo(b));
       });
 
     const alertasCriticas = alertas.filter(alerta => alerta.nivel === 'critical').length;
@@ -91,9 +91,9 @@ export class ProduccionService {
 
     return {
       id: item.id,
-      nombreProducto: String(item.descripcion ?? item.nombreProducto ?? 'Producto'),
-      productoId: String(item.productoId ?? item.codigoProducto ?? 'Sin codigo'),
-      codigoProducto: String(item.codigoProducto ?? item.productoId ?? 'Sin codigo'),
+      nombreProducto: resolveInventarioCodigo(item) || String(item.descripcion ?? 'Producto'),
+      productoId: resolveInventarioCodigo(item) || 'Sin codigo',
+      codigoProducto: resolveInventarioCodigo(item) || 'Sin codigo',
       sucursal: String(item.sucursal ?? 'Sucursal pendiente'),
       sucursalId: String(item.sucursalId ?? ''),
       stock,
