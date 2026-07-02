@@ -2,6 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Subject, take, takeUntil } from 'rxjs';
+import { formatDate } from 'src/app/shared/date-utils';
 import { InventarioItem, InventarioService, resolveInventarioCodigo, resolveInventarioEtiqueta } from '../inventario/inventario.service';
 import { Pedido, PedidosService, getPedidoEstadoLabel, getPedidoEstadoSeverity } from '../pedidos/pedidos.service';
 import { AlmacenLineaSurtido, AlmacenMovimiento, AlmacenService } from './almacen.service';
@@ -466,18 +467,7 @@ export class AlmacenComponent implements OnInit, OnDestroy {
   }
 
   formatFecha(valor?: any): string {
-    const fecha = valor ? new Date(valor?.toDate ? valor.toDate() : valor) : null;
-
-    if (!fecha || Number.isNaN(fecha.getTime())) {
-      return 'Sin fecha';
-    }
-
-    return new Intl.DateTimeFormat('es-MX', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(fecha);
+    return formatDate(valor, { includeTime: true });
   }
 
   private findInventarioByCode(codigo: string): InventarioItem | null {

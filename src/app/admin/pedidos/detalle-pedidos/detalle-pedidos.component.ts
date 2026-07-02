@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { formatDate } from 'src/app/shared/date-utils';
 import {
   getPedidoEstadoLabel,
   getPedidoEstadoSeverity,
@@ -56,6 +57,10 @@ export class DetallePedidosComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: string): string {
     return getPedidoEstadoLabel(estado);
+  }
+
+  formatFecha(valor?: unknown): string {
+    return formatDate(valor, { includeTime: true });
   }
 
   volver(): void {

@@ -169,18 +169,32 @@
                     formControlName="producto"
                     [options]="productosOpciones"
                     optionDisabled="disabled"
+                    panelStyleClass="prod-dropdown-panel"
+                    [panelStyle]="{ width: '34rem', maxWidth: 'calc(100vw - 2rem)' }"
                     placeholder="Selecciona un producto"
                     [filter]="true"
                     filterBy="label"
+                    scrollHeight="260px"
                     filterPlaceholder="Buscar producto"
                     [appendTo]="'body'"
                     (onChange)="onProductoChange(i)">
                     <ng-template pTemplate="item" let-item>
                       <div class="prod-option">
-                        <span class="prod-option-nombre">{{ item.label }}</span>
+                        <div class="prod-option-main">
+                          <span class="prod-option-codigo">{{ item.value.codigoProducto || item.value.productoId || 'Sin codigo' }}</span>
+                          <span class="prod-option-nombre">{{ item.value.descripcion || item.value.nombreProducto || 'Sin descripcion' }}</span>
+                        </div>
                         <span class="prod-option-stock" [class.stock-cero]="item.value.stock === 0">
                           {{ item.value.stock === 0 ? 'Sin stock' : 'Stock: ' + item.value.stock + ' ' + (item.value.unidad || '') }}
                         </span>
+                      </div>
+                    </ng-template>
+                    <ng-template pTemplate="selectedItem" let-selected>
+                      <div class="prod-option prod-option-selected" *ngIf="selected">
+                        <div class="prod-option-main">
+                          <span class="prod-selected-codigo">{{ selected.value.codigoProducto || selected.value.productoId || 'Sin codigo' }}</span>
+                          <span class="prod-selected-nombre">{{ selected.value.descripcion || selected.value.nombreProducto || 'Sin descripcion' }}</span>
+                        </div>
                       </div>
                     </ng-template>
                   </p-dropdown>

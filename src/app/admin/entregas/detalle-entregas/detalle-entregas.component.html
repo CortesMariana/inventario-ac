@@ -43,6 +43,10 @@
             <span class="info-value">{{ pedido.sucursal }}</span>
           </div>
           <div class="info-item">
+            <span class="info-label"><i class="pi pi-calendar"></i> Fecha de pedido</span>
+            <span class="info-value">{{ formatFecha(pedido.fechaCreacion || pedido.fechaActualizacion) }}</span>
+          </div>
+          <div class="info-item">
             <span class="info-label"><i class="pi pi-percentage"></i> Descuento cliente</span>
             <span class="info-value">{{ pedido.descuentoCliente }}%</span>
           </div>

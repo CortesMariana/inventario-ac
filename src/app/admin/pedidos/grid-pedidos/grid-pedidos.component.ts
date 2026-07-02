@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { formatDate } from 'src/app/shared/date-utils';
 import { getPedidoEstadoLabel, getPedidoEstadoSeverity, isPedidoEnRevision, Pedido, PedidosService } from '../pedidos.service';
 
 @Component({
@@ -127,5 +128,9 @@ export class GridPedidosComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: string): string {
     return getPedidoEstadoLabel(estado);
+  }
+
+  formatFecha(valor?: unknown): string {
+    return formatDate(valor, { includeTime: true });
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { formatDate } from 'src/app/shared/date-utils';
 import { Pedido, PedidosService, getPedidoEstadoLabel, getPedidoEstadoSeverity } from '../../pedidos/pedidos.service';
 
 @Component({
@@ -89,6 +90,10 @@ export class DetalleEntregasComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: string): string {
     return getPedidoEstadoLabel(estado);
+  }
+
+  formatFecha(valor?: unknown): string {
+    return formatDate(valor, { includeTime: true });
   }
 
   volver(): void {

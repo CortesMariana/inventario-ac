@@ -138,6 +138,7 @@
                   <span class="cliente-ref" *ngIf="pedido.numeroPedido || pedido.folio || pedido.pedidoNumero">
                     Pedido {{ pedido.numeroPedido || pedido.folio || pedido.pedidoNumero }}
                   </span>
+                  <span class="cliente-date">Fecha {{ formatFecha(pedido.fechaCreacion || pedido.fechaActualizacion) }}</span>
                 </div>
               </div>
             </td>

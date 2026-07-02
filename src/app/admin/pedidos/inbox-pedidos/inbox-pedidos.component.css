@@ -622,6 +622,14 @@
   word-break: break-word;
 }
 
+.pedido-date,
+.preview-date {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
 .pedido-flags,
 .preview-flags {
   display: flex;
