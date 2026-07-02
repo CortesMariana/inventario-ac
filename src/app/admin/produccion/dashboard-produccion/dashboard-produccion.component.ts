@@ -196,6 +196,7 @@ export class DashboardProduccionComponent implements OnInit, OnDestroy {
       fechaElaboracion: this.todayInputValue(),
       fechaCaducidad: '',
       numeroLote: '',
+      quimicoResponsable: '',
       observaciones: '',
       imprimirEtiquetas: true
     });
@@ -221,7 +222,7 @@ export class DashboardProduccionComponent implements OnInit, OnDestroy {
       this.messageSrv.add({
         severity: 'warn',
         summary: 'Atencion',
-        detail: 'Completa la cantidad y la fecha de elaboracion'
+        detail: 'Completa la cantidad, la fecha de elaboracion y el quimico responsable'
       });
       return;
     }
@@ -240,6 +241,7 @@ export class DashboardProduccionComponent implements OnInit, OnDestroy {
     const fechaElaboracion = this.normalizeDateValue(this.produccionForm.value.fechaElaboracion) || this.todayInputValue();
     const fechaCaducidad = this.normalizeDateValue(this.produccionForm.value.fechaCaducidad);
     const numeroLote = this.normalizeText(this.produccionForm.value.numeroLote);
+    const quimicoResponsable = this.normalizeText(this.produccionForm.value.quimicoResponsable);
     const observaciones = this.normalizeText(this.produccionForm.value.observaciones);
     const imprimirEtiquetas = Boolean(this.produccionForm.value.imprimirEtiquetas);
     const printWindow = imprimirEtiquetas ? this.barcodeLabelsSrv.openPrintWindow() : null;
@@ -269,6 +271,8 @@ export class DashboardProduccionComponent implements OnInit, OnDestroy {
             codigoBarras: inventarioActualizado.codigoBarras || alerta.codigoProducto,
             sucursal: inventarioActualizado.sucursal || alerta.sucursal,
             sucursalId: inventarioActualizado.sucursalId || alerta.sucursalId,
+            sucursalDestino: inventarioActualizado.sucursal || alerta.sucursal,
+            quimicoResponsable,
             stock: inventarioActualizado.stock ?? this.stockDespuesProduccion,
             stockMinimo: inventarioActualizado.stockMinimo ?? alerta.stockMinimo,
             fechaElaboracion,
@@ -312,6 +316,7 @@ export class DashboardProduccionComponent implements OnInit, OnDestroy {
       fechaElaboracion: [this.todayInputValue(), Validators.required],
       fechaCaducidad: [''],
       numeroLote: [''],
+      quimicoResponsable: ['', Validators.required],
       observaciones: [''],
       imprimirEtiquetas: [true]
     });

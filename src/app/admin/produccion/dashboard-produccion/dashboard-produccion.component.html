@@ -289,6 +289,28 @@
             </div>
 
             <div class="field field-wide">
+              <label class="field-label">Qu&iacute;mico responsable *</label>
+              <input
+                pInputText
+                formControlName="quimicoResponsable"
+                placeholder="Nombre del qu&iacute;mico que autoriz&oacute; la f&oacute;rmula" />
+              <small
+                class="field-error"
+                *ngIf="produccionForm.get('quimicoResponsable')?.touched && produccionForm.get('quimicoResponsable')?.hasError('required')">
+                Campo requerido
+              </small>
+            </div>
+
+            <div class="field field-wide">
+              <label class="field-label">Sucursal destino</label>
+              <div class="destination-preview">
+                <i class="pi pi-map-marker"></i>
+                <span>{{ alerta.sucursal || 'Sucursal pendiente' }}</span>
+              </div>
+              <small class="field-hint">Esta sucursal se imprimir&aacute; como destino del producto elaborado.</small>
+            </div>
+
+            <div class="field field-wide">
               <label class="field-label">Observaciones</label>
               <textarea
                 class="text-area"
@@ -302,7 +324,7 @@
                 <p-checkbox formControlName="imprimirEtiquetas" [binary]="true"></p-checkbox>
                 <span>Imprimir etiquetas al guardar</span>
               </label>
-              <small class="field-hint">Se usar&aacute; el c&oacute;digo del producto y la cantidad capturada para las etiquetas.</small>
+              <small class="field-hint">Se usar&aacute; el c&oacute;digo del producto, el qu&iacute;mico responsable y la sucursal destino para las etiquetas.</small>
             </div>
           </div>
 

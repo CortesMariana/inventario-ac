@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import bwipjs from '@bwip-js/browser';
 import { InventarioItem } from './inventario.service';
 
+export interface BarcodeLabelItem extends Partial<InventarioItem> {
+  quimicoResponsable?: string;
+  sucursalDestino?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BarcodeLabelsService {
 
@@ -23,7 +28,7 @@ export class BarcodeLabelsService {
     return `${prefix}-${timePart}-${randomPart}`;
   }
 
-  printLabels(item: Partial<InventarioItem>, quantity: number, printWindow?: Window | null): boolean {
+  printLabels(item: BarcodeLabelItem, quantity: number, printWindow?: Window | null): boolean {
     const total = Math.max(0, Math.floor(Number(quantity) || 0));
     if (total < 1) {
       return false;
@@ -64,13 +69,16 @@ export class BarcodeLabelsService {
     }
   }
 
-  private renderLabel(item: Partial<InventarioItem>, code: string, index: number): string {
+  private renderLabel(item: BarcodeLabelItem, code: string, index: number): string {
     const title = this.escapeHtml(item.codigoProducto ?? item.productoId ?? item.descripcion ?? item.nombreProducto ?? 'Producto');
+    const sucursalDestino = String(item.sucursalDestino ?? '').trim();
+    const quimicoResponsable = String(item.quimicoResponsable ?? '').trim();
     const subtitle = this.escapeHtml(
-      [item.sucursal ? `Sucursal: ${item.sucursal}` : '', item.sucursalId ? `ID: ${item.sucursalId}` : '']
+      [!sucursalDestino && item.sucursal ? `Sucursal: ${item.sucursal}` : '', item.sucursalId ? `ID: ${item.sucursalId}` : '']
         .filter(Boolean)
         .join(' · ')
     );
+    const productionDetails = this.renderProductionDetails(quimicoResponsable, sucursalDestino);
     const stock = Number(item.stock ?? 0);
     const stockMinimo = Number(item.stockMinimo ?? 0);
     const status = stock === 0 ? 'Sin stock' : stock <= stockMinimo ? 'Stock bajo' : 'Disponible';
@@ -90,12 +98,30 @@ export class BarcodeLabelsService {
         </div>
 
         <div class="label-code">${this.escapeHtml(code)}</div>
+        ${productionDetails}
         <div class="label-meta">
           <span>${this.escapeHtml(status)}</span>
           <span>${this.escapeHtml(String(stock))} uds</span>
         </div>
       </article>
     `;
+  }
+
+  private renderProductionDetails(quimicoResponsable: string, sucursalDestino: string): string {
+    const rows = [
+      quimicoResponsable
+        ? `<div class="label-detail-row"><span class="detail-label">Químico responsable</span><span class="detail-value">${this.escapeHtml(quimicoResponsable)}</span></div>`
+        : '',
+      sucursalDestino
+        ? `<div class="label-detail-row"><span class="detail-label">Destino</span><span class="detail-value">${this.escapeHtml(sucursalDestino)}</span></div>`
+        : ''
+    ].filter(Boolean);
+
+    if (rows.length === 0) {
+      return '';
+    }
+
+    return `<div class="label-details">${rows.join('')}</div>`;
   }
 
   private renderBarcodeSvg(code: string): string {
@@ -221,6 +247,36 @@ export class BarcodeLabelsService {
       font-size: 9pt;
       letter-spacing: 0.06em;
       word-break: break-all;
+    }
+
+    .label-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5mm;
+      padding-top: 2mm;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .label-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 3mm;
+      font-size: 7.5pt;
+      line-height: 1.25;
+    }
+
+    .detail-label {
+      flex-shrink: 0;
+      color: #6b7280;
+      font-weight: 700;
+    }
+
+    .detail-value {
+      min-width: 0;
+      color: #111827;
+      font-weight: 700;
+      text-align: right;
+      word-break: break-word;
     }
 
     .label-meta {
