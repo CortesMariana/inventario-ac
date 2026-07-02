@@ -284,10 +284,14 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       const item: InventarioItem = ctrl.get('producto')?.value;
       const cantidad = ctrl.get('cantidad')?.value;
       const precio = item.valorUnitario ?? 0;
+      const codigo = resolveInventarioCodigo(item);
+      const nombre = this.getProductoNombre(item) || codigo || 'Producto';
       return {
-        productoId:       resolveInventarioCodigo(item),
+        productoId:       codigo,
         inventarioItemId: item.id!,           // ID real del doc en Firestore
-        nombreProducto:   resolveInventarioEtiqueta(item),
+        nombreProducto:   nombre,
+        codigoProducto:   codigo,
+        descripcion:      nombre,
         cantidad,
         precioUnitario:   precio,
         subtotal:         precio * cantidad
