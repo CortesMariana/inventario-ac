@@ -32,9 +32,8 @@
               </div>
 
               <div class="field">
-                <label>RFC *</label>
-                <input pInputText formControlName="rfc" placeholder="Ej. XAXX010101000" />
-                <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('required')">Campo requerido</small>
+                <label>RFC</label>
+                <input pInputText formControlName="rfc" placeholder="Opcional · Ej. XAXX010101000" />
                 <small class="error" *ngIf="f['rfc'].touched && f['rfc'].hasError('pattern')">RFC inválido</small>
               </div>
 

@@ -47,7 +47,7 @@ export class NuevoEditarClientesComponent implements OnInit, OnDestroy {
   private buildForm(): void {
     this.form = this.fb.group({
       nombre:    ['', [Validators.required, Validators.minLength(3)]],
-      rfc:       ['', [Validators.required, Validators.pattern(/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i)]],
+      rfc:       ['', [Validators.pattern(/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i)]],
       telefono:  ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       email:     ['', [Validators.email]],
       descuento: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
@@ -133,7 +133,7 @@ export class NuevoEditarClientesComponent implements OnInit, OnDestroy {
 
   get resumenRfc(): string {
     const rfc = String(this.form?.get('rfc')?.value ?? '').trim().toUpperCase();
-    return rfc || 'RFC pendiente';
+    return rfc || 'Sin RFC';
   }
 
   get resumenTelefono(): string {
