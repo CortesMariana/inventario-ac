@@ -96,7 +96,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       .subscribe(items => {
         this.productosSinStock = items.filter(i => i.stock === 0);
         this.productosOpciones = items.map(item => ({
-          label: resolveInventarioEtiqueta(item),
+          label: this.formatProductoOpcion(item),
           value: item,
           disabled: item.stock === 0
         }));
@@ -111,6 +111,21 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
   }
 
   get f() { return this.form.controls; }
+
+  private getProductoNombre(item?: Partial<InventarioItem> | null): string {
+    return String(item?.descripcion ?? item?.nombreProducto ?? '').trim();
+  }
+
+  private formatProductoOpcion(item?: Partial<InventarioItem> | null): string {
+    const codigo = resolveInventarioCodigo(item);
+    const nombre = this.getProductoNombre(item);
+
+    if (codigo && nombre) {
+      return `${codigo} · ${nombre}`;
+    }
+
+    return codigo || nombre || 'Producto';
+  }
 
   getIniciales(nombre: string): string {
     if (!nombre) return '?';

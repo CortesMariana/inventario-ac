@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Subject, takeUntil } from 'rxjs';
+import { formatDate } from 'src/app/shared/date-utils';
 import { Pedido, PedidosService, getPedidoEstadoLabel, getPedidoEstadoSeverity } from '../../pedidos/pedidos.service';
 
 type EstadoEntregaFiltro = 'todos' | 'en_transito' | 'entregado' | 'cancelado';
@@ -161,6 +162,10 @@ export class GridEntregasComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: string): string {
     return getPedidoEstadoLabel(estado);
+  }
+
+  formatFecha(valor?: unknown): string {
+    return formatDate(valor, { includeTime: true });
   }
 
   private getSortValue(pedido: Pedido): number {

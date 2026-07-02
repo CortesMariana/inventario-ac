@@ -114,6 +114,7 @@
                   <span class="pedido-name">{{ pedido.clienteNombre }}</span>
                   <span class="pedido-rfc">{{ pedido.clienteRfc }}</span>
                   <span class="pedido-ref">Pedido {{ getPedidoReferencia(pedido) }}</span>
+                  <span class="pedido-date">Fecha {{ formatFecha(pedido.fechaCreacion || pedido.fechaActualizacion) }}</span>
                 </div>
               </div>
             </td>

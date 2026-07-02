@@ -168,6 +168,7 @@
               <div class="pedido-name">{{ pedido.clienteNombre }}</div>
               <div class="pedido-rfc">{{ pedido.clienteRfc }}</div>
               <div class="pedido-ref">Pedido {{ getPedidoReferencia(pedido) }}</div>
+              <div class="pedido-date">Fecha {{ formatFecha(pedido.fechaCreacion || pedido.fechaActualizacion) }}</div>
             </div>
 
             <div class="pedido-flags">
@@ -243,6 +244,7 @@
               <div class="preview-title">{{ pedidoSeleccionado.clienteNombre }}</div>
               <div class="preview-sub">{{ pedidoSeleccionado.clienteRfc }}</div>
               <div class="preview-ref">Pedido {{ getPedidoReferencia(pedidoSeleccionado) }}</div>
+              <div class="preview-date">Fecha {{ formatFecha(pedidoSeleccionado.fechaCreacion || pedidoSeleccionado.fechaActualizacion) }}</div>
             </div>
           </div>
 

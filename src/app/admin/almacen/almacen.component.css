@@ -293,6 +293,13 @@
   word-break: break-word;
 }
 
+.pedido-date {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+  word-break: break-word;
+}
+
 .stock-grid,
 .pedido-summary {
   display: grid;
