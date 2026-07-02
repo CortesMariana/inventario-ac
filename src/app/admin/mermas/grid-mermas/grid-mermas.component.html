@@ -1,0 +1,232 @@
+<div class="page">
+
+  <p-toast></p-toast>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mermas</h1>
+      <p class="page-sub">Productos descontados del inventario activo por merma, devolución, caducidad o daño.</p>
+    </div>
+
+    <button
+      pButton
+      type="button"
+      label="Registrar desde inventario"
+      icon="pi pi-box"
+      (click)="abrirInventario()">
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <button
+      type="button"
+      class="stat-card stat-filter"
+      [class.stat-card-active]="tipoFiltro === 'todos'"
+      (click)="activarFiltro('todos')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-inbox"></i></span>
+        <span class="stat-label">Registros</span>
+      </div>
+      <strong class="stat-value">{{ totalRegistros }}</strong>
+      <span class="stat-sub">Todos los productos fuera de inventario activo</span>
+    </button>
+
+    <div class="stat-card stat-card-accent">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-minus-circle"></i></span>
+        <span class="stat-label">Unidades</span>
+      </div>
+      <strong class="stat-value">{{ totalUnidades }}</strong>
+      <span class="stat-sub">Total descontado del inventario</span>
+    </div>
+
+    <button
+      type="button"
+      class="stat-card stat-filter"
+      [class.stat-card-active]="tipoFiltro === 'caducado'"
+      (click)="activarFiltro('caducado')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-calendar-times"></i></span>
+        <span class="stat-label">Caducados</span>
+      </div>
+      <strong class="stat-value">{{ totalCaducados }}</strong>
+      <span class="stat-sub">Productos vencidos o no aptos</span>
+    </button>
+
+    <button
+      type="button"
+      class="stat-card stat-filter"
+      [class.stat-card-active]="tipoFiltro === 'roto'"
+      (click)="activarFiltro('roto')">
+      <div class="stat-head">
+        <span class="stat-icon"><i class="pi pi-ban"></i></span>
+        <span class="stat-label">Rotos</span>
+      </div>
+      <strong class="stat-value">{{ totalRotos }}</strong>
+      <span class="stat-sub">Producto dañado o roto</span>
+    </button>
+  </div>
+
+  <div class="inbox-toolbar">
+    <div class="type-menu" role="toolbar" aria-label="Causa de merma">
+      <button
+        *ngFor="let tipo of tipos"
+        type="button"
+        class="type-pill"
+        [class.active]="tipoFiltro === tipo.value"
+        (click)="activarFiltro(tipo.value)">
+        <i [class]="tipo.icon"></i>
+        <span>{{ tipo.label }}</span>
+        <strong>{{ getTipoCount(tipo.value) }}</strong>
+      </button>
+    </div>
+
+    <span class="p-input-icon-left search-box">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar producto, sucursal, lote o motivo..."
+        [value]="searchTerm"
+        (input)="onSearch($event)" />
+    </span>
+  </div>
+
+  <div class="inbox-layout">
+    <section class="inbox-panel list-panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Inbox de mermas</h2>
+          <p class="panel-subtitle">Registros descontados del stock y separados del inventario activo.</p>
+        </div>
+        <span class="count-pill">{{ totalVisibles }} registros</span>
+      </div>
+
+      <div class="merma-list" *ngIf="!loading; else loadingLista">
+        <article
+          class="merma-item"
+          *ngFor="let merma of mermasVisibles"
+          [class.selected]="mermaSeleccionada?.id === merma.id"
+          role="button"
+          tabindex="0"
+          (click)="seleccionarMerma(merma)"
+          (keydown.enter)="seleccionarMerma(merma)"
+          (keydown.space)="seleccionarMerma(merma)">
+
+          <div class="merma-item-top">
+            <div class="product-avatar">{{ getIniciales(merma.codigoProducto || merma.nombreProducto) }}</div>
+
+            <div class="merma-copy">
+              <div class="merma-name">{{ merma.codigoProducto }}</div>
+              <div class="merma-sub">{{ merma.descripcion || merma.nombreProducto }}</div>
+              <div class="merma-ref">{{ merma.sucursal }} · Lote {{ merma.numeroLote || 'sin lote' }}</div>
+            </div>
+
+            <div class="merma-flags">
+              <p-tag [value]="getTipoLabel(merma.tipo)" [severity]="getTipoSeverity(merma.tipo)"></p-tag>
+              <span class="qty-pill">-{{ merma.cantidad }}</span>
+            </div>
+          </div>
+
+          <div class="merma-metrics">
+            <div class="merma-metric">
+              <span>Antes</span>
+              <strong>{{ merma.stockAntes }}</strong>
+            </div>
+            <div class="merma-metric">
+              <span>Después</span>
+              <strong>{{ merma.stockDespues }}</strong>
+            </div>
+            <div class="merma-metric">
+              <span>Fecha</span>
+              <strong>{{ formatFecha(merma.fechaRegistro) }}</strong>
+            </div>
+          </div>
+
+          <div class="merma-footer">
+            <span>{{ merma.motivo || 'Sin motivo capturado' }}</span>
+          </div>
+        </article>
+
+        <div class="empty-state empty-inline" *ngIf="mermasVisibles.length === 0">
+          <i class="pi pi-inbox"></i>
+          <span>No hay mermas con estos filtros</span>
+        </div>
+      </div>
+
+      <ng-template #loadingLista>
+        <div class="loading-state inline">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Cargando mermas...</span>
+        </div>
+      </ng-template>
+    </section>
+
+    <aside class="inbox-panel preview-panel">
+      <ng-container *ngIf="mermaSeleccionada as selected; else previewVacio">
+        <div class="preview-hero">
+          <div class="preview-identity">
+            <div class="preview-avatar">{{ getIniciales(selected.codigoProducto || selected.nombreProducto) }}</div>
+            <div class="preview-copy">
+              <div class="preview-title">{{ selected.codigoProducto }}</div>
+              <div class="preview-sub">{{ selected.descripcion || selected.nombreProducto }}</div>
+              <div class="preview-ref">{{ selected.sucursal }}</div>
+            </div>
+          </div>
+
+          <p-tag
+            [value]="getTipoLabel(selected.tipo)"
+            [severity]="getTipoSeverity(selected.tipo)">
+          </p-tag>
+        </div>
+
+        <div class="preview-grid">
+          <div class="preview-card">
+            <span>Cantidad</span>
+            <strong>{{ selected.cantidad }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Stock antes</span>
+            <strong>{{ selected.stockAntes }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Stock después</span>
+            <strong>{{ selected.stockDespues }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Sucursal</span>
+            <strong>{{ selected.sucursal }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Lote</span>
+            <strong>{{ selected.numeroLote || 'Sin lote' }}</strong>
+          </div>
+          <div class="preview-card">
+            <span>Responsable</span>
+            <strong>{{ selected.responsable || 'Sin responsable' }}</strong>
+          </div>
+          <div class="preview-card preview-wide">
+            <span>Fecha de registro</span>
+            <strong>{{ formatFecha(selected.fechaRegistro) }}</strong>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="section-head">
+            <span>Motivo</span>
+          </div>
+          <p class="reason-text">{{ selected.motivo || 'Sin motivo capturado' }}</p>
+        </div>
+      </ng-container>
+
+      <ng-template #previewVacio>
+        <div class="preview-empty">
+          <i class="pi pi-inbox"></i>
+          <h3>Sin mermas registradas</h3>
+          <p>Registra una merma desde el grid de inventario para descontarla del stock activo.</p>
+        </div>
+      </ng-template>
+    </aside>
+  </div>
+
+</div>

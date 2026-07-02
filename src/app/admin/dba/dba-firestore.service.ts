@@ -79,6 +79,14 @@ const COLLECTIONS: DbaCollectionConfig[] = [
     preferredImportKeyFields: ['codigoProducto', 'productoId', 'codigoBarras', 'id']
   },
   {
+    key: 'mermas',
+    label: 'Mermas',
+    description: 'Productos descontados del inventario activo por merma, devolución, caducidad o daño.',
+    path: environment.collections.mermas,
+    defaultQueryField: 'codigoProducto',
+    preferredImportKeyFields: ['id', 'inventarioId', 'codigoProducto', 'productoId']
+  },
+  {
     key: 'pedidos',
     label: 'Pedidos',
     description: 'Documentos de pedidos y su estado.',

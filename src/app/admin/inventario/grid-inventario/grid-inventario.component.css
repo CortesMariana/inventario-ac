@@ -257,6 +257,205 @@
   overflow-x: auto;
 }
 
+.merma-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.merma-modal {
+  position: relative;
+  width: min(720px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.merma-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #4b5563;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.merma-modal-close:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.merma-modal-head {
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid #eef2f7;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+}
+
+.modal-kicker {
+  margin: 0 48px 4px 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-title {
+  margin: 0 48px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.modal-sub {
+  margin: 4px 48px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.merma-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.merma-summary-card {
+  min-height: 74px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.merma-summary-card span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.merma-summary-card strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.merma-summary-card-danger {
+  border-color: rgba(239, 68, 68, 0.2);
+  background: #fef2f2;
+}
+
+.merma-summary-card-danger strong {
+  color: #b91c1c;
+}
+
+.merma-summary-card-accent {
+  border-color: rgba(59, 130, 246, 0.22);
+  background: rgba(var(--accent-light-rgb, 238, 244, 255), 0.45);
+}
+
+.merma-form {
+  overflow-y: auto;
+  padding: 18px 24px 22px;
+}
+
+.merma-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.field-error {
+  font-size: 11px;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+:host ::ng-deep .merma-form .p-dropdown,
+:host ::ng-deep .merma-form .p-inputnumber,
+:host ::ng-deep .merma-form .p-inputnumber-input {
+  width: 100%;
+}
+
+.text-area {
+  width: 100%;
+  min-height: 90px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 14px;
+  resize: vertical;
+  font: inherit;
+  color: #111827;
+  background: #ffffff;
+}
+
+.text-area:focus,
+.text-area:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-light-rgb, 238, 244, 255), 0.95);
+}
+
+.merma-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #eef2f7;
+}
+
 .producto-cell,
 .sucursal-cell {
   display: flex;
@@ -385,8 +584,8 @@
 }
 
 .col-acciones {
-  min-width: 152px;
-  width: 152px;
+  min-width: 190px;
+  width: 190px;
 }
 
 .actions {
@@ -443,5 +642,25 @@
 @media (max-width: 640px) {
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .merma-summary,
+  .merma-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-wide {
+    grid-column: auto;
+  }
+
+  .merma-modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .merma-modal-head,
+  .merma-form {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }

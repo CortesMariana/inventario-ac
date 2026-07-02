@@ -13,6 +13,118 @@
     (cancel)="onCancel()">
   </app-confirm-dialog>
 
+  <div
+    class="merma-modal-overlay"
+    *ngIf="mermaDialogVisible"
+    (click)="cerrarMerma()">
+    <section
+      class="merma-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="merma-modal-title"
+      *ngIf="mermaItem as item"
+      (click)="$event.stopPropagation()">
+
+      <button
+        type="button"
+        class="merma-modal-close"
+        [disabled]="guardandoMerma"
+        (click)="cerrarMerma()"
+        aria-label="Cerrar ventana">
+        <i class="pi pi-times"></i>
+      </button>
+
+      <header class="merma-modal-head">
+        <p class="modal-kicker">Registrar merma</p>
+        <h2 class="modal-title" id="merma-modal-title">{{ item.codigoProducto || item.productoId || 'Producto' }}</h2>
+        <p class="modal-sub">{{ item.descripcion || item.nombreProducto || 'Sin descripción' }} · {{ item.sucursal }}</p>
+
+        <div class="merma-summary">
+          <div class="merma-summary-card">
+            <span>Stock actual</span>
+            <strong>{{ item.stock }}</strong>
+          </div>
+          <div class="merma-summary-card merma-summary-card-danger">
+            <span>Merma</span>
+            <strong>{{ cantidadMerma }}</strong>
+          </div>
+          <div class="merma-summary-card merma-summary-card-accent">
+            <span>Después</span>
+            <strong>{{ stockDespuesMerma }}</strong>
+          </div>
+        </div>
+      </header>
+
+      <form class="merma-form" [formGroup]="mermaForm" (ngSubmit)="registrarMerma()">
+        <div class="merma-form-grid">
+          <div class="field">
+            <label class="field-label">Causa *</label>
+            <p-dropdown
+              formControlName="tipo"
+              [options]="mermaTipoOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona la causa">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Cantidad *</label>
+            <p-inputNumber
+              formControlName="cantidad"
+              [showButtons]="true"
+              [min]="1"
+              [max]="item.stock"
+              buttonLayout="horizontal"
+              [inputStyle]="{ width: '100%' }">
+            </p-inputNumber>
+            <small class="field-hint">Disponible: {{ item.stock }} unidad(es)</small>
+          </div>
+
+          <div class="field field-wide">
+            <label class="field-label">Motivo *</label>
+            <textarea
+              class="text-area"
+              formControlName="motivo"
+              rows="3"
+              placeholder="Ejemplo: envase roto, producto caducado, devolución no apta para venta..."></textarea>
+            <small
+              class="field-error"
+              *ngIf="mermaForm.get('motivo')?.touched && mermaForm.get('motivo')?.hasError('required')">
+              Campo requerido
+            </small>
+          </div>
+
+          <div class="field field-wide">
+            <label class="field-label">Responsable</label>
+            <input pInputText formControlName="responsable" placeholder="Persona que registra la merma" />
+          </div>
+        </div>
+
+        <footer class="merma-actions">
+          <button
+            pButton
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-text"
+            [disabled]="guardandoMerma"
+            (click)="cerrarMerma()">
+          </button>
+
+          <button
+            pButton
+            type="submit"
+            label="Confirmar merma"
+            icon="pi pi-check"
+            class="p-button-danger"
+            [loading]="guardandoMerma">
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
   <div class="page-header">
     <div>
       <h1 class="page-title">Inventario</h1>
@@ -239,6 +351,7 @@
                 <button pButton icon="pi pi-print" class="p-button-text p-button-sm" (click)="reimprimirEtiquetas(item)" pTooltip="Reimprimir etiquetas"></button>
                 <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" (click)="verDetalle(item.id!)" pTooltip="Ver detalle"></button>
                 <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editar(item.id!)" pTooltip="Editar stock"></button>
+                <button pButton icon="pi pi-exclamation-circle" class="p-button-text p-button-sm p-button-warning" (click)="abrirMerma(item)" [disabled]="item.stock < 1" pTooltip="Registrar merma"></button>
                 <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="confirmarEliminar(item)" pTooltip="Eliminar"></button>
               </div>
             </td>

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { isPedidoEnRevision, PedidosService } from '../../pedidos/pedidos.service';
 import { ProduccionService } from '../../produccion/produccion.service';
+import { MermasService } from '../../mermas/mermas.service';
 
 interface NavItem {
   label: string;
@@ -32,10 +33,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   readonly inboxRoute = '/admin/inbox-pedidos';
   readonly productionRoute = '/admin/produccion/dashboard';
   readonly almacenRoute = '/admin/almacen';
+  readonly mermasRoute = '/admin/mermas';
 
   pendingInboxCount = 0;
   productionAlertCount = 0;
   almacenAlertCount = 0;
+  mermasCount = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -63,6 +66,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       items: [
         { label: 'Clientes',   icon: 'pi pi-users',          route: '/admin/clientes' },
         { label: 'Inventario', icon: 'pi pi-box',             route: '/admin/inventario' },
+        { label: 'Mermas',     icon: 'pi pi-exclamation-circle', route: '/admin/mermas', exact: true },
         { label: 'Pedidos',    icon: 'pi pi-file-edit',      route: '/admin/pedidos' },
         { label: 'Inbox pedidos', icon: 'pi pi-inbox',       route: '/admin/inbox-pedidos', exact: true },
         { label: 'Entregas',   icon: 'pi pi-truck',           route: '/admin/entregas' },
@@ -86,6 +90,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   constructor(
     private pedidosSrv: PedidosService,
     private produccionSrv: ProduccionService,
+    private mermasSrv: MermasService,
     private router: Router
   ) {}
 
@@ -111,6 +116,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.productionAlertCount = 0;
+        }
+      });
+
+    this.mermasSrv.getMermas$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (mermas) => {
+          this.mermasCount = mermas.length;
+        },
+        error: () => {
+          this.mermasCount = 0;
         }
       });
   }
@@ -144,6 +160,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     if (item.route === this.almacenRoute) {
       return this.almacenAlertCount > 0;
+    }
+
+    if (item.route === this.mermasRoute) {
+      return this.mermasCount > 0;
     }
 
     return false;

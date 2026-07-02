@@ -13,6 +13,7 @@ export const environment = {
     clientes:   '/clientes-dev',
     productos:  '/productos-dev',
     inventario: '/inventario-dev',
+    mermas:     '/mermas-dev',
     pedidos:    '/pedidos-dev',
     entregas:   '/entregas-dev',
     sucursales: '/sucursales-dev',
