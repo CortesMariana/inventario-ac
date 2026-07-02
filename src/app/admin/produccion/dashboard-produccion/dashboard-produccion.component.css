@@ -651,6 +651,37 @@
   line-height: 1.4;
 }
 
+.field-error {
+  font-size: 11px;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+.destination-preview {
+  min-height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #111827;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.destination-preview i {
+  color: var(--accent);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.destination-preview span {
+  min-width: 0;
+  word-break: break-word;
+}
+
 .checkbox-row {
   display: inline-flex;
   align-items: center;
