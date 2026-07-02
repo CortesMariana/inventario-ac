@@ -151,8 +151,8 @@
 
             <td>
               <div class="detail-stack">
-                <span><strong>Elab.</strong> {{ item.fechaElaboracion || 'Sin fecha' }}</span>
-                <span><strong>Cad.</strong> {{ item.fechaCaducidad || 'Sin fecha' }}</span>
+                <span><strong>Elab.</strong> {{ formatFecha(item.fechaElaboracion) }}</span>
+                <span><strong>Cad.</strong> {{ formatFecha(item.fechaCaducidad) }}</span>
               </div>
             </td>
 

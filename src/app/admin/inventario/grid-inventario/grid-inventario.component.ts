@@ -5,6 +5,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { InventarioItem, InventarioService, resolveInventarioEtiqueta } from '../inventario.service';
 import { BarcodeLabelsService } from '../barcode-labels.service';
+import { formatDate } from 'src/app/shared/date-utils';
 
 type StockFilter = 'todos' | 'disponibles' | 'stockBajo' | 'sinStock';
 
@@ -172,6 +173,10 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   formatPercent(value: number | null | undefined): string {
     const amount = Number(value ?? 0);
     return `${this.percentFormatter.format(Number.isFinite(amount) ? amount : 0)}%`;
+  }
+
+  formatFecha(valor?: unknown): string {
+    return formatDate(valor, { includeTime: false });
   }
 
   getStockSeverity(item: InventarioItem): string {

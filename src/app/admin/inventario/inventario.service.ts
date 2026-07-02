@@ -13,8 +13,9 @@ import {
   where,
   runTransaction
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { formatDateInput, toDate } from 'src/app/shared/date-utils';
 
 export interface Producto {
   id?: string;
@@ -83,6 +84,35 @@ export function resolveInventarioEtiqueta(item?: Partial<InventarioItem> | null)
   ).trim();
 }
 
+function hydrateInventarioItem(item: Partial<InventarioItem>): InventarioItem {
+  return {
+    id: item.id,
+    productoId: String(item.productoId ?? item.codigoProducto ?? item.codigoBarras ?? item.id ?? '').trim(),
+    nombreProducto: String(item.codigoProducto ?? item.productoId ?? item.nombreProducto ?? item.descripcion ?? '').trim(),
+    codigoProducto: String(item.codigoProducto ?? item.productoId ?? item.codigoBarras ?? item.id ?? '').trim() || undefined,
+    codigoBarras: String(item.codigoBarras ?? '').trim() || undefined,
+    claveSat: String(item.claveSat ?? '').trim() || undefined,
+    fechaElaboracion: formatDateInput(item.fechaElaboracion),
+    fechaCaducidad: formatDateInput(item.fechaCaducidad),
+    numeroLote: String(item.numeroLote ?? '').trim() || undefined,
+    clasificacionProducto: String(item.clasificacionProducto ?? '').trim() || undefined,
+    cantidad: Number(item.cantidad ?? 0),
+    unidad: String(item.unidad ?? '').trim() || undefined,
+    claveProductoServicio: String(item.claveProductoServicio ?? '').trim() || undefined,
+    descripcion: String(item.descripcion ?? item.nombreProducto ?? '').trim() || undefined,
+    valorUnitario: Number(item.valorUnitario ?? 0),
+    tipoProducto: String(item.tipoProducto ?? '').trim() || undefined,
+    abreviaturaClave: String(item.abreviaturaClave ?? '').trim() || undefined,
+    descuento: Number(item.descuento ?? 0),
+    impuestos: Number(item.impuestos ?? 0),
+    sucursalId: String(item.sucursalId ?? '').trim(),
+    sucursal: String(item.sucursal ?? '').trim(),
+    stock: Number(item.stock ?? 0),
+    stockMinimo: Number(item.stockMinimo ?? 0),
+    fechaActualizacion: toDate(item.fechaActualizacion) ?? undefined
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class InventarioService {
 
@@ -122,24 +152,28 @@ export class InventarioService {
   getInventario$(): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
     const q = query(ref, orderBy('codigoProducto', 'asc'));
-    return collectionData(q as any, { idField: 'id' }) as Observable<InventarioItem[]>;
+    return (collectionData(q as any, { idField: 'id' }) as Observable<Partial<InventarioItem>[]>)
+      .pipe(map(items => items.map(item => hydrateInventarioItem(item))));
   }
 
   getInventarioById$(id: string): Observable<InventarioItem> {
     const ref = doc(this.firestore, `${this.colInventario}/${id}`);
-    return docData(ref as any, { idField: 'id' }) as Observable<InventarioItem>;
+    return (docData(ref as any, { idField: 'id' }) as Observable<Partial<InventarioItem>>)
+      .pipe(map(item => hydrateInventarioItem(item)));
   }
 
   getInventarioBySucursal$(sucursalId: string): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
     const q = query(ref, where('sucursalId', '==', sucursalId), orderBy('codigoProducto', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<InventarioItem[]>;
+    return (collectionData(q, { idField: 'id' }) as Observable<Partial<InventarioItem>[]>)
+      .pipe(map(items => items.map(item => hydrateInventarioItem(item))));
   }
 
   getInventarioEnAlerta$(): Observable<InventarioItem[]> {
     const ref = collection(this.firestore, this.colInventario);
     const q = query(ref, where('stock', '<=', 5), orderBy('stock', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<InventarioItem[]>;
+    return (collectionData(q, { idField: 'id' }) as Observable<Partial<InventarioItem>[]>)
+      .pipe(map(items => items.map(item => hydrateInventarioItem(item))));
   }
 
   updateStock(id: string, stock: number): Promise<void> {
