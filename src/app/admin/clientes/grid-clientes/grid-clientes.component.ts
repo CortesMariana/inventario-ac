@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { Cliente, ClientesService, formatDireccion } from '../clientes.service';
 import { Table } from 'primeng/table';
 
@@ -22,13 +22,15 @@ export class GridClientesComponent implements OnInit, OnDestroy {
   clientesActivos = 0;
   clientesConContacto = 0;
   clientesDomicilioIgual = 0;
+  confirmVisible = false;
+  confirmMessage = '';
+  private confirmAction: (() => void) | null = null;
   readonly formatDireccion = formatDireccion;
   private destroy$ = new Subject<void>();
 
   constructor(
     private clientesSrv: ClientesService,
     private router: Router,
-    private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
   ) {}
 
@@ -107,12 +109,21 @@ export class GridClientesComponent implements OnInit, OnDestroy {
   }
 
   confirmarEliminar(cliente: Cliente): void {
-    this.confirmSrv.confirm({
-      message: `¿Deseas eliminar a ${cliente.nombre}?`,
-      header: 'Confirmar eliminación',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => this.eliminar(cliente.id!)
-    });
+    this.confirmMessage = `¿Deseas eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.`;
+    this.confirmAction = () => this.eliminar(cliente.id!);
+    this.confirmVisible = true;
+  }
+
+  onConfirm(): void {
+    if (this.confirmAction) {
+      this.confirmAction();
+    }
+    this.confirmVisible = false;
+  }
+
+  onCancel(): void {
+    this.confirmVisible = false;
+    this.confirmAction = null;
   }
 
   private eliminar(id: string): void {
