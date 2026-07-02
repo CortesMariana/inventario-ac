@@ -120,13 +120,16 @@ export class MermasService {
 
       const stockDespues = stockAntes - cantidad;
       const fechaRegistro = new Date();
+      const descripcion = String(current.descripcion ?? item.descripcion ?? current.nombreProducto ?? item.nombreProducto ?? '').trim();
+      const codigoBarras = String(current.codigoBarras ?? item.codigoBarras ?? '').trim();
+      const numeroLote = String(current.numeroLote ?? item.numeroLote ?? '').trim();
+      const fechaElaboracion = String(current.fechaElaboracion ?? item.fechaElaboracion ?? '').trim();
+      const fechaCaducidad = String(current.fechaCaducidad ?? item.fechaCaducidad ?? '').trim();
       const registro: MermaRegistro = {
         inventarioId,
         productoId: String(current.productoId ?? item.productoId ?? '').trim(),
         codigoProducto: resolveInventarioCodigo(current) || resolveInventarioCodigo(item) || 'Sin codigo',
         nombreProducto: resolveInventarioEtiqueta(current) || resolveInventarioEtiqueta(item),
-        descripcion: String(current.descripcion ?? item.descripcion ?? current.nombreProducto ?? item.nombreProducto ?? '').trim() || undefined,
-        codigoBarras: String(current.codigoBarras ?? item.codigoBarras ?? '').trim() || undefined,
         sucursalId: String(current.sucursalId ?? item.sucursalId ?? '').trim(),
         sucursal: String(current.sucursal ?? item.sucursal ?? '').trim(),
         cantidad,
@@ -134,12 +137,15 @@ export class MermasService {
         stockDespues,
         tipo,
         motivo,
-        responsable: responsable || undefined,
-        numeroLote: String(current.numeroLote ?? item.numeroLote ?? '').trim() || undefined,
-        fechaElaboracion: String(current.fechaElaboracion ?? item.fechaElaboracion ?? '').trim() || undefined,
-        fechaCaducidad: String(current.fechaCaducidad ?? item.fechaCaducidad ?? '').trim() || undefined,
         fechaRegistro
       };
+
+      if (descripcion) registro.descripcion = descripcion;
+      if (codigoBarras) registro.codigoBarras = codigoBarras;
+      if (responsable) registro.responsable = responsable;
+      if (numeroLote) registro.numeroLote = numeroLote;
+      if (fechaElaboracion) registro.fechaElaboracion = fechaElaboracion;
+      if (fechaCaducidad) registro.fechaCaducidad = fechaCaducidad;
 
       transaction.update(inventarioRef, {
         stock: stockDespues,
