@@ -24,6 +24,7 @@ export interface DbaCollectionConfig {
   description: string;
   path: string;
   defaultQueryField?: string;
+  preferredImportKeyFields?: string[];
 }
 
 export interface DbaDocumentEntry {
@@ -50,56 +51,64 @@ const COLLECTIONS: DbaCollectionConfig[] = [
     label: 'Usuarios',
     description: 'Acceso a usuarios, roles y estado de cuenta.',
     path: environment.collections.usuarios,
-    defaultQueryField: 'nombre'
+    defaultQueryField: 'nombre',
+    preferredImportKeyFields: ['id', 'email', 'nombre']
   },
   {
     key: 'clientes',
     label: 'Clientes',
     description: 'Catálogo principal de clientes.',
     path: environment.collections.clientes,
-    defaultQueryField: 'nombre'
+    defaultQueryField: 'nombre',
+    preferredImportKeyFields: ['rfc', 'id', 'nombre']
   },
   {
     key: 'productos',
     label: 'Productos',
     description: 'Catálogo base de productos.',
     path: environment.collections.productos,
-    defaultQueryField: 'nombre'
+    defaultQueryField: 'nombre',
+    preferredImportKeyFields: ['codigoProducto', 'codigo', 'id', 'nombre']
   },
   {
     key: 'inventario',
     label: 'Inventario',
     description: 'Existencias y stock por sucursal.',
     path: environment.collections.inventario,
-    defaultQueryField: 'codigoProducto'
+    defaultQueryField: 'codigoProducto',
+    preferredImportKeyFields: ['codigoProducto', 'productoId', 'codigoBarras', 'id']
   },
   {
     key: 'pedidos',
     label: 'Pedidos',
     description: 'Documentos de pedidos y su estado.',
     path: environment.collections.pedidos,
-    defaultQueryField: 'clienteNombre'
+    defaultQueryField: 'clienteNombre',
+    preferredImportKeyFields: ['id', 'referenciaPedido', 'pedidoId']
   },
   {
     key: 'entregas',
     label: 'Entregas',
     description: 'Seguimiento de entregas.',
     path: environment.collections.entregas,
-    defaultQueryField: 'estado'
+    defaultQueryField: 'estado',
+    preferredImportKeyFields: ['id', 'pedidoId', 'referenciaPedido']
   },
   {
     key: 'sucursales',
     label: 'Sucursales',
     description: 'Catálogo de sucursales.',
     path: environment.collections.sucursales,
-    defaultQueryField: 'nombre'
+    defaultQueryField: 'nombre',
+    preferredImportKeyFields: ['codigoSucursal', 'id', 'nombre']
   },
   {
     key: 'transferencias',
     label: 'Transferencias',
     description: 'Movimientos entre sucursales.',
     path: environment.collections.transferencias,
-    defaultQueryField: 'estado'
+    defaultQueryField: 'estado',
+    preferredImportKeyFields: ['id', 'referencia', 'folio', 'estado']
   }
 ];
 

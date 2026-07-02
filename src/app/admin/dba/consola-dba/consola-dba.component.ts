@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import * as XLSX from 'xlsx';
+import { formatDate, toDate } from 'src/app/shared/date-utils';
 import {
   DbaCollectionConfig,
   DbaDocumentEntry,
@@ -280,9 +281,7 @@ export class ConsolaDbaComponent implements OnInit {
       const rows = await this.parseImportFile(file);
       this.importRows = rows;
       this.importHeaders = this.collectHeaders(rows);
-      this.importKeyField = this.importHeaders.includes('id')
-        ? 'id'
-        : this.importHeaders[0] ?? '';
+      this.importKeyField = this.pickDefaultImportKeyField(rows);
       this.importReady = rows.length > 0;
     } catch (err: any) {
       this.messageSrv.add({
@@ -347,6 +346,8 @@ export class ConsolaDbaComponent implements OnInit {
   renderValue(value: unknown): string {
     if (value === null) return 'null';
     if (value === undefined) return '';
+    const date = toDate(value);
+    if (date) return formatDate(date, { includeTime: true, emptyText: '' });
     if (value instanceof Date) return value.toLocaleString();
     if (typeof value === 'string') return value;
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
@@ -454,6 +455,28 @@ export class ConsolaDbaComponent implements OnInit {
       }
     }
     return Array.from(headers).sort((a, b) => a.localeCompare(b));
+  }
+
+  private pickDefaultImportKeyField(rows: Record<string, unknown>[]): string {
+    if (!rows.length) {
+      return '';
+    }
+
+    const row = rows[0];
+    const headers = new Set(Object.keys(row));
+    const preferred = this.currentCollection.preferredImportKeyFields ?? [];
+
+    for (const field of preferred) {
+      if (headers.has(field)) {
+        return field;
+      }
+    }
+
+    if (headers.has('id')) {
+      return 'id';
+    }
+
+    return Object.keys(row)[0] ?? '';
   }
 
   private async parseImportFile(file: File): Promise<Record<string, unknown>[]> {
