@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { InventarioItem, InventarioService } from '../inventario.service';
+import { InventarioItem, InventarioService, resolveInventarioEtiqueta } from '../inventario.service';
 import { BarcodeLabelsService } from '../barcode-labels.service';
 
 type StockFilter = 'todos' | 'disponibles' | 'stockBajo' | 'sinStock';
@@ -81,7 +81,7 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   }
 
   confirmarEliminar(item: InventarioItem): void {
-    const nombre = item.nombreProducto || item.productoId || 'este producto';
+    const nombre = resolveInventarioEtiqueta(item);
     this.confirmSrv.confirm({
       message: `¿Deseas eliminar ${nombre}?`,
       header: 'Confirmar eliminación',
@@ -148,8 +148,8 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
     return Math.round((this.productosDisponibles / this.totalProductos) * 100);
   }
 
-  getIniciales(nombre?: string): string {
-    const tokens = String(nombre ?? '')
+  getIniciales(valor?: string): string {
+    const tokens = String(valor ?? '')
       .trim()
       .split(/\s+/)
       .filter(Boolean);

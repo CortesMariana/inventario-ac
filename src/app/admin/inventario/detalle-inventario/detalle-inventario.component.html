@@ -18,7 +18,8 @@
         <i class="pi pi-box"></i>
       </div>
       <div>
-        <h2 class="producto-nombre">{{ item.nombreProducto }}</h2>
+        <h2 class="producto-nombre">{{ item.codigoProducto || item.productoId || 'Sin codigo' }}</h2>
+        <p class="page-sub">{{ item.descripcion || item.nombreProducto || 'Sin descripcion' }}</p>
         <p-tag [value]="getStockLabel()" [severity]="getStockSeverity()"></p-tag>
       </div>
     </div>

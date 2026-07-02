@@ -104,7 +104,7 @@
         [paginator]="true"
         [rows]="10"
         [rowsPerPageOptions]="[10, 25, 50]"
-        [globalFilterFields]="['descripcion', 'codigoProducto', 'codigoBarras', 'claveSat', 'numeroLote', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'nombreProducto', 'productoId', 'sucursal', 'sucursalId']"
+        [globalFilterFields]="['codigoProducto', 'productoId', 'codigoBarras', 'claveSat', 'numeroLote', 'clasificacionProducto', 'unidad', 'claveProductoServicio', 'tipoProducto', 'abreviaturaClave', 'descripcion', 'sucursal', 'sucursalId']"
         [tableStyle]="{ 'min-width': '2160px' }"
         dataKey="id"
         styleClass="p-datatable-sm clientes-table"
@@ -112,7 +112,7 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="descripcion" class="col-producto">Producto <p-sortIcon field="descripcion"></p-sortIcon></th>
+            <th pSortableColumn="codigoProducto" class="col-producto">C&oacute;digo <p-sortIcon field="codigoProducto"></p-sortIcon></th>
             <th pSortableColumn="claveSat">Clave SAT <p-sortIcon field="claveSat"></p-sortIcon></th>
             <th pSortableColumn="fechaElaboracion">Fechas <p-sortIcon field="fechaElaboracion"></p-sortIcon></th>
             <th pSortableColumn="numeroLote">Lote <p-sortIcon field="numeroLote"></p-sortIcon></th>
@@ -136,10 +136,10 @@
             <td>
               <div class="producto-cell">
                 <div class="producto-identity">
-                  <div class="producto-avatar">{{ getIniciales(item.descripcion || item.codigoProducto || item.nombreProducto) }}</div>
+                  <div class="producto-avatar">{{ getIniciales(item.codigoProducto || item.productoId || item.descripcion) }}</div>
                   <div class="producto-meta">
-                    <span class="producto-nombre">{{ item.descripcion || item.nombreProducto || 'Sin descripcion' }}</span>
-                    <span class="producto-id">{{ item.codigoProducto || item.productoId || 'Sin codigo' }}</span>
+                    <span class="producto-nombre">{{ item.codigoProducto || item.productoId || 'Sin codigo' }}</span>
+                    <span class="producto-id">{{ item.descripcion || item.nombreProducto || 'Sin descripcion' }}</span>
                   </div>
                 </div>
               </div>
