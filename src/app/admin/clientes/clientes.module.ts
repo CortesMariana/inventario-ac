@@ -12,9 +12,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -32,11 +32,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     InputTextModule,
     CheckboxModule,
     TagModule,
-    ConfirmDialogModule,
-    ToastModule
+    ToastModule,
+    SharedModule
   ],
   providers: [
-    ConfirmationService,
     MessageService
   ]
 })

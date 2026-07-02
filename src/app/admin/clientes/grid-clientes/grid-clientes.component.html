@@ -1,7 +1,17 @@
 <div class="page">
 
   <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
+
+  <app-confirm-dialog
+    [visible]="confirmVisible"
+    title="Confirmar eliminación"
+    [message]="confirmMessage"
+    confirmLabel="Sí, eliminar"
+    cancelLabel="Volver"
+    type="danger"
+    (confirm)="onConfirm()"
+    (cancel)="onCancel()">
+  </app-confirm-dialog>
 
   <div class="page-header">
     <div>

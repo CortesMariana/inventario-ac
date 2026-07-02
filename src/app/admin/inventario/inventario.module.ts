@@ -12,12 +12,12 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 import { BadgeModule } from 'primeng/badge';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { BarcodeLabelsService } from './barcode-labels.service';
+import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -35,14 +35,13 @@ import { BarcodeLabelsService } from './barcode-labels.service';
     InputTextModule,
     TagModule,
     BadgeModule,
-    ConfirmDialogModule,
     ToastModule,
     DropdownModule,
-    InputNumberModule
+    InputNumberModule,
+    SharedModule
   ],
   providers: [
     BarcodeLabelsService,
-    ConfirmationService,
     MessageService
   ]
 })

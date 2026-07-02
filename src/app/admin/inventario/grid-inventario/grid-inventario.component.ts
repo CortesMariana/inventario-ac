@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { InventarioItem, InventarioService, resolveInventarioEtiqueta } from '../inventario.service';
 import { BarcodeLabelsService } from '../barcode-labels.service';
@@ -27,6 +27,9 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
   productosDisponibles = 0;
   productosStockBajo = 0;
   productosSinStock = 0;
+  confirmVisible = false;
+  confirmMessage = '';
+  private confirmAction: (() => void) | null = null;
   private readonly moneyFormatter = new Intl.NumberFormat('es-MX', {
     style: 'currency',
     currency: 'MXN',
@@ -43,7 +46,6 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
     private inventarioSrv: InventarioService,
     private barcodeLabelsSrv: BarcodeLabelsService,
     private router: Router,
-    private confirmSrv: ConfirmationService,
     private messageSrv: MessageService
   ) {}
 
@@ -83,12 +85,21 @@ export class GridInventarioComponent implements OnInit, OnDestroy {
 
   confirmarEliminar(item: InventarioItem): void {
     const nombre = resolveInventarioEtiqueta(item);
-    this.confirmSrv.confirm({
-      message: `¿Deseas eliminar ${nombre}?`,
-      header: 'Confirmar eliminación',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => this.eliminar(item.id!)
-    });
+    this.confirmMessage = `¿Deseas eliminar ${nombre}? Esta acción no se puede deshacer.`;
+    this.confirmAction = () => this.eliminar(item.id!);
+    this.confirmVisible = true;
+  }
+
+  onConfirm(): void {
+    if (this.confirmAction) {
+      this.confirmAction();
+    }
+    this.confirmVisible = false;
+  }
+
+  onCancel(): void {
+    this.confirmVisible = false;
+    this.confirmAction = null;
   }
 
   async reimprimirEtiquetas(item: InventarioItem): Promise<void> {
