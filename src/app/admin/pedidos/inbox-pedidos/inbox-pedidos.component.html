@@ -341,7 +341,8 @@
           <div class="product-list">
             <div class="product-row" *ngFor="let item of pedidoSeleccionado.productos">
               <div class="product-copy">
-                <strong>{{ item.nombreProducto }}</strong>
+                <strong>{{ getProductoCodigo(item) || item.nombreProducto }}</strong>
+                <span class="product-name" *ngIf="getProductoNombre(item)">{{ getProductoNombre(item) }}</span>
                 <span>{{ item.cantidad }} x ${{ item.precioUnitario | number:'1.0-0' }}</span>
               </div>
               <strong>${{ item.subtotal | number:'1.0-0' }}</strong>

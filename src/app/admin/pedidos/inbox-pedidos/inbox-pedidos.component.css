@@ -932,6 +932,11 @@
   color: #6b7280;
 }
 
+.product-copy .product-name {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
 .product-row > strong {
   font-size: 13px;
   color: #111827;

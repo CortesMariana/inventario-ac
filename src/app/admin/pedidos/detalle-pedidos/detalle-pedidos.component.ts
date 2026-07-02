@@ -7,7 +7,8 @@ import {
   getPedidoEstadoLabel,
   getPedidoEstadoSeverity,
   Pedido,
-  PedidosService
+  PedidosService,
+  ProductoPedido
 } from '../pedidos.service';
 
 @Component({
@@ -61,6 +62,16 @@ export class DetallePedidosComponent implements OnInit, OnDestroy {
 
   formatFecha(valor?: unknown): string {
     return formatDate(valor, { includeTime: true });
+  }
+
+  getProductoCodigo(item: ProductoPedido): string {
+    return String(item.codigoProducto ?? item.productoId ?? item.inventarioItemId ?? '').trim();
+  }
+
+  getProductoNombre(item: ProductoPedido): string {
+    const codigo = this.getProductoCodigo(item);
+    const nombre = String(item.descripcion ?? item.nombreProducto ?? '').trim();
+    return nombre && nombre !== codigo ? nombre : '';
   }
 
   volver(): void {

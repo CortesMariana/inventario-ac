@@ -97,7 +97,12 @@
         </ng-template>
         <ng-template pTemplate="body" let-item>
           <tr>
-            <td>{{ item.nombreProducto }}</td>
+            <td>
+              <div class="producto-cell">
+                <span class="producto-codigo">{{ getProductoCodigo(item) || item.nombreProducto }}</span>
+                <span class="producto-nombre" *ngIf="getProductoNombre(item)">{{ getProductoNombre(item) }}</span>
+              </div>
+            </td>
             <td>{{ item.cantidad }}</td>
             <td>${{ item.precioUnitario | number:'1.0-0' }}</td>
             <td>${{ item.subtotal | number:'1.0-0' }}</td>

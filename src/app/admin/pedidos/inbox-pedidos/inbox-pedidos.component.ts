@@ -9,7 +9,8 @@ import {
   getTipoPedidoSeverity,
   isPedidoEnRevision,
   Pedido,
-  PedidosService
+  PedidosService,
+  ProductoPedido
 } from '../pedidos.service';
 
 type VistaInbox = 'bandeja' | 'historial';
@@ -210,6 +211,16 @@ export class InboxPedidosComponent implements OnInit, OnDestroy {
 
   getEstadoSeverity(estado: string): string {
     return getPedidoEstadoSeverity(estado);
+  }
+
+  getProductoCodigo(item: ProductoPedido): string {
+    return String(item.codigoProducto ?? item.productoId ?? item.inventarioItemId ?? '').trim();
+  }
+
+  getProductoNombre(item: ProductoPedido): string {
+    const codigo = this.getProductoCodigo(item);
+    const nombre = String(item.descripcion ?? item.nombreProducto ?? '').trim();
+    return nombre && nombre !== codigo ? nombre : '';
   }
 
   esRevision(estado: string): boolean {

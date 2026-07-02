@@ -164,6 +164,26 @@
   font-weight: 500;
 }
 
+.producto-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.producto-codigo {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.producto-nombre {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #6b7280;
+  word-break: break-word;
+}
+
 .loading-state {
   display: flex;
   flex-direction: column;

@@ -12,7 +12,7 @@ import {
   where,
   runTransaction
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { InventarioItem, resolveInventarioCodigo, resolveInventarioEtiqueta } from '../inventario/inventario.service';
 
@@ -20,6 +20,8 @@ export interface ProductoPedido {
   productoId: string;
   inventarioItemId: string;
   nombreProducto: string;
+  codigoProducto?: string;
+  descripcion?: string;
   cantidad: number;
   precioUnitario: number;
   subtotal: number;
@@ -123,14 +125,18 @@ export class PedidosService {
     return this.run(() => {
       const ref = collection(this.firestore, this.col);
       const q = query(ref, orderBy('fechaCreacion', 'desc'));
-      return collectionData(q as any, { idField: 'id' }) as Observable<Pedido[]>;
+      return (collectionData(q as any, { idField: 'id' }) as Observable<Pedido[]>)
+        .pipe(switchMap(pedidos => this.enriquecerPedidosConInventario$(pedidos)));
     });
   }
 
   getById$(id: string): Observable<Pedido> {
     return this.run(() => {
       const ref = doc(this.firestore, `${this.col}/${id}`);
-      return docData(ref as any, { idField: 'id' }) as Observable<Pedido>;
+      return (docData(ref as any, { idField: 'id' }) as Observable<Pedido>)
+        .pipe(switchMap(pedido => this.enriquecerPedidosConInventario$([pedido]).pipe(
+          map(([pedidoEnriquecido]) => pedidoEnriquecido ?? pedido)
+        )));
     });
   }
 
@@ -285,6 +291,79 @@ export class PedidosService {
       pedido.id ??
       ''
     );
+  }
+
+  private enriquecerPedidosConInventario$(pedidos: Pedido[]): Observable<Pedido[]> {
+    if (!pedidos.length) {
+      return of([]);
+    }
+
+    const ref = collection(this.firestore, this.colInventario);
+    return (collectionData(ref as any, { idField: 'id' }) as Observable<Partial<InventarioItem>[]>).pipe(
+      map(inventario => {
+        const byId = new Map<string, Partial<InventarioItem>>();
+        const byCode = new Map<string, Partial<InventarioItem>>();
+
+        inventario.forEach(item => {
+          const id = String(item.id ?? '').trim();
+          const codigo = resolveInventarioCodigo(item);
+
+          if (id) byId.set(id, item);
+          [
+            codigo,
+            item.productoId,
+            item.codigoProducto,
+            item.codigoBarras
+          ].forEach(value => {
+            const key = String(value ?? '').trim();
+            if (key) byCode.set(key, item);
+          });
+        });
+
+        return pedidos.map(pedido => ({
+          ...pedido,
+          productos: (pedido.productos ?? []).map(producto => {
+            const inventarioItem = this.findInventarioItem(producto, byId, byCode);
+            const codigo = String(
+              producto.codigoProducto ||
+              resolveInventarioCodigo(inventarioItem) ||
+              producto.productoId ||
+              ''
+            ).trim();
+            const descripcion = String(
+              producto.descripcion ||
+              inventarioItem?.descripcion ||
+              inventarioItem?.nombreProducto ||
+              producto.nombreProducto ||
+              ''
+            ).trim();
+
+            return {
+              ...producto,
+              productoId: producto.productoId || codigo,
+              codigoProducto: codigo || undefined,
+              nombreProducto: descripcion || producto.nombreProducto || codigo || 'Producto',
+              descripcion: descripcion || undefined
+            };
+          })
+        }));
+      })
+    );
+  }
+
+  private findInventarioItem(
+    producto: ProductoPedido,
+    byId: Map<string, Partial<InventarioItem>>,
+    byCode: Map<string, Partial<InventarioItem>>
+  ): Partial<InventarioItem> | undefined {
+    const candidates = [
+      producto.inventarioItemId,
+      producto.productoId,
+      producto.codigoProducto
+    ].map(value => String(value ?? '').trim()).filter(Boolean);
+
+    return candidates.map(value => byId.get(value)).find(Boolean)
+      ?? candidates.map(value => byCode.get(value)).find(Boolean);
   }
 
   private async obtenerSiguienteReferenciaPedido(transaction: any, sucursalId: string, sucursal: string): Promise<{ numeroPedido: string; consecutivo: number; prefijo: string }> {
