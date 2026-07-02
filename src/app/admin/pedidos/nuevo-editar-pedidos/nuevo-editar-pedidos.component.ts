@@ -83,7 +83,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
         this.clientes = data
           .filter(c => c.activo)
           .map(c => ({
-            label: `${c.nombre} ${c.rfc}`,
+            label: [c.nombre, c.rfc].filter(Boolean).join(' '),
             value: c
           }));
       });
@@ -130,6 +130,22 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
   getIniciales(nombre: string): string {
     if (!nombre) return '?';
     return nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  getClienteRfc(cliente: Partial<Cliente> | null = this.clienteSeleccionado): string {
+    return String(cliente?.rfc ?? '').trim();
+  }
+
+  getClienteEmail(cliente: Partial<Cliente> | null = this.clienteSeleccionado): string {
+    return String(cliente?.email ?? '').trim();
+  }
+
+  hasClienteRfc(): boolean {
+    return !!this.getClienteRfc();
+  }
+
+  hasClienteEmail(): boolean {
+    return !!this.getClienteEmail();
   }
 
   onClienteChange(event: any): void {
@@ -260,6 +276,8 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     const cliente = this.clienteSeleccionado!;
+    const clienteRfc = this.getClienteRfc(cliente);
+    const clienteEmail = this.getClienteEmail(cliente);
     const sucursalObj = this.sucursales.find(s => s.value === this.form.value.sucursalId);
 
     const productosFormateados: ProductoPedido[] = this.productosArray.controls.map(ctrl => {
@@ -283,8 +301,8 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
     const pedido: Pedido = {
       clienteId:        cliente.id!,
       clienteNombre:    cliente.nombre,
-      clienteRfc:       cliente.rfc,
-      clienteEmail:     cliente.email ?? '',
+      clienteRfc,
+      clienteEmail,
       descuentoCliente: cliente.descuento,
       tipoPedido:       this.form.value.tipoPedido as 'factura' | 'consigna',
       sucursalId:       this.form.value.sucursalId,
@@ -302,7 +320,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       const referenciaPedido = this.pedidosSrv.getPedidoReferencia(pedido);
 
       // Envía confirmación por email si el cliente tiene correo registrado
-      if (cliente.email) {
+      if (clienteEmail) {
         await this.pedidosSrv.enviarConfirmacionEmail(pedido).catch(() => {
           // No bloquea si el email falla
         });
@@ -311,7 +329,7 @@ export class NuevoEditarPedidosComponent implements OnInit, OnDestroy {
       this.messageSrv.add({
         severity: 'success',
         summary: 'Pedido creado',
-        detail: cliente.email
+        detail: clienteEmail
           ? `Pedido ${referenciaPedido} en revisión. Se envió confirmación al correo del cliente.`
           : `Pedido ${referenciaPedido} en revisión.`
       });

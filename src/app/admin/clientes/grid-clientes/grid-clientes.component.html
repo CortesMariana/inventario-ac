@@ -114,7 +114,7 @@
                   <div class="cliente-avatar">{{ getIniciales(cliente.nombre) }}</div>
                   <div class="cliente-meta">
                     <span class="cliente-nombre">{{ cliente.nombre }}</span>
-                    <span class="cliente-rfc">{{ cliente.rfc }}</span>
+                    <span class="cliente-rfc">{{ cliente.rfc || 'Sin RFC' }}</span>
                   </div>
                 </div>
               </div>

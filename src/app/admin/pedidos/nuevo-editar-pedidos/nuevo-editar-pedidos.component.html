@@ -36,20 +36,20 @@
                   [options]="clientes"
                   placeholder="Buscar cliente por nombre o RFC..."
                   [filter]="true"
-                  filterBy="label"
+                  [filterFields]="['label']"
                   filterPlaceholder="Escribe nombre o RFC"
                   [appendTo]="'body'"
                   (onChange)="onClienteChange($event)">
                   <ng-template pTemplate="item" let-item>
                     <div class="cliente-option">
                       <span class="cliente-option-nombre">{{ item.value.nombre }}</span>
-                      <span class="cliente-option-rfc">{{ item.value.rfc }}</span>
+                      <span class="cliente-option-rfc">{{ getClienteRfc(item.value) || 'Sin RFC' }}</span>
                     </div>
                   </ng-template>
                   <ng-template pTemplate="selectedItem" let-selected>
                     <div class="cliente-selected" *ngIf="selected">
                       <span class="font-semibold">{{ selected.value.nombre }}</span>
-                      <span class="cliente-selected-rfc">{{ selected.value.rfc }}</span>
+                      <span class="cliente-selected-rfc">{{ getClienteRfc(selected.value) || 'Sin RFC' }}</span>
                     </div>
                   </ng-template>
                 </p-dropdown>
@@ -104,10 +104,16 @@
 
             <!-- Info del cliente seleccionado -->
             <div class="cliente-info" *ngIf="clienteSeleccionado">
-              <div class="info-item">
+              <div class="info-item" *ngIf="hasClienteRfc(); else sinRfcInfo">
                 <span class="info-label">RFC</span>
-                <span class="info-value">{{ clienteSeleccionado.rfc }}</span>
+                <span class="info-value">{{ getClienteRfc() }}</span>
               </div>
+              <ng-template #sinRfcInfo>
+                <div class="info-item info-warn">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span class="info-label">Sin RFC registrado</span>
+                </div>
+              </ng-template>
               <div class="info-item" *ngIf="clienteSeleccionado.descuento > 0">
                 <span class="info-label">Descuento</span>
                 <span class="info-value info-descuento">{{ clienteSeleccionado.descuento }}%</span>
@@ -116,11 +122,11 @@
                 <span class="info-label">Teléfono</span>
                 <span class="info-value">{{ clienteSeleccionado.telefono }}</span>
               </div>
-              <div class="info-item" *ngIf="clienteSeleccionado.email">
+              <div class="info-item" *ngIf="hasClienteEmail()">
                 <span class="info-label">Correo</span>
-                <span class="info-value">{{ clienteSeleccionado.email }}</span>
+                <span class="info-value">{{ getClienteEmail() }}</span>
               </div>
-              <div class="info-item info-warn" *ngIf="!clienteSeleccionado.email">
+              <div class="info-item info-warn" *ngIf="!hasClienteEmail()">
                 <i class="pi pi-exclamation-circle"></i>
                 <span class="info-label">Sin correo registrado — no se enviará confirmación</span>
               </div>
@@ -173,7 +179,7 @@
                     [panelStyle]="{ width: '34rem', maxWidth: 'calc(100vw - 2rem)' }"
                     placeholder="Selecciona un producto"
                     [filter]="true"
-                    filterBy="label"
+                    [filterFields]="['label']"
                     scrollHeight="260px"
                     filterPlaceholder="Buscar producto"
                     [appendTo]="'body'"
@@ -281,7 +287,7 @@
             <div class="summary-avatar">{{ getIniciales(clienteSeleccionado.nombre) }}</div>
             <div class="summary-hero-copy">
               <div class="summary-name">{{ clienteSeleccionado.nombre }}</div>
-              <div class="summary-sub">{{ clienteSeleccionado.rfc }}</div>
+              <div class="summary-sub">{{ getClienteRfc() || 'Sin RFC registrado' }}</div>
             </div>
           </div>
           <div class="summary-tags">
